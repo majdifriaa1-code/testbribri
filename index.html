@@ -938,8 +938,8 @@ document.getElementById('update-password-button').addEventListener('click', asyn
 
     // Remplir les champs du profil
     document.getElementById('profile-name').value = userRecord.fields.Name || '';
-    document.getElementById('profile-email').value = firebaseUser.email; // L'email de Firebase est toujours fiable
-    document.getElementById('profile-modal-user-email').textContent = firebaseUser.email; // Email dans le sidebar
+    document.getElementById('profile-email').value = firebaseUser.email;
+    document.getElementById('profile-modal-user-email').textContent = firebaseUser.email;
 
     // Remplir la section Plans
     const status = userRecord.fields.Status || 'Free';
@@ -952,9 +952,58 @@ document.getElementById('update-password-button').addEventListener('click', asyn
         document.getElementById('plans-cancel-section').classList.add('hidden');
     }
 
-    // Afficher la modale et l'onglet par défaut (Profil)
+    // Afficher la modale
     document.getElementById('profile-modal').classList.remove('hidden');
-    showTab('profile'); // Afficher l'onglet 'Profil' par défaut
+
+    // ✅ AJOUTEZ LES ÉCOUTEURS D'ÉVÉNEMENTS ICI, APRÈS QUE LA MODALE SOIT AFFICHÉE
+    // Cela garantit que les éléments existent dans le DOM.
+    document.getElementById('profile-tab-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        showTab('profile');
+    });
+
+    document.getElementById('security-tab-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        showTab('security');
+    });
+
+    document.getElementById('plans-tab-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        showTab('plans');
+    });
+
+    document.getElementById('profile-logout-button').addEventListener('click', handleLogout);
+
+    document.getElementById('save-profile-button').addEventListener('click', async () => {
+        if (!userRecord) return;
+        const newName = document.getElementById('profile-name').value.trim();
+        try {
+            const saveButton = document.getElementById('save-profile-button');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Enregistrement...';
+
+            const updatedRecord = await callN8n('updateProfile', {
+                recordId: userRecord.id,
+                fields: {
+                    Name: newName
+                }
+            });
+            updateLocalUserRecord(updatedRecord);
+            showDashboard();
+            saveButton.disabled = false;
+            saveButton.textContent = 'Enregistrer';
+            showNotification('Profil mis à jour avec succès !');
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour du profil:", error);
+            alert("Une erreur est survenue lors de la mise à jour du profil: " + error.message);
+            const saveButton = document.getElementById('save-profile-button');
+            saveButton.disabled = false;
+            saveButton.textContent = 'Enregistrer';
+        }
+    });
+
+    // Afficher l'onglet par défaut (Profil)
+    showTab('profile');
 });
 
 document.getElementById('plans-upgrade-button').addEventListener('click', () => {
@@ -972,42 +1021,8 @@ document.getElementById('plans-cancel-button').addEventListener('click', () => {
     
     document.getElementById('close-profile-modal').addEventListener('click', () => document.getElementById('profile-modal').classList.add('hidden'));
     document.getElementById('cancel-profile-button').addEventListener('click', () => document.getElementById('profile-modal').classList.add('hidden'));
-    document.getElementById('save-profile-button').addEventListener('click', async () => {
-    if (!userRecord) return;
-    const newName = document.getElementById('profile-name').value.trim();
+   
 
-    try {
-        // Désactiver le bouton et montrer un état de chargement
-        const saveButton = document.getElementById('save-profile-button');
-        saveButton.disabled = true;
-        saveButton.textContent = 'Enregistrement...';
-
-        const updatedRecord = await callN8n('updateProfile', {
-            recordId: userRecord.id,
-            fields: {
-                Name: newName
-            }
-        });
-        updateLocalUserRecord(updatedRecord);
-        showDashboard(); // Rafraîchir le tableau de bord pour montrer le nouveau nom
-
-        saveButton.disabled = false;
-        saveButton.textContent = 'Enregistrer';
-
-        showNotification('Profil mis à jour avec succès !');
-
-    } catch (error) {
-        console.error("Erreur lors de la mise à jour du profil:", error);
-        alert("Une erreur est survenue lors de la mise à jour du profil: " + error.message);
-        const saveButton = document.getElementById('save-profile-button');
-        saveButton.disabled = false;
-        saveButton.textContent = 'Enregistrer';
-    }
-});
-document.getElementById('profile-tab-btn').addEventListener('click', (e) => { e.preventDefault(); showTab('profile'); });
-document.getElementById('security-tab-btn').addEventListener('click', (e) => { e.preventDefault(); showTab('security'); });
-document.getElementById('plans-tab-btn').addEventListener('click', (e) => { e.preventDefault(); showTab('plans'); });
-   document.getElementById('profile-logout-button').addEventListener('click', handleLogout);
     // LIGNE MANQUANTE À AJOUTER : Écouteur pour le bouton de déconnexion PRINCIPAL
 document.getElementById('logout-button').addEventListener('click', handleLogout);
     document.getElementById('start-debrief-button').addEventListener('click', startDebrief);
