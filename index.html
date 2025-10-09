@@ -270,6 +270,13 @@
                 <button id="start-debrief-button" class="btn btn-primary text-lg">Start the Debrief</button>
                 <p id="usage-limit" class="text-gray-500 text-sm mt-4"></p>
             </div>
+
+ <div id="debrief-output-container" class="card mt-6 hidden">
+           <h2 class="text-2xl font-semibold text-gray-700 mb-4">Votre Dernier Débrief</h2>
+           <div id="debrief-content" class="prose max-w-none">
+               </div>
+
+            
         </div>
     </div>
     <div id="notification-modal" class="modal-overlay hidden">
@@ -608,7 +615,7 @@
         if (!userRecord) return;
         const personaText = userRecord.fields['User Persona (AI)'] || '';
         if (personaText.trim() === '') {
-            alert("Veuillez décrire votre profil dans le champ prévu à cet effet avant de lancer un débrief.");
+            alert("Veuillez décrire votre profil dans le champ prévu à cet effet avant de  un débrief.");
             return;
         }
         const hasLinks = userRecord.fields['Article RSS Links'] || userRecord.fields['YouTube Links'] || (userRecord.fields['Podcast RSS Links'] && userRecord.fields['Podcast RSS Links'] !== '[]');
@@ -666,6 +673,31 @@
 
         const persona = userRecord.fields['User Persona (AI)'] || '';
         document.getElementById('user-persona-input').value = persona;
+
+
+        // =========================================================
+    // ===== BLOC DE CODE À AJOUTER POUR AFFICHER LE DÉBRIEF =====
+    // =========================================================
+    const debriefContainer = document.getElementById('debrief-output-container');
+    const debriefContent = document.getElementById('debrief-content');
+    
+    // Remplacez 'Debrief HTML' si vous avez utilisé un autre nom pour la colonne dans Airtable
+    const debriefHtml = userRecord.fields['Debrief HTML']; 
+
+    if (debriefHtml && debriefHtml.trim() !== '') {
+        // S'il y a du contenu HTML, on l'injecte dans la zone prévue
+        debriefContent.innerHTML = debriefHtml;
+        // Et on s'assure que toute la section est bien visible
+        debriefContainer.classList.remove('hidden');
+    } else {
+        // Sinon, on s'assure que la section reste cachée
+        debriefContainer.classList.add('hidden');
+    }
+    // ===============================================
+    // ===== FIN DU BLOC DE CODE =====================
+    // ===============================================
+
+        
         updateSourcesTable();
         updateUsageLimit();
 
