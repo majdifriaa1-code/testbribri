@@ -882,71 +882,60 @@
     });
 
     // ✅ ÉCOUTEURS DYNAMIQUES POUR LA MODALE DE PROFIL
-   document.getElementById('open-profile-modal').addEventListener('click', () => {
-    if (!userRecord || !firebaseUser) return;
+    document.getElementById('open-profile-modal').addEventListener('click', () => {
+        if (!userRecord || !firebaseUser) return;
 
-    // Remplir les champs du profil
-    document.getElementById('profile-name').value = userRecord.fields.Name || '';
-    document.getElementById('profile-email').value = firebaseUser.email;
-    // ✅ MODIFICATION : Afficher le NOM dans la barre latérale
-    document.getElementById('profile-modal-user-name').textContent = userRecord.fields.Name || firebaseUser.email;
+        // Remplir les champs du profil
+        document.getElementById('profile-name').value = userRecord.fields.Name || '';
+        document.getElementById('profile-email').value = firebaseUser.email;
+        // ✅ Afficher le NOM dans la barre latérale
+        document.getElementById('profile-modal-user-name').textContent = userRecord.fields.Name || firebaseUser.email;
 
-    // Remplir la section Plans
-    const status = userRecord.fields.Status || 'Free';
-    document.getElementById('plan-status-display').textContent = status;
-    if (status === 'Premium') {
-        document.getElementById('plans-upgrade-section').classList.add('hidden');
-        document.getElementById('plans-cancel-section').classList.remove('hidden');
-    } else {
-        document.getElementById('plans-upgrade-section').classList.remove('hidden');
-        document.getElementById('plans-cancel-section').classList.add('hidden');
-    }
-
-    // Afficher la modale
-    document.getElementById('profile-modal').classList.remove('hidden');
-
-    // ✅ Attacher les écouteurs ici, après affichage
-    document.getElementById('profile-tab-btn').onclick = (e) => { e.preventDefault(); showTab('profile'); };
-    document.getElementById('security-tab-btn').onclick = (e) => { e.preventDefault(); showTab('security'); };
-    document.getElementById('plans-tab-btn').onclick = (e) => { e.preventDefault(); showTab('plans'); };
-    document.getElementById('profile-logout-button').onclick = handleLogout;
-
-    document.getElementById('save-profile-button').onclick = async () => {
-        if (!userRecord) return;
-        const newName = document.getElementById('profile-name').value.trim();
-        const saveButton = document.getElementById('save-profile-button');
-        saveButton.disabled = true;
-        saveButton.textContent = 'Enregistrement...';
-        try {
-            const updatedRecord = await callN8n('updateProfile', { recordId: userRecord.id, fields: { Name: newName } });
-            updateLocalUserRecord(updatedRecord);
-            showDashboard();
-            saveButton.disabled = false;
-            saveButton.textContent = 'Enregistrer';
-            alert('Profil mis à jour avec succès !');
-        } catch (error) {
-            console.error("Erreur lors de la mise à jour du profil:", error);
-            alert("Une erreur est survenue lors de la mise à jour du profil: " + error.message);
-            saveButton.disabled = false;
-            saveButton.textContent = 'Enregistrer';
+        // Remplir la section Plans
+        const status = userRecord.fields.Status || 'Free';
+        document.getElementById('plan-status-display').textContent = status;
+        if (status === 'Premium') {
+            document.getElementById('plans-upgrade-section').classList.add('hidden');
+            document.getElementById('plans-cancel-section').classList.remove('hidden');
+        } else {
+            document.getElementById('plans-upgrade-section').classList.remove('hidden');
+            document.getElementById('plans-cancel-section').classList.add('hidden');
         }
-    };
 
-    showTab('profile');
-});
+        // Afficher la modale
+        document.getElementById('profile-modal').classList.remove('hidden');
+
+        // ✅ Attacher les écouteurs ici, après affichage
+        document.getElementById('profile-tab-btn').onclick = (e) => { e.preventDefault(); showTab('profile'); };
+        document.getElementById('security-tab-btn').onclick = (e) => { e.preventDefault(); showTab('security'); };
+        document.getElementById('plans-tab-btn').onclick = (e) => { e.preventDefault(); showTab('plans'); };
+        document.getElementById('profile-logout-button').onclick = handleLogout;
+
+        document.getElementById('save-profile-button').onclick = async () => {
+            if (!userRecord) return;
+            const newName = document.getElementById('profile-name').value.trim();
+            const saveButton = document.getElementById('save-profile-button');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Enregistrement...';
+            try {
+                const updatedRecord = await callN8n('updateProfile', { recordId: userRecord.id, fields: { Name: newName } });
+                updateLocalUserRecord(updatedRecord);
+                showDashboard();
+                saveButton.disabled = false;
+                saveButton.textContent = 'Enregistrer';
+                alert('Profil mis à jour avec succès !');
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour du profil:", error);
+                alert("Une erreur est survenue lors de la mise à jour du profil: " + error.message);
+                saveButton.disabled = false;
+                saveButton.textContent = 'Enregistrer';
+            }
+        };
+
+        showTab('profile');
+    });
 
     document.getElementById('close-profile-modal').addEventListener('click', () => document.getElementById('profile-modal').classList.add('hidden'));
-
-    // ✅ ÉCOUTEURS POUR LES BOUTONS DU PANEL UTILISATEUR
-    document.getElementById('upgrade-button').addEventListener('click', () => {
-        document.getElementById('premium-modal').classList.remove('hidden');
-    });
-
-    document.getElementById('logout-button').addEventListener('click', handleLogout);
-
-    document.getElementById('cancel-premium-button').addEventListener('click', () => {
-        document.getElementById('cancel-confirm-modal').classList.remove('hidden');
-    });
 
     // Écouteurs pour les modales Premium / Annulation
     document.getElementById('plans-upgrade-button').addEventListener('click', () => {
@@ -996,6 +985,17 @@
             mainCancelButton.disabled = false;
             mainCancelButton.textContent = 'Annuler l\'abonnement';
         }
+    });
+
+    // ✅ ÉCOUTEURS POUR LES BOUTONS DU PANEL UTILISATEUR
+    document.getElementById('upgrade-button').addEventListener('click', () => {
+        document.getElementById('premium-modal').classList.remove('hidden');
+    });
+
+    document.getElementById('logout-button').addEventListener('click', handleLogout);
+
+    document.getElementById('cancel-premium-button').addEventListener('click', () => {
+        document.getElementById('cancel-confirm-modal').classList.remove('hidden');
     });
 
     // Dernier écouteur
