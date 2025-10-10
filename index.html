@@ -12,15 +12,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #1F1F1F;
-            --bg-secondary: #282A2C;
-            --bg-tertiary: #333537;
-            --text-primary: #E3E3E3;
-            --text-secondary: #C4C7C5;
-            --text-placeholder: #8E918F;
-            --accent-primary: #A8C7FA;
-            --accent-primary-hover: #D3E3FD;
-            --border-color: #444746;
+            --bg-primary: #f8f9fa;      /* Fond principal (très clair) */
+            --bg-secondary: #ffffff;    /* Fond des panneaux */
+            --bg-tertiary: #f1f3f4;     /* Fond pour les éléments internes */
+            --text-primary: #202124;    /* Texte principal (sombre) */
+            --text-secondary: #5f6368;  /* Texte secondaire (gris) */
+            --text-placeholder: #80868b;/* Texte des placeholders */
+            --accent-primary: #1a73e8;   /* Bleu Google */
+            --accent-primary-hover: #185abc;
+            --border-color: #dadce0;
         }
         body {
             font-family: 'Roboto', sans-serif;
@@ -41,6 +41,7 @@
         .panel {
             background-color: var(--bg-secondary);
             border-radius: 12px;
+            border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -53,187 +54,132 @@
             border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
         }
-        .panel-content {
-            padding: 1rem;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
+        .panel-content { padding: 1rem; overflow-y: auto; flex-grow: 1; }
         .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            font-family: 'Google Sans', sans-serif;
-            font-weight: 500;
-            border-radius: 99px;
-            padding: 0.5rem 1rem;
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            font-family: 'Google Sans', sans-serif; font-weight: 500; border-radius: 99px;
+            padding: 0.5rem 1rem; border: 1px solid transparent; cursor: pointer; transition: all 0.2s;
         }
-        .btn-primary {
-            background-color: var(--accent-primary);
-            color: var(--bg-primary);
-        }
-        .btn-primary:hover { background-color: var(--accent-primary-hover); }
-        .btn-secondary {
-            background-color: var(--bg-tertiary);
-            color: var(--text-primary);
-            border-color: var(--border-color);
-        }
-        .btn-secondary:hover { background-color: #404245; }
+        .btn-primary { background-color: var(--accent-primary); color: white; }
+        .btn-primary:hover { background-color: var(--accent-primary-hover); box-shadow: 0 1px 3px 1px rgba(0,0,0,.15); }
+        .btn-secondary { background-color: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-color); }
+        .btn-secondary:hover { background-color: #e8eaed; }
         .placeholder-center {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            text-align: center;
-            color: var(--text-placeholder);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; text-align: center; color: var(--text-placeholder);
         }
-        .studio-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
-        }
+        .studio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
         .studio-item {
-            background-color: var(--bg-tertiary);
-            border-radius: 8px;
-            padding: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: var(--text-secondary);
-            cursor: pointer;
+            background-color: var(--bg-tertiary); border-radius: 8px; padding: 0.75rem;
+            display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); cursor: not-allowed;
         }
-        .studio-item:hover { background-color: #404245; }
-        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(4px); }
-        .modal-content { background-color: var(--bg-secondary); padding: 2rem; border-radius: 16px; width: 100%; max-width: 700px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid var(--border-color); }
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(4px); }
+        .modal-content { background-color: var(--bg-secondary); padding: 2rem; border-radius: 16px; width: 100%; max-width: 700px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .input-field { 
-            border: 1px solid var(--border-color);
-            border-radius: 8px; 
-            padding: 0.75rem 1rem; 
-            width: 100%; 
-            background-color: var(--bg-tertiary); 
-            color: var(--text-primary);
+            border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1rem;
+            width: 100%; background-color: #fff; color: var(--text-primary);
         }
-        .input-field:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 2px rgba(168, 199, 250, 0.3); }
-
-        /* Auth Screen */
+        .input-field:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.3); }
         .auth-card {
-            background-color: var(--bg-secondary);
-            padding: 3rem 2.5rem;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            width: 100%;
-            max-width: 420px;
+            background-color: var(--bg-secondary); padding: 3rem 2.5rem; border-radius: 16px;
+            border: 1px solid var(--border-color); width: 100%; max-width: 420px;
         }
     </style>
 </head>
 <body>
 
-    <div id="loading-indicator" class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center hidden">
-        <div class="w-12 h-12 border-4 border-t-accent-primary border-gray-600 rounded-full animate-spin"></div>
+    <div id="loading-indicator" class="fixed inset-0 bg-white/50 z-[100] flex items-center justify-center">
+        <div class="w-12 h-12 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
     </div>
 
     <div id="auth-section" class="flex items-center justify-center min-h-screen hidden">
         <div class="auth-card">
-            <div class="text-center mb-8">
-                <img src="https://cdn.prod.website-files.com/68b9f8920957ffd144ee6dd0/68d2e687122a4d05e0c8b291_Logo%20site%20web%20horiz.png" alt="Brieova Logo" class="h-10 mx-auto brightness-0 invert">
-            </div>
-            <h2 class="text-2xl font-bold text-center text-gray-100 mb-2 font-display">Bienvenue sur BRIOVA</h2>
-            <p class="text-center text-gray-400 mb-8">Connectez-vous pour continuer</p>
-            
+            <div class="text-center mb-8"><img src="https://cdn.prod.website-files.com/68b9f8920957ffd144ee6dd0/68d2e687122a4d05e0c8b291_Logo%20site%20web%20horiz.png" alt="Brieova Logo" class="h-10 mx-auto"></div>
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-2 font-display">Bienvenue sur BRIOVA</h2>
+            <p class="text-center text-gray-500 mb-8">Connectez-vous pour continuer</p>
             <div class="space-y-4">
                 <div>
-                    <label for="auth-email" class="block text-sm font-medium text-gray-300 mb-1">Adresse email</label>
+                    <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label>
                     <input type="email" id="auth-email" placeholder="nom@exemple.com" class="input-field">
                 </div>
                 <div>
-                    <label for="auth-password" class="block text-sm font-medium text-gray-300 mb-1">Mot de passe</label>
+                    <label for="auth-password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
                     <input type="password" id="auth-password" placeholder="••••••••" class="input-field">
                 </div>
-                <p id="auth-error" class="text-sm text-red-400 hidden"></p>
+                <p id="auth-error" class="text-sm text-red-500 hidden"></p>
                 <button id="login-button" class="w-full btn btn-primary py-3 mt-4">Se Connecter</button>
             </div>
             <div class="text-center mt-6">
-                 <button id="show-signup-modal-button" class="text-sm font-medium text-blue-400 hover:underline">Créer un compte</button>
-                 <span class="mx-2 text-gray-600">|</span>
-                 <button id="show-forgot-password-modal" class="text-sm text-blue-400 hover:underline">Mot de passe oublié ?</button>
+                 <button id="show-signup-modal-button" class="text-sm font-medium text-blue-600 hover:underline">Créer un compte</button>
+                 <span class="mx-2 text-gray-300">|</span>
+                 <button id="show-forgot-password-modal" class="text-sm text-blue-600 hover:underline">Mot de passe oublié ?</button>
             </div>
         </div>
     </div>
     
     <div id="dashboard-section" class="main-grid hidden">
-        <div id="sources-panel" class="panel">
+        <div class="panel">
             <div class="panel-header">
                 <h2 class="font-display font-medium text-lg">Sources</h2>
-                <div class="flex gap-2">
-                    <button id="show-add-source-modal" class="btn btn-primary text-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                        Ajouter
-                    </button>
-                </div>
+                <button id="show-add-source-modal" class="btn btn-primary text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    Ajouter
+                </button>
             </div>
-            <div class="panel-content" id="sources-list-content">
-                 <div id="sources-table" class="space-y-4">
-                    </div>
+            <div class="panel-content">
+                 <div id="sources-table" class="space-y-4"></div>
                  <div id="sources-placeholder" class="placeholder-center px-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     <p class="font-display font-medium">Vos sources apparaîtront ici</p>
-                    <p class="text-sm mt-1">Cliquez sur "Ajouter" pour commencer à importer des PDFs, sites web, vidéos, et plus.</p>
+                    <p class="text-sm mt-1">Cliquez sur "Ajouter" pour commencer.</p>
                 </div>
             </div>
         </div>
 
-        <div id="chat-panel" class="panel">
+        <div class="panel">
              <div class="panel-header">
                 <h2 class="font-display font-medium text-lg">Chat / Débrief</h2>
                 <div class="flex items-center gap-2">
-                     <div id="user-status" class="text-xs font-medium px-2 py-1 rounded-full bg-yellow-400/20 text-yellow-300"></div>
-                     <div id="debriefs-remaining" class="text-xs font-medium px-2 py-1 rounded-full bg-green-400/20 text-green-300"></div>
+                     <div id="user-status" class="text-xs font-medium px-2 py-1 rounded-full bg-yellow-100 text-yellow-800"></div>
+                     <div id="debriefs-remaining" class="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800"></div>
                 </div>
             </div>
             <div class="panel-content" id="debrief-output-container">
-                <div id="debrief-content" class="prose prose-invert prose-sm max-w-none">
-                    </div>
-                 <div id="debrief-placeholder" class="placeholder-center">
+                <div id="debrief-content" class="prose prose-sm max-w-none"></div>
+                <div id="debrief-placeholder" class="placeholder-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                    <p class="font-display font-medium">Ajoutez une source pour commencer</p>
-                    <p class="text-sm mt-1">Après avoir ajouté vos sources, lancez un débrief.</p>
+                    <p class="font-display font-medium">Prêt à lancer un débrief ?</p>
+                    <p class="text-sm mt-1">Ajoutez vos sources, puis cliquez sur le bouton ci-dessous.</p>
                 </div>
             </div>
-            <div class="p-4 border-t border-gray-700 flex-shrink-0">
-                 <button id="start-debrief-button" class="w-full btn btn-primary py-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1.157a4.002 4.002 0 00-3.13 3.131V10a1 1 0 102 0v-2.712A2.002 2.002 0 0110 5.288 2.002 2.002 0 0112.712 7.5h2.89A6.979 6.979 0 0010.156 3H11zM4.132 9.01A7.002 7.002 0 0010 16.845a7.002 7.002 0 005.868-7.836l-2.89.717A2.002 2.002 0 0110 11.288 2.002 2.002 0 017.288 9.5H4.132z" /></svg>
-                    Lancer le Débrief
-                </button>
-                <p id="usage-limit" class="text-gray-400 text-xs text-center mt-2"></p>
+            <div class="p-4 border-t border-gray-200 flex-shrink-0">
+                 <button id="start-debrief-button" class="w-full btn btn-primary py-3"></button>
+                <p id="usage-limit" class="text-gray-500 text-xs text-center mt-2"></p>
             </div>
         </div>
 
-        <div id="studio-panel" class="panel">
+        <div class="panel">
             <div class="panel-header">
                 <h2 class="font-display font-medium text-lg">Studio</h2>
-                 <div class="user-panel">
-                    <button id="open-profile-modal" title="Profil" class="hover:bg-gray-700 rounded-full p-2">
+                 <div class="flex items-center gap-1">
+                    <span id="user-display-name" class="text-sm text-gray-600 mr-2"></span>
+                    <button id="open-profile-modal" title="Profil" class="hover:bg-gray-200 rounded-full p-2">
                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     </button>
-                    <button id="logout-button" title="Déconnexion" class="hover:bg-gray-700 rounded-full p-2">
+                    <button id="logout-button" title="Déconnexion" class="hover:bg-gray-200 rounded-full p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 6v-6" /></svg>
                     </button>
                 </div>
             </div>
             <div class="panel-content">
                 <div class="studio-grid">
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0M18.364 18.364A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg> Audio Overview</div>
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> Video Overview</div>
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg> Mind Map</div>
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Reports</div>
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg> Flashcards</div>
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Quiz</div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0m12.728 12.728L5.636 5.636" /></svg> Audio Overview</div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> Video Overview</div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg> Mind Map</div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Reports</div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg> Flashcards</div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Quiz</div>
                 </div>
-
                 <div class="placeholder-center mt-8 px-4">
                      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                     <p class="font-display font-medium">Le contenu du studio sera sauvegardé ici.</p>
@@ -244,32 +190,31 @@
     
     <div id="add-source-modal" class="modal-overlay hidden">
         <div class="modal-content">
-             <button id="close-add-source-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-200 text-2xl font-bold">&times;</button>
+             <button id="close-add-source-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button>
             <h2 class="font-display text-2xl mb-6 text-left">Ajouter des sources</h2>
-
             <div class="space-y-6 text-left">
                  <div>
-                    <h3 class="font-medium text-gray-200 mb-2">Décrivez votre profil pour l'IA</h3>
-                    <textarea id="user-persona-input" rows="2" class="input-field" placeholder="Ex: Profile focused on AI-driven digital marketing..."></textarea>
+                    <h3 class="font-medium text-gray-700 mb-2">Décrivez votre profil pour l'IA</h3>
+                    <textarea id="user-persona-input" rows="2" class="input-field" placeholder="Ex: Spécialiste en marketing digital..."></textarea>
                     <button onclick="saveUserPersona()" class="btn btn-secondary mt-2 text-sm">Valider Profil</button>
                 </div>
-                <div class="border-t border-gray-700"></div>
+                <div class="border-t"></div>
                 <div>
-                    <h3 class="font-medium text-gray-200 mb-2">Articles / Liens RSS</h3>
+                    <h3 class="font-medium text-gray-700 mb-2">Articles / Liens RSS</h3>
                     <div class="flex gap-2">
                         <input type="url" id="article-link-input" placeholder="Collez vos liens (séparés par une virgule)" class="input-field">
                         <button onclick="addLink('Article RSS Links', 'article-link-input')" class="btn btn-secondary">Ajouter</button>
                     </div>
                 </div>
                  <div>
-                    <h3 class="font-medium text-gray-200 mb-2">Vidéos YouTube</h3>
+                    <h3 class="font-medium text-gray-700 mb-2">Vidéos YouTube</h3>
                     <div class="flex gap-2">
                         <input type="url" id="youtube-link-input" placeholder="Collez vos liens (séparés par une virgule)" class="input-field">
                         <button onclick="addLink('YouTube Links', 'youtube-link-input')" class="btn btn-secondary">Ajouter</button>
                     </div>
                 </div>
                 <div>
-                    <h3 class="font-medium text-gray-200 mb-2">Podcasts</h3>
+                    <h3 class="font-medium text-gray-700 mb-2">Podcasts</h3>
                     <div class="flex flex-col md:flex-row gap-2">
                         <input type="url" id="podcast-link-input" placeholder="Collez le lien RSS du podcast" class="input-field flex-grow">
                         <input type="text" id="podcast-title-input" placeholder="Titre de l'épisode" class="input-field flex-grow">
@@ -280,443 +225,402 @@
         </div>
     </div>
 
-    <script>
-// --- CONFIGURATION FIREBASE ---
-const firebaseConfig = {
-    apiKey: "AIzaSyBxt3psNIY8yFbzmSUURXK_Ne5jnagbZTQ",
-    authDomain: "brieova-f3288.firebaseapp.com",
-    projectId: "brieova-f3288",
-    storageBucket: "brieova-f3288.appspot.com",
-    messagingSenderId: "931818128414",
-    appId: "1:931818128414:web:8ee00d3f3bfd5fc9f21a0f"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch((error) => console.error("Erreur persistance :", error));
+    <div id="signup-modal" class="modal-overlay hidden"></div>
+    <div id="signup-success-modal" class="modal-overlay hidden"></div>
+    <div id="forgot-password-modal" class="modal-overlay hidden"></div>
+    <div id="profile-modal" class="modal-overlay hidden"></div>
+    <div id="cancel-confirm-modal" class="modal-overlay hidden"></div>
+    <div id="premium-modal" class="modal-overlay hidden"></div>
+    <div id="upgrade-button" class="hidden"></div>
+    <div id="cancel-premium-button" class="hidden"></div>
 
-// --- CONFIGURATION N8N ---
-const USER_ACTIONS_WEBHOOK_URL = 'https://n8n.brieova.com/webhook/user-actions';
+<script>
+    // --- CONFIGURATION FIREBASE ---
+    const firebaseConfig = {
+       apiKey: "AIzaSyBxt3psNIY8yFbzmSUURXK_Ne5jnagbZTQ",
+       authDomain: "brieova-f3288.firebaseapp.com",
+       projectId: "brieova-f3288",
+       storageBucket: "brieova-f3288.appspot.com",
+       messagingSenderId: "931818128414",
+       appId: "1:931818128414:web:8ee00d3f3bfd5fc9f21a0f"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch((error) => console.error("Erreur persistance :", error));
 
-// --- VARIABLES GLOBALES ---
-let userRecord = null;
-let firebaseUser = null;
-let isProcessingAuth = false;
+    // --- CONFIGURATION N8N ---
+    const USER_ACTIONS_WEBHOOK_URL = 'https://n8n.brieova.com/webhook/user-actions';
 
-// --- FONCTIONS DE COMMUNICATION N8N ---
-async function callN8n(action, data = {}) {
-    try {
-        if (!auth.currentUser) throw new Error("Utilisateur non authentifié.");
-        const idToken = await auth.currentUser.getIdToken();
-        const response = await fetch(USER_ACTIONS_WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-            body: JSON.stringify({ action, ...data })
-        });
-        if (!response.ok) throw new Error(`Le serveur a refusé la requête : ${response.status}`);
-        return await response.json();
-    } catch (error) {
-        console.error("Erreur lors de l'appel sécurisé au webhook:", error);
-        throw new Error("Une erreur réseau ou serveur est survenue.");
-    }
-}
+    // --- VARIABLES GLOBALES ---
+    let userRecord = null;
+    let firebaseUser = null;
+    let isProcessingAuth = false;
 
-// --- FONCTIONS DE GESTION DES DONNÉES UTILISATEUR ---
-function updateLocalUserRecord(recordFromN8n) {
-    let potentialRecord = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
-    if (!potentialRecord || typeof potentialRecord !== 'object' || !potentialRecord.id) {
-         console.error("Tentative de mise à jour avec une réponse invalide de n8n:", potentialRecord);
-         return;
-    }
-    if (potentialRecord.fields) {
-        userRecord = potentialRecord;
-    } else {
-        const { id, createdTime, ...fields } = potentialRecord;
-        userRecord = { id, createdTime, fields };
-    }
-}
-
-async function getUserDataByEmail(email) {
-    const rawResult = await callN8n('findUser', { email });
-    updateLocalUserRecord(rawResult);
-    if (!userRecord) {
-        throw new Error("Utilisateur non trouvé ou format de données invalide.");
-    }
-}
-
-async function createUserData(email, name) {
-    const newUserRecord = await callN8n('createUser', { email: email, name: name });
-    if (!newUserRecord || !newUserRecord.id) throw new Error("La création du profil a échoué.");
-}
-
-// --- FONCTIONS DU DASHBOARD ---
-async function addLink(fieldName, inputId) {
-    if (!userRecord) return;
-    const inputElement = document.getElementById(inputId);
-    const newLinks = inputElement.value.trim();
-    if (!newLinks) return;
-
-    if (fieldName === 'YouTube Links') {
-        const youtubeRegex = /^(https?:\/\/)?((www|m)\.)?(youtube\.com|youtu\.be)\/.+$/;
-        const linksToTest = newLinks.split(',').map(s => s.trim()).filter(Boolean);
-        const allLinksAreValid = linksToTest.every(link => youtubeRegex.test(link));
-        if (!allLinksAreValid) {
-            alert("Veuillez n'entrer que des liens YouTube valides, séparés par une virgule.");
-            return;
-        }
-    }
-
-    const existingLinks = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
-    const newLinksArray = newLinks.split(',').map(s => s.trim()).filter(Boolean);
-    const allLinks = [...new Set([...existingLinks, ...newLinksArray])].join(',');
-
-    try {
-        const updatedRecord = await callN8n('addLink', { recordId: userRecord.id, fieldName: fieldName, allLinks: allLinks });
-        updateLocalUserRecord(updatedRecord);
-        inputElement.value = '';
-        showDashboard();
-    } catch (error) {
-        alert("Impossible de sauvegarder le lien: " + error.message);
-    }
-}
-
-async function saveUserPersona() {
-    if (!userRecord) return;
-    const personaText = document.getElementById('user-persona-input').value.trim();
-    try {
-        const updatedRecord = await callN8n('updateUserPersona', {
-            recordId: userRecord.id,
-            personaText: personaText
-        });
-        updateLocalUserRecord(updatedRecord);
-        alert("Profil enregistré avec succès !");
-        showDashboard();
-    } catch (error) {
-        alert("Erreur lors de la sauvegarde du profil : " + error.message);
-    }
-}
-
-async function addPodcast() {
-    if (!userRecord) return;
-    const newLink = document.getElementById('podcast-link-input').value.trim();
-    const newTitle = document.getElementById('podcast-title-input').value.trim();
-    if (!newLink) {
-        alert("Veuillez remplir au moins le lien du podcast.");
-        return;
-    }
-    let podcasts = [];
-    try {
-        podcasts = JSON.parse(userRecord.fields['Podcast RSS Links'] || '[]');
-    } catch (e) {
-        podcasts = [];
-    }
-    podcasts.push({ link: newLink, title: newTitle });
-    try {
-        const updatedRecord = await callN8n('updatePodcasts', {
-            recordId: userRecord.id,
-            podcastData: JSON.stringify(podcasts)
-        });
-        updateLocalUserRecord(updatedRecord);
-        document.getElementById('podcast-link-input').value = '';
-        document.getElementById('podcast-title-input').value = '';
-        showDashboard();
-    } catch (error) {
-        alert("Impossible de sauvegarder le podcast. Erreur : " + error.message);
-    }
-}
-
-async function clearLinks(fieldName) {
-    if (!userRecord) return;
-    try {
-        const updatedRecord = await callN8n('clearLinks', {
-            recordId: userRecord.id,
-            fieldName: fieldName
-        });
-        updateLocalUserRecord(updatedRecord);
-        showDashboard();
-    } catch (error) {
-        alert("Impossible de vider les liens. Erreur : " + error.message);
-    }
-}
-
-async function clearPodcast() {
-    if (!userRecord) return;
-    try {
-        const updatedRecord = await callN8n('updatePodcasts', {
-            recordId: userRecord.id,
-            podcastData: '[]'
-        });
-        updateLocalUserRecord(updatedRecord);
-        showDashboard();
-    } catch (error) {
-        alert("Impossible de vider les podcasts. Erreur : " + error.message);
-    }
-}
-
-async function startDebrief() {
-    if (!userRecord) return;
-    const personaText = userRecord.fields['User Persona (AI)'] || '';
-    if (personaText.trim() === '') {
-        alert("Veuillez décrire votre profil dans le champ prévu à cet effet avant de lancer un débrief.");
-        return;
-    }
-    const hasLinks = userRecord.fields['Article RSS Links'] || userRecord.fields['YouTube Links'] || (userRecord.fields['Podcast RSS Links'] && userRecord.fields['Podcast RSS Links'] !== '[]');
-    if (!hasLinks) {
-        alert("Vous devez ajouter au moins un lien avant de lancer le débrief.");
-        return;
-    }
-    const debriefButton = document.getElementById('start-debrief-button');
-    debriefButton.disabled = true;
-    debriefButton.textContent = 'En cours...';
-    try {
-        const updatedRecord = await callN8n('startDebrief', { recordId: userRecord.id });
-        updateLocalUserRecord(updatedRecord);
-        showDashboard();
-        // Simulating notification as modal doesn't exist in the new design
-        alert("Votre débrief est en cours ! Vous recevrez la synthèse dans quelques minutes sur votre boîte mail.");
-    } catch (error) {
-        alert("Erreur lors du lancement du débrief: " + error.message);
-    } finally {
-        debriefButton.disabled = false;
-        // The text content will be reset by updateUsageLimit()
-    }
-}
-
-function showTab(tabName) {
-    document.querySelectorAll('.tab-content-section').forEach(section => section.classList.remove('active'));
-    document.querySelectorAll('.profile-nav-item').forEach(item => item.classList.remove('active'));
-    document.getElementById(`${tabName}-content-section`).classList.add('active');
-    document.getElementById(`${tabName}-tab-btn`).classList.add('active');
-}
-
-// --- FONCTIONS D'AFFICHAGE ---
-function showDashboard() {
-    if (!userRecord || !userRecord.fields || !firebaseUser) { handleLogout(); return; }
-    document.getElementById('auth-section').classList.add('hidden');
-    document.getElementById('dashboard-section').classList.remove('hidden');
-    
-    const status = userRecord.fields.Status || 'Free';
-    document.getElementById('user-status').textContent = status;
-
-    const debriefsRemainingElement = document.getElementById('debriefs-remaining');
-    if (status === 'Premium') {
-        debriefsRemainingElement.classList.add('hidden');
-    } else {
-        debriefsRemainingElement.classList.remove('hidden');
-        const remaining = parseInt(userRecord.fields['Debriefs Restants']) || 0;
-        debriefsRemainingElement.textContent = `${remaining} Débriefs`;
-    }
-
-    document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
-
-    const debriefContainer = document.getElementById('debrief-output-container');
-    const debriefContent = document.getElementById('debrief-content');
-    const debriefPlaceholder = document.getElementById('debrief-placeholder');
-    const debriefHtml = userRecord.fields['Debrief HTML'];
-
-    if (debriefHtml && debriefHtml.trim() !== '') {
-        debriefContent.innerHTML = debriefHtml;
-        debriefContent.classList.remove('hidden');
-        if(debriefPlaceholder) debriefPlaceholder.classList.add('hidden');
-    } else {
-        debriefContent.classList.add('hidden');
-        if(debriefPlaceholder) debriefPlaceholder.classList.remove('hidden');
-    }
-    
-    updateSourcesTable();
-    updateUsageLimit();
-}
-
-function updateSourcesTable() {
-    const tableBody = document.getElementById('sources-table');
-    const placeholder = document.getElementById('sources-placeholder');
-    tableBody.innerHTML = '';
-    let hasContent = false;
-    
-    const fieldsToShow = [
-        { name: 'Article RSS Links', title: 'Articles / RSS' },
-        { name: 'YouTube Links', title: 'Vidéos YouTube' },
-        { name: 'Podcast RSS Links', title: 'Podcasts' }
-    ];
-
-    fieldsToShow.forEach(field => {
-        const fieldName = field.name;
-        const fieldTitle = field.title;
-        
-        let contentExists = false;
-        let cardContent = '';
-        let clearAction = '';
-
-        if (fieldName === 'Podcast RSS Links') {
-            let podcasts = [];
-            try { podcasts = JSON.parse(userRecord.fields[fieldName] || '[]'); } catch (e) { podcasts = []; }
-            if (podcasts.length > 0) {
-                contentExists = true;
-                hasContent = true;
-                cardContent = podcasts.map(p => `<div class="text-xs truncate text-gray-400" title="${p.link}">${p.title || p.link}</div>`).join('');
-                clearAction = `clearPodcast()`;
-            }
-        } else {
-            const linksArray = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
-            if (linksArray.length > 0) {
-                contentExists = true;
-                hasContent = true;
-                cardContent = linksArray.map(link => `<div class="text-xs truncate text-gray-400" title="${link}">${link}</div>`).join('');
-                clearAction = `clearLinks('${fieldName}')`;
-            }
-        }
-        
-        if (contentExists) {
-            const card = document.createElement('div');
-            card.className = 'p-3 bg-gray-800/50 rounded-lg border border-gray-700';
-            card.innerHTML = `
-                <div class="flex justify-between items-center mb-2">
-                    <h4 class="font-medium text-sm text-gray-200">${fieldTitle}</h4>
-                    <button onclick="${clearAction}" class="text-xs text-gray-400 hover:text-white">Vider</button>
-                </div>
-                <div class="space-y-1">${cardContent}</div>
-            `;
-            tableBody.appendChild(card);
-        }
-    });
-    if(placeholder) {
-      placeholder.classList.toggle('hidden', hasContent);
-    }
-}
-
-function updateUsageLimit() {
-    if (!userRecord || !userRecord.fields) return;
-    const usageElement = document.getElementById('usage-limit');
-    const debriefButton = document.getElementById('start-debrief-button');
-    const debriefsRemaining = parseInt(userRecord.fields['Debriefs Restants']) || 0;
-    
-    // Inner HTML for the button to keep the SVG
-    const buttonContent = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1.157a4.002 4.002 0 00-3.13 3.131V10a1 1 0 102 0v-2.712A2.002 2.002 0 0110 5.288 2.002 2.002 0 0112.712 7.5h2.89A6.979 6.979 0 0010.156 3H11zM4.132 9.01A7.002 7.002 0 0010 16.845a7.002 7.002 0 005.868-7.836l-2.89.717A2.002 2.002 0 0110 11.288 2.002 2.002 0 017.288 9.5H4.132z" /></svg>`;
-
-    if (userRecord.fields.Status === 'Free' || !userRecord.fields.Status) {
-        usageElement.textContent = `Offre Gratuite : Il vous reste ${debriefsRemaining} débrief(s).`;
-        debriefButton.disabled = debriefsRemaining <= 0;
-        debriefButton.innerHTML = buttonContent + (debriefsRemaining <= 0 ? 'Limite atteinte' : 'Lancer le Débrief');
-    } else {
-        usageElement.textContent = `Plan Premium : Débriefs illimités.`;
-        debriefButton.disabled = false;
-        debriefButton.innerHTML = buttonContent + 'Lancer le Débrief';
-    }
-}
-
-
-async function handleLogout() {
-    try {
-        await auth.signOut();
-        firebaseUser = null;
-        userRecord = null;
-        location.reload();
-    } catch (error) {
-        console.error("Erreur lors de la déconnexion:", error);
-    }
-}
-
-// --- GESTION DE L'ÉTAT ET ÉVÉNEMENTS ---
-auth.onAuthStateChanged(async (user) => {
-    if (isProcessingAuth) return;
-    const loadingIndicator = document.getElementById('loading-indicator');
-    loadingIndicator.classList.remove('hidden');
-    if (user) {
-        firebaseUser = user;
+    // --- FONCTIONS DE COMMUNICATION N8N ---
+    async function callN8n(action, data = {}) {
         try {
-            await getUserDataByEmail(user.email);
+            if (!auth.currentUser) throw new Error("Utilisateur non authentifié.");
+            const idToken = await auth.currentUser.getIdToken();
+            const response = await fetch(USER_ACTIONS_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                body: JSON.stringify({ action, ...data })
+            });
+            if (!response.ok) throw new Error(`Le serveur a refusé la requête : ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error("Erreur lors de l'appel sécurisé au webhook:", error);
+            throw new Error("Une erreur réseau ou serveur est survenue.");
+        }
+    }
+
+    // --- FONCTIONS DE GESTION DES DONNÉES UTILISATEUR ---
+    function updateLocalUserRecord(recordFromN8n) {
+        let potentialRecord = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
+        if (!potentialRecord || typeof potentialRecord !== 'object' || !potentialRecord.id) {
+             console.error("Tentative de mise à jour avec une réponse invalide de n8n:", potentialRecord);
+             return;
+        }
+        if (potentialRecord.fields) {
+            userRecord = potentialRecord;
+        } else {
+            const { id, createdTime, ...fields } = potentialRecord;
+            userRecord = { id, createdTime, fields };
+        }
+    }
+
+    async function getUserDataByEmail(email) {
+        const rawResult = await callN8n('findUser', { email });
+        updateLocalUserRecord(rawResult);
+        if (!userRecord) {
+            throw new Error("Utilisateur non trouvé ou format de données invalide.");
+        }
+    }
+
+    async function createUserData(email, name) {
+        const newUserRecord = await callN8n('createUser', { email: email, name: name });
+        if (!newUserRecord || !newUserRecord.id) throw new Error("La création du profil a échoué.");
+    }
+
+    // --- FONCTIONS DU DASHBOARD ---
+    async function addLink(fieldName, inputId) {
+        if (!userRecord) return;
+        const inputElement = document.getElementById(inputId);
+        const newLinks = inputElement.value.trim();
+        if (!newLinks) return;
+
+        if (fieldName === 'YouTube Links') {
+            const youtubeRegex = /^(https?:\/\/)?((www|m)\.)?(youtube\.com|youtu\.be)\/.+$/;
+            const linksToTest = newLinks.split(',').map(s => s.trim()).filter(Boolean);
+            const allLinksAreValid = linksToTest.every(link => youtubeRegex.test(link));
+            if (!allLinksAreValid) {
+                alert("Veuillez n'entrer que des liens YouTube valides, séparés par une virgule.");
+                return;
+            }
+        }
+
+        const existingLinks = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
+        const newLinksArray = newLinks.split(',').map(s => s.trim()).filter(Boolean);
+        const allLinks = [...new Set([...existingLinks, ...newLinksArray])].join(',');
+
+        try {
+            const updatedRecord = await callN8n('addLink', { recordId: userRecord.id, fieldName: fieldName, allLinks: allLinks });
+            updateLocalUserRecord(updatedRecord);
+            inputElement.value = '';
             showDashboard();
         } catch (error) {
-            await handleLogout();
+            alert("Impossible de sauvegarder le lien: " + error.message);
         }
-    } else {
-        document.getElementById('auth-section').classList.remove('hidden');
-        document.getElementById('dashboard-section').classList.add('hidden');
     }
-    loadingIndicator.classList.add('hidden');
-});
 
-// Écouteurs d'événements pour l'authentification
-document.getElementById('login-button').addEventListener('click', async () => {
-    const email = document.getElementById('auth-email').value.trim();
-    const password = document.getElementById('auth-password').value.trim();
-    const errorElement = document.getElementById('auth-error');
-    errorElement.classList.add('hidden');
-    isProcessingAuth = true;
-    try {
-        await auth.signInWithEmailAndPassword(email, password);
-        // La redirection sera gérée par onAuthStateChanged
-    } catch (error) {
-        errorElement.textContent = "Email ou mot de passe incorrect.";
-        errorElement.classList.remove('hidden');
-    } finally {
-        isProcessingAuth = false;
+    async function saveUserPersona() {
+        if (!userRecord) return;
+        const personaText = document.getElementById('user-persona-input').value.trim();
+        try {
+            const updatedRecord = await callN8n('updateUserPersona', {
+                recordId: userRecord.id,
+                personaText: personaText
+            });
+            updateLocalUserRecord(updatedRecord);
+            alert("Profil enregistré avec succès !");
+            showDashboard();
+        } catch (error) {
+            alert("Erreur lors de la sauvegarde du profil : " + error.message);
+        }
     }
-});
 
-document.getElementById('signup-modal-submit').addEventListener('click', async () => {
-    const email = document.getElementById('signup-modal-email').value.trim();
-    const name = document.getElementById('signup-modal-name').value.trim();
-    const password = document.getElementById('signup-modal-password').value.trim();
-    const errorElement = document.getElementById('signup-modal-error');
-    errorElement.classList.add('hidden');
-    isProcessingAuth = true;
-    try {
-        await auth.createUserWithEmailAndPassword(email, password);
-        await createUserData(email, name);
-        document.getElementById('signup-modal').classList.add('hidden');
-        document.getElementById('signup-success-modal').classList.remove('hidden');
-    } catch (error) {
-        let message = "Une erreur est survenue.";
-        if (error.code === 'auth/email-already-in-use') { message = "Un compte avec cet email existe déjà."; }
-        errorElement.textContent = message;
-        errorElement.classList.remove('hidden');
-    } finally {
-        isProcessingAuth = false;
+    async function addPodcast() {
+        if (!userRecord) return;
+        const newLink = document.getElementById('podcast-link-input').value.trim();
+        const newTitle = document.getElementById('podcast-title-input').value.trim();
+        if (!newLink) {
+            alert("Veuillez remplir au moins le lien du podcast.");
+            return;
+        }
+        let podcasts = [];
+        try {
+            podcasts = JSON.parse(userRecord.fields['Podcast RSS Links'] || '[]');
+        } catch (e) {
+            podcasts = [];
+        }
+        podcasts.push({ link: newLink, title: newTitle });
+        try {
+            const updatedRecord = await callN8n('updatePodcasts', {
+                recordId: userRecord.id,
+                podcastData: JSON.stringify(podcasts)
+            });
+            updateLocalUserRecord(updatedRecord);
+            document.getElementById('podcast-link-input').value = '';
+            document.getElementById('podcast-title-input').value = '';
+            showDashboard();
+        } catch (error) {
+            alert("Impossible de sauvegarder le podcast. Erreur : " + error.message);
+        }
     }
-});
 
-// Écouteurs pour les autres modales et boutons
-document.getElementById('show-signup-modal-button').addEventListener('click', () => document.getElementById('signup-modal').classList.remove('hidden'));
-document.getElementById('signup-modal-cancel').addEventListener('click', () => document.getElementById('signup-modal').classList.add('hidden'));
-document.getElementById('signup-success-login-button').addEventListener('click', () => {
-    document.getElementById('signup-success-modal').classList.add('hidden');
-    location.reload();
-});
-document.getElementById('show-forgot-password-modal').addEventListener('click', () => document.getElementById('forgot-password-modal').classList.remove('hidden'));
-document.getElementById('forgot-password-cancel').addEventListener('click', () => document.getElementById('forgot-password-modal').classList.add('hidden'));
-document.getElementById('forgot-password-submit').addEventListener('click', async () => {
-    const email = document.getElementById('forgot-password-email').value;
-    const successElement = document.getElementById('forgot-password-success');
-    const errorElement = document.getElementById('forgot-password-error');
-    try {
-        await auth.sendPasswordResetEmail(email);
-        successElement.textContent = 'Email envoyé ! Vérifiez votre boîte de réception.';
-        successElement.classList.remove('hidden');
+    async function clearLinks(fieldName) {
+        if (!userRecord) return;
+        if (!confirm("Êtes-vous sûr de vouloir vider tous les liens de cette catégorie ?")) return;
+        try {
+            const updatedRecord = await callN8n('clearLinks', {
+                recordId: userRecord.id,
+                fieldName: fieldName
+            });
+            updateLocalUserRecord(updatedRecord);
+            showDashboard();
+        } catch (error) {
+            alert("Impossible de vider les liens. Erreur : " + error.message);
+        }
+    }
+
+    async function clearPodcast() {
+        if (!userRecord) return;
+        if (!confirm("Êtes-vous sûr de vouloir vider tous les podcasts ?")) return;
+        try {
+            const updatedRecord = await callN8n('updatePodcasts', {
+                recordId: userRecord.id,
+                podcastData: '[]'
+            });
+            updateLocalUserRecord(updatedRecord);
+            showDashboard();
+        } catch (error) {
+            alert("Impossible de vider les podcasts. Erreur : " + error.message);
+        }
+    }
+
+    async function startDebrief() {
+        if (!userRecord) return;
+        const personaText = userRecord.fields['User Persona (AI)'] || '';
+        if (personaText.trim() === '') {
+            alert("Veuillez décrire votre profil dans le champ prévu à cet effet avant de lancer un débrief.");
+            return;
+        }
+        const hasLinks = userRecord.fields['Article RSS Links'] || userRecord.fields['YouTube Links'] || (userRecord.fields['Podcast RSS Links'] && userRecord.fields['Podcast RSS Links'] !== '[]');
+        if (!hasLinks) {
+            alert("Vous devez ajouter au moins un lien avant de lancer le débrief.");
+            return;
+        }
+        const debriefButton = document.getElementById('start-debrief-button');
+        debriefButton.disabled = true;
+        debriefButton.textContent = 'En cours...';
+        try {
+            const updatedRecord = await callN8n('startDebrief', { recordId: userRecord.id });
+            updateLocalUserRecord(updatedRecord);
+            showDashboard();
+            alert("Votre débrief est en cours ! Vous recevrez la synthèse dans quelques minutes sur votre boîte mail.");
+        } catch (error) {
+            alert("Erreur lors du lancement du débrief: " + error.message);
+        }
+    }
+
+    // --- FONCTIONS D'AFFICHAGE ---
+    function showDashboard() {
+        if (!userRecord || !userRecord.fields || !firebaseUser) { handleLogout(); return; }
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+        
+        const displayName = userRecord.fields.Name || firebaseUser.email;
+        document.getElementById('user-display-name').textContent = displayName;
+        
+        const userStatusElement = document.getElementById('user-status');
+        const status = userRecord.fields.Status || 'Free';
+        userStatusElement.textContent = status;
+
+        const debriefsRemainingElement = document.getElementById('debriefs-remaining');
+        if (status === 'Premium') {
+            debriefsRemainingElement.classList.add('hidden');
+        } else {
+            debriefsRemainingElement.classList.remove('hidden');
+            const remaining = parseInt(userRecord.fields['Debriefs Restants']) || 0;
+            debriefsRemainingElement.textContent = `${remaining} Débriefs`;
+        }
+
+        document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
+
+        const debriefContent = document.getElementById('debrief-content');
+        const debriefPlaceholder = document.getElementById('debrief-placeholder');
+        const debriefHtml = userRecord.fields['Debrief HTML'];
+
+        if (debriefHtml && debriefHtml.trim() !== '') {
+            debriefContent.innerHTML = debriefHtml;
+            debriefContent.classList.remove('hidden');
+            debriefPlaceholder.classList.add('hidden');
+        } else {
+            debriefContent.innerHTML = '';
+            debriefContent.classList.add('hidden');
+            debriefPlaceholder.classList.remove('hidden');
+        }
+        
+        updateSourcesTable();
+        updateUsageLimit();
+    }
+
+    function updateSourcesTable() {
+        const tableBody = document.getElementById('sources-table');
+        const placeholder = document.getElementById('sources-placeholder');
+        tableBody.innerHTML = '';
+        let hasContent = false;
+        
+        const fieldsToShow = [
+            { name: 'Article RSS Links', title: 'Articles / RSS' },
+            { name: 'YouTube Links', title: 'Vidéos YouTube' },
+            { name: 'Podcast RSS Links', title: 'Podcasts' }
+        ];
+
+        fieldsToShow.forEach(field => {
+            const fieldName = field.name;
+            const fieldTitle = field.title;
+            let contentExists = false;
+            let cardContent = '';
+            let clearAction = '';
+
+            if (fieldName === 'Podcast RSS Links') {
+                let podcasts = [];
+                try { podcasts = JSON.parse(userRecord.fields[fieldName] || '[]'); } catch (e) {}
+                if (podcasts.length > 0) {
+                    contentExists = true;
+                    cardContent = podcasts.map(p => `<div class="text-xs truncate text-gray-500" title="${p.link}">${p.title || p.link}</div>`).join('');
+                    clearAction = `clearPodcast()`;
+                }
+            } else {
+                const linksArray = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
+                if (linksArray.length > 0) {
+                    contentExists = true;
+                    cardContent = linksArray.map(link => `<div class="text-xs truncate text-gray-500" title="${link}">${link}</div>`).join('');
+                    clearAction = `clearLinks('${fieldName}')`;
+                }
+            }
+            
+            if (contentExists) {
+                hasContent = true;
+                const card = document.createElement('div');
+                card.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200';
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-medium text-sm text-gray-800">${fieldTitle}</h4>
+                        <button onclick="${clearAction}" class="text-xs text-gray-500 hover:text-red-600">Vider</button>
+                    </div>
+                    <div class="space-y-1">${cardContent}</div>
+                `;
+                tableBody.appendChild(card);
+            }
+        });
+        placeholder.classList.toggle('hidden', hasContent);
+    }
+
+    function updateUsageLimit() {
+        if (!userRecord || !userRecord.fields) return;
+        const usageElement = document.getElementById('usage-limit');
+        const debriefButton = document.getElementById('start-debrief-button');
+        const debriefsRemaining = parseInt(userRecord.fields['Debriefs Restants']) || 0;
+        
+        const buttonContent = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1.157a4.002 4.002 0 00-3.13 3.131V10a1 1 0 102 0v-2.712A2.002 2.002 0 0110 5.288 2.002 2.002 0 0112.712 7.5h2.89A6.979 6.979 0 0010.156 3H11zM4.132 9.01A7.002 7.002 0 0010 16.845a7.002 7.002 0 005.868-7.836l-2.89.717A2.002 2.002 0 0110 11.288 2.002 2.002 0 017.288 9.5H4.132z" /></svg>`;
+
+        if (userRecord.fields.Status === 'Free' || !userRecord.fields.Status) {
+            usageElement.textContent = `Offre Gratuite : Il vous reste ${debriefsRemaining} débrief(s).`;
+            debriefButton.disabled = debriefsRemaining <= 0;
+            debriefButton.innerHTML = buttonContent + (debriefsRemaining <= 0 ? 'Limite atteinte' : 'Lancer le Débrief');
+        } else {
+            usageElement.textContent = `Plan Premium : Débriefs illimités.`;
+            debriefButton.disabled = false;
+            debriefButton.innerHTML = buttonContent + 'Lancer le Débrief';
+        }
+    }
+
+    async function handleLogout() {
+        try {
+            await auth.signOut();
+            firebaseUser = null;
+            userRecord = null;
+            location.reload();
+        } catch (error) {
+            console.error("Erreur lors de la déconnexion:", error);
+        }
+    }
+
+    // --- GESTION DE L'ÉTAT ET ÉVÉNEMENTS ---
+    auth.onAuthStateChanged(async (user) => {
+        if (isProcessingAuth) return;
+        const loadingIndicator = document.getElementById('loading-indicator');
+        loadingIndicator.classList.remove('hidden');
+        if (user) {
+            firebaseUser = user;
+            try {
+                await getUserDataByEmail(user.email);
+                showDashboard();
+            } catch (error) {
+                console.error("Erreur de récupération des données utilisateur:", error);
+                await handleLogout();
+            }
+        } else {
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+        }
+        loadingIndicator.classList.add('hidden');
+    });
+
+    // --- ÉCOUTEURS D'ÉVÉNEMENTS (LISTENERS) ---
+    document.getElementById('login-button').addEventListener('click', async () => {
+        const email = document.getElementById('auth-email').value.trim();
+        const password = document.getElementById('auth-password').value.trim();
+        const errorElement = document.getElementById('auth-error');
         errorElement.classList.add('hidden');
-    } catch (error) {
-        errorElement.textContent = "Erreur : impossible d'envoyer l'email.";
-        errorElement.classList.remove('hidden');
-        successElement.classList.add('hidden');
-    }
-});
+        isProcessingAuth = true;
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+        } catch (error) {
+            errorElement.textContent = "Email ou mot de passe incorrect.";
+            errorElement.classList.remove('hidden');
+        } finally {
+            isProcessingAuth = false;
+        }
+    });
 
-
-// --- ÉCOUTEURS POUR LE NOUVEAU DESIGN ---
-document.getElementById('start-debrief-button').addEventListener('click', startDebrief);
-document.getElementById('logout-button').addEventListener('click', handleLogout);
-
-// --- MODALES DU NOUVEAU DESIGN ---
-document.getElementById('show-add-source-modal').addEventListener('click', () => {
-    document.getElementById('add-source-modal').classList.remove('hidden');
-});
-document.getElementById('close-add-source-modal').addEventListener('click', () => {
-    document.getElementById('add-source-modal').classList.add('hidden');
-});
-document.getElementById('open-profile-modal').addEventListener('click', () => {
-    // La modale de profil n'est pas dans le nouveau HTML pour l'instant
-    // Pour la réintégrer, il faudrait la styliser en mode sombre et la reconnecter ici.
-    alert("La gestion du profil est en cours de développement.");
-});
+    document.getElementById('show-signup-modal-button').addEventListener('click', () => {
+        // Le HTML de cette modale a été retiré, il faudrait le recréer pour que cela fonctionne
+        alert("La fonctionnalité d'inscription est en cours de développement.");
+    });
+    
+    document.getElementById('show-forgot-password-modal').addEventListener('click', () => {
+        // Le HTML de cette modale a été retiré
+        alert("La fonctionnalité de mot de passe oublié est en cours de développement.");
+    });
+    
+    document.getElementById('start-debrief-button').addEventListener('click', startDebrief);
+    document.getElementById('logout-button').addEventListener('click', handleLogout);
+    
+    document.getElementById('show-add-source-modal').addEventListener('click', () => {
+        document.getElementById('add-source-modal').classList.remove('hidden');
+    });
+    
+    document.getElementById('close-add-source-modal').addEventListener('click', () => {
+        document.getElementById('add-source-modal').classList.add('hidden');
+    });
+    
+    document.getElementById('open-profile-modal').addEventListener('click', () => {
+        alert("La gestion du profil est en cours de développement.");
+    });
 </script>
+
 </body>
 </html>
