@@ -281,7 +281,7 @@
     </div>
 
     <script>
-    // --- CONFIGURATION FIREBASE ---
+// --- CONFIGURATION FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyBxt3psNIY8yFbzmSUURXK_Ne5jnagbZTQ",
     authDomain: "brieova-f3288.firebaseapp.com",
@@ -309,14 +309,8 @@ async function callN8n(action, data = {}) {
         const idToken = await auth.currentUser.getIdToken();
         const response = await fetch(USER_ACTIONS_WEBHOOK_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`
-            },
-            body: JSON.stringify({
-                action,
-                ...data
-            })
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+            body: JSON.stringify({ action, ...data })
         });
         if (!response.ok) throw new Error(`Le serveur a refusé la requête : ${response.status}`);
         return await response.json();
@@ -330,29 +324,19 @@ async function callN8n(action, data = {}) {
 function updateLocalUserRecord(recordFromN8n) {
     let potentialRecord = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
     if (!potentialRecord || typeof potentialRecord !== 'object' || !potentialRecord.id) {
-        console.error("Tentative de mise à jour avec une réponse invalide de n8n:", potentialRecord);
-        return;
+         console.error("Tentative de mise à jour avec une réponse invalide de n8n:", potentialRecord);
+         return;
     }
     if (potentialRecord.fields) {
         userRecord = potentialRecord;
     } else {
-        const {
-            id,
-            createdTime,
-            ...fields
-        } = potentialRecord;
-        userRecord = {
-            id,
-            createdTime,
-            fields
-        };
+        const { id, createdTime, ...fields } = potentialRecord;
+        userRecord = { id, createdTime, fields };
     }
 }
 
 async function getUserDataByEmail(email) {
-    const rawResult = await callN8n('findUser', {
-        email
-    });
+    const rawResult = await callN8n('findUser', { email });
     updateLocalUserRecord(rawResult);
     if (!userRecord) {
         throw new Error("Utilisateur non trouvé ou format de données invalide.");
@@ -360,10 +344,7 @@ async function getUserDataByEmail(email) {
 }
 
 async function createUserData(email, name) {
-    const newUserRecord = await callN8n('createUser', {
-        email: email,
-        name: name
-    });
+    const newUserRecord = await callN8n('createUser', { email: email, name: name });
     if (!newUserRecord || !newUserRecord.id) throw new Error("La création du profil a échoué.");
 }
 
@@ -389,11 +370,7 @@ async function addLink(fieldName, inputId) {
     const allLinks = [...new Set([...existingLinks, ...newLinksArray])].join(',');
 
     try {
-        const updatedRecord = await callN8n('addLink', {
-            recordId: userRecord.id,
-            fieldName: fieldName,
-            allLinks: allLinks
-        });
+        const updatedRecord = await callN8n('addLink', { recordId: userRecord.id, fieldName: fieldName, allLinks: allLinks });
         updateLocalUserRecord(updatedRecord);
         inputElement.value = '';
         showDashboard();
@@ -432,10 +409,7 @@ async function addPodcast() {
     } catch (e) {
         podcasts = [];
     }
-    podcasts.push({
-        link: newLink,
-        title: newTitle
-    });
+    podcasts.push({ link: newLink, title: newTitle });
     try {
         const updatedRecord = await callN8n('updatePodcasts', {
             recordId: userRecord.id,
@@ -494,18 +468,16 @@ async function startDebrief() {
     debriefButton.disabled = true;
     debriefButton.textContent = 'En cours...';
     try {
-        const updatedRecord = await callN8n('startDebrief', {
-            recordId: userRecord.id
-        });
+        const updatedRecord = await callN8n('startDebrief', { recordId: userRecord.id });
         updateLocalUserRecord(updatedRecord);
         showDashboard();
-        document.getElementById('notification-modal').classList.remove('hidden');
-        setTimeout(() => document.getElementById('notification-modal').classList.add('hidden'), 5000);
+        // Simulating notification as modal doesn't exist in the new design
+        alert("Votre débrief est en cours ! Vous recevrez la synthèse dans quelques minutes sur votre boîte mail.");
     } catch (error) {
         alert("Erreur lors du lancement du débrief: " + error.message);
     } finally {
         debriefButton.disabled = false;
-        debriefButton.textContent = 'Lancer le Débrief';
+        // The text content will be reset by updateUsageLimit()
     }
 }
 
@@ -518,17 +490,12 @@ function showTab(tabName) {
 
 // --- FONCTIONS D'AFFICHAGE ---
 function showDashboard() {
-    if (!userRecord || !userRecord.fields || !firebaseUser) {
-        handleLogout();
-        return;
-    }
+    if (!userRecord || !userRecord.fields || !firebaseUser) { handleLogout(); return; }
     document.getElementById('auth-section').classList.add('hidden');
     document.getElementById('dashboard-section').classList.remove('hidden');
-    const displayName = userRecord.fields.Name || firebaseUser.email;
-    document.getElementById('user-display-name').textContent = displayName;
-    const userStatusElement = document.getElementById('user-status');
+    
     const status = userRecord.fields.Status || 'Free';
-    userStatusElement.textContent = status;
+    document.getElementById('user-status').textContent = status;
 
     const debriefsRemainingElement = document.getElementById('debriefs-remaining');
     if (status === 'Premium') {
@@ -549,21 +516,14 @@ function showDashboard() {
     if (debriefHtml && debriefHtml.trim() !== '') {
         debriefContent.innerHTML = debriefHtml;
         debriefContent.classList.remove('hidden');
-        debriefPlaceholder.classList.add('hidden');
+        if(debriefPlaceholder) debriefPlaceholder.classList.add('hidden');
     } else {
         debriefContent.classList.add('hidden');
-        debriefPlaceholder.classList.remove('hidden');
+        if(debriefPlaceholder) debriefPlaceholder.classList.remove('hidden');
     }
-
+    
     updateSourcesTable();
     updateUsageLimit();
-
-    const upgradeButton = document.getElementById('upgrade-button');
-    if (status === 'Premium') {
-        upgradeButton.classList.add('hidden');
-    } else {
-        upgradeButton.classList.remove('hidden');
-    }
 }
 
 function updateSourcesTable() {
@@ -618,24 +578,31 @@ function updateSourcesTable() {
             tableBody.appendChild(card);
         }
     });
-
-    placeholder.classList.toggle('hidden', hasContent);
+    if(placeholder) {
+      placeholder.classList.toggle('hidden', hasContent);
+    }
 }
-
 
 function updateUsageLimit() {
     if (!userRecord || !userRecord.fields) return;
     const usageElement = document.getElementById('usage-limit');
     const debriefButton = document.getElementById('start-debrief-button');
     const debriefsRemaining = parseInt(userRecord.fields['Debriefs Restants']) || 0;
+    
+    // Inner HTML for the button to keep the SVG
+    const buttonContent = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1.157a4.002 4.002 0 00-3.13 3.131V10a1 1 0 102 0v-2.712A2.002 2.002 0 0110 5.288 2.002 2.002 0 0112.712 7.5h2.89A6.979 6.979 0 0010.156 3H11zM4.132 9.01A7.002 7.002 0 0010 16.845a7.002 7.002 0 005.868-7.836l-2.89.717A2.002 2.002 0 0110 11.288 2.002 2.002 0 017.288 9.5H4.132z" /></svg>`;
+
     if (userRecord.fields.Status === 'Free' || !userRecord.fields.Status) {
         usageElement.textContent = `Offre Gratuite : Il vous reste ${debriefsRemaining} débrief(s).`;
         debriefButton.disabled = debriefsRemaining <= 0;
+        debriefButton.innerHTML = buttonContent + (debriefsRemaining <= 0 ? 'Limite atteinte' : 'Lancer le Débrief');
     } else {
         usageElement.textContent = `Plan Premium : Débriefs illimités.`;
         debriefButton.disabled = false;
+        debriefButton.innerHTML = buttonContent + 'Lancer le Débrief';
     }
 }
+
 
 async function handleLogout() {
     try {
@@ -668,6 +635,7 @@ auth.onAuthStateChanged(async (user) => {
     loadingIndicator.classList.add('hidden');
 });
 
+// Écouteurs d'événements pour l'authentification
 document.getElementById('login-button').addEventListener('click', async () => {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
@@ -676,6 +644,7 @@ document.getElementById('login-button').addEventListener('click', async () => {
     isProcessingAuth = true;
     try {
         await auth.signInWithEmailAndPassword(email, password);
+        // La redirection sera gérée par onAuthStateChanged
     } catch (error) {
         errorElement.textContent = "Email ou mot de passe incorrect.";
         errorElement.classList.remove('hidden');
@@ -684,14 +653,59 @@ document.getElementById('login-button').addEventListener('click', async () => {
     }
 });
 
-// ... (le reste des écouteurs d'événements pour signup, forgot password, etc.)
+document.getElementById('signup-modal-submit').addEventListener('click', async () => {
+    const email = document.getElementById('signup-modal-email').value.trim();
+    const name = document.getElementById('signup-modal-name').value.trim();
+    const password = document.getElementById('signup-modal-password').value.trim();
+    const errorElement = document.getElementById('signup-modal-error');
+    errorElement.classList.add('hidden');
+    isProcessingAuth = true;
+    try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        await createUserData(email, name);
+        document.getElementById('signup-modal').classList.add('hidden');
+        document.getElementById('signup-success-modal').classList.remove('hidden');
+    } catch (error) {
+        let message = "Une erreur est survenue.";
+        if (error.code === 'auth/email-already-in-use') { message = "Un compte avec cet email existe déjà."; }
+        errorElement.textContent = message;
+        errorElement.classList.remove('hidden');
+    } finally {
+        isProcessingAuth = false;
+    }
+});
+
+// Écouteurs pour les autres modales et boutons
 document.getElementById('show-signup-modal-button').addEventListener('click', () => document.getElementById('signup-modal').classList.remove('hidden'));
 document.getElementById('signup-modal-cancel').addEventListener('click', () => document.getElementById('signup-modal').classList.add('hidden'));
+document.getElementById('signup-success-login-button').addEventListener('click', () => {
+    document.getElementById('signup-success-modal').classList.add('hidden');
+    location.reload();
+});
+document.getElementById('show-forgot-password-modal').addEventListener('click', () => document.getElementById('forgot-password-modal').classList.remove('hidden'));
+document.getElementById('forgot-password-cancel').addEventListener('click', () => document.getElementById('forgot-password-modal').classList.add('hidden'));
+document.getElementById('forgot-password-submit').addEventListener('click', async () => {
+    const email = document.getElementById('forgot-password-email').value;
+    const successElement = document.getElementById('forgot-password-success');
+    const errorElement = document.getElementById('forgot-password-error');
+    try {
+        await auth.sendPasswordResetEmail(email);
+        successElement.textContent = 'Email envoyé ! Vérifiez votre boîte de réception.';
+        successElement.classList.remove('hidden');
+        errorElement.classList.add('hidden');
+    } catch (error) {
+        errorElement.textContent = "Erreur : impossible d'envoyer l'email.";
+        errorElement.classList.remove('hidden');
+        successElement.classList.add('hidden');
+    }
+});
 
+
+// --- ÉCOUTEURS POUR LE NOUVEAU DESIGN ---
 document.getElementById('start-debrief-button').addEventListener('click', startDebrief);
 document.getElementById('logout-button').addEventListener('click', handleLogout);
 
-// --- MODALES ---
+// --- MODALES DU NOUVEAU DESIGN ---
 document.getElementById('show-add-source-modal').addEventListener('click', () => {
     document.getElementById('add-source-modal').classList.remove('hidden');
 });
@@ -699,10 +713,10 @@ document.getElementById('close-add-source-modal').addEventListener('click', () =
     document.getElementById('add-source-modal').classList.add('hidden');
 });
 document.getElementById('open-profile-modal').addEventListener('click', () => {
-    // Logique pour ouvrir et remplir la modale de profil ici...
-    alert("La gestion du profil sera bientôt disponible !");
+    // La modale de profil n'est pas dans le nouveau HTML pour l'instant
+    // Pour la réintégrer, il faudrait la styliser en mode sombre et la reconnecter ici.
+    alert("La gestion du profil est en cours de développement.");
 });
 </script>
-
 </body>
 </html>
