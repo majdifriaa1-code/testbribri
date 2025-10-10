@@ -387,13 +387,21 @@
         } catch (e) { showNotification('Erreur', e.message, 'error'); }
     }
 
-    async function saveUserPersona() {
-        const personaText = document.getElementById('user-persona-input').value.trim();
-        try {
-            updateLocalUserRecord(await callN8n('updateUserPersona', { recordId: userRecord.id, personaText }));
-            showNotification('Profil Enregistré', 'Votre profil pour l\'IA a été mis à jour.', 'success');
-        } catch (e) { showNotification('Erreur', e.message, 'error'); }
+ async function saveUserPersona() {
+    if (!userRecord) return;
+    const personaText = document.getElementById('user-persona-input').value.trim();
+    try {
+        const updatedRecord = await callN8n('updateUserPersona', {
+            recordId: userRecord.id,
+            personaText: personaText
+        });
+        updateLocalUserRecord(updatedRecord);
+        showNotification('Profil Enregistré', 'Votre profil pour l\'IA a été mis à jour.', 'success');
+        // La ligne showDashboard(); a été supprimée ici.
+    } catch (error) {
+        showNotification('Erreur', "Erreur lors de la sauvegarde du profil : " + error.message, 'error');
     }
+}
 
     async function addPodcast() {
         const newLink = document.getElementById('podcast-link-input').value.trim();
