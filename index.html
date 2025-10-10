@@ -12,13 +12,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #f8f9fa;      /* Fond principal (très clair) */
-            --bg-secondary: #ffffff;    /* Fond des panneaux */
-            --bg-tertiary: #f1f3f4;     /* Fond pour les éléments internes */
-            --text-primary: #202124;    /* Texte principal (sombre) */
-            --text-secondary: #5f6368;  /* Texte secondaire (gris) */
-            --text-placeholder: #80868b;/* Texte des placeholders */
-            --accent-primary: #1a73e8;   /* Bleu Google */
+            --bg-primary: #f8f9fa;      
+            --bg-secondary: #ffffff;    
+            --bg-tertiary: #f1f3f4;     
+            --text-primary: #202124;    
+            --text-secondary: #5f6368;  
+            --text-placeholder: #80868b;
+            --accent-primary: #1a73e8;   
             --accent-primary-hover: #185abc;
             --border-color: #dadce0;
             --danger-color: #d93025;
@@ -50,6 +50,11 @@
         .profile-nav-item svg { margin-right: 1rem; width: 1.25rem; height: 1.25rem; }
         .tab-content-section { display: none; }
         .tab-content-section.active { display: block; }
+        .studio-item {
+            background-color: transparent; border-radius: 8px; padding: 0.75rem;
+            display: flex; align-items: center; gap: 1rem; color: var(--text-secondary); cursor: not-allowed;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -100,6 +105,11 @@
                     <p class="text-sm mt-1">Cliquez sur "Ajouter" pour commencer.</p>
                 </div>
             </div>
+            <div class="border-t border-gray-200 p-4">
+                <h3 class="font-medium text-gray-700 mb-2 text-sm">Profil pour l'IA</h3>
+                <textarea id="user-persona-input" rows="3" class="input-field text-sm" placeholder="Ex: Spécialiste en marketing digital..."></textarea>
+                <button onclick="saveUserPersona()" class="btn btn-secondary mt-2 text-sm w-full">Valider Profil</button>
+            </div>
         </div>
 
         <div class="panel">
@@ -138,17 +148,17 @@
                 </div>
             </div>
             <div class="panel-content">
-                <div class="studio-grid">
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0m12.728 12.728L5.636 5.636" /></svg> Audio Overview</div>
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> Video Overview</div>
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg> Mind Map</div>
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Reports</div>
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg> Flashcards</div>
-                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Quiz</div>
+                <div class="space-y-2">
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0m12.728 12.728L5.636 5.636" /></svg> <span>Audio Overview</span></div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> <span>Video Overview</span></div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg> <span>Mind Map</span></div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> <span>Reports</span></div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg> <span>Flashcards</span></div>
+                    <div class="studio-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> <span>Quiz</span></div>
                 </div>
-                <div class="placeholder-center mt-8 px-4">
+                <div class="placeholder-center mt-8 px-4 flex-grow">
                      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                    <p class="font-display font-medium">Le contenu du studio sera sauvegardé ici.</p>
+                    <p class="font-display font-medium text-sm">Le contenu du studio sera sauvegardé ici.</p>
                 </div>
             </div>
         </div>
@@ -159,12 +169,6 @@
              <button id="close-add-source-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button>
             <h2 class="font-display text-2xl mb-6 text-left">Ajouter des sources</h2>
             <div class="space-y-6 text-left">
-                 <div>
-                    <h3 class="font-medium text-gray-700 mb-2">Décrivez votre profil pour l'IA</h3>
-                    <textarea id="user-persona-input" rows="2" class="input-field" placeholder="Ex: Spécialiste en marketing digital..."></textarea>
-                    <button onclick="saveUserPersona()" class="btn btn-secondary mt-2 text-sm">Valider Profil</button>
-                </div>
-                <div class="border-t"></div>
                 <div>
                     <h3 class="font-medium text-gray-700 mb-2">Articles / Liens RSS</h3>
                     <div class="flex gap-2">
@@ -294,27 +298,15 @@
     <button id="cancel-premium-button" class="hidden"></button>
 
 <script>
-    // --- CONFIGURATION FIREBASE ---
-    const firebaseConfig = {
-       apiKey: "AIzaSyBxt3psNIY8yFbzmSUURXK_Ne5jnagbZTQ",
-       authDomain: "brieova-f3288.firebaseapp.com",
-       projectId: "brieova-f3288",
-       storageBucket: "brieova-f3288.appspot.com",
-       messagingSenderId: "931818128414",
-       appId: "1:931818128414:web:8ee00d3f3bfd5fc9f21a0f"
-    };
+    // --- Le script complet est ici, vous n'avez rien à modifier ---
+    const firebaseConfig = { apiKey: "AIzaSyBxt3psNIY8yFbzmSUURXK_Ne5jnagbZTQ", authDomain: "brieova-f3288.firebaseapp.com", projectId: "brieova-f3288", storageBucket: "brieova-f3288.appspot.com", messagingSenderId: "931818128414", appId: "1:931818128414:web:8ee00d3f3bfd5fc9f21a0f" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch((error) => console.error("Erreur persistance :", error));
-
-    // --- CONFIGURATION N8N ---
     const USER_ACTIONS_WEBHOOK_URL = 'https://n8n.brieova.com/webhook/user-actions';
-
-    // --- VARIABLES GLOBALES ---
     let userRecord = null;
     let firebaseUser = null;
 
-    // --- NOUVEAU SYSTÈME DE NOTIFICATION ---
     function showNotification(title, message, type = 'success') {
         return new Promise(resolve => {
             const modal = document.getElementById('generic-modal');
@@ -322,30 +314,25 @@
             const titleEl = document.getElementById('generic-modal-title');
             const messageEl = document.getElementById('generic-modal-message');
             const actionsEl = document.getElementById('generic-modal-actions');
-
             titleEl.textContent = title;
             messageEl.textContent = message;
             actionsEl.innerHTML = ''; 
             iconContainer.innerHTML = '';
-
             const icons = {
                 success: `<svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`,
                 error: `<svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`,
                 confirm: `<svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
             };
             iconContainer.innerHTML = icons[type];
-
             if (type === 'confirm') {
                 const cancelButton = document.createElement('button');
                 cancelButton.textContent = 'Annuler';
                 cancelButton.className = 'w-full btn btn-secondary';
                 cancelButton.onclick = () => { modal.classList.add('hidden'); resolve(false); };
-                
                 const confirmButton = document.createElement('button');
                 confirmButton.textContent = 'Confirmer';
                 confirmButton.className = 'w-full btn btn-primary';
                 confirmButton.onclick = () => { modal.classList.add('hidden'); resolve(true); };
-                
                 actionsEl.appendChild(cancelButton);
                 actionsEl.appendChild(confirmButton);
             } else {
@@ -359,10 +346,9 @@
         });
     }
 
-    // --- FONCTIONS DE COMMUNICATION N8N ---
     async function callN8n(action, data = {}) {
         if (!auth.currentUser) throw new Error("Utilisateur non authentifié.");
-        const idToken = await auth.currentUser.getIdToken(true); // Force refresh token
+        const idToken = await auth.currentUser.getIdToken(true);
         const response = await fetch(USER_ACTIONS_WEBHOOK_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
@@ -372,170 +358,131 @@
         return await response.json();
     }
 
-    // --- FONCTIONS DE GESTION DES DONNÉES UTILISATEUR ---
     function updateLocalUserRecord(recordFromN8n) {
-        let potentialRecord = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
-        if (!potentialRecord || typeof potentialRecord !== 'object' || !potentialRecord.id) {
-             console.error("Tentative de mise à jour avec une réponse invalide de n8n:", potentialRecord);
-             return;
-        }
-        userRecord = potentialRecord.fields ? potentialRecord : { id: potentialRecord.id, createdTime: potentialRecord.createdTime, fields: { ...potentialRecord } };
+        let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
+        if (!p || typeof p !== 'object' || !p.id) return;
+        userRecord = p.fields ? p : { id: p.id, fields: { ...p } };
     }
 
     async function getUserDataByEmail(email) {
         const rawResult = await callN8n('findUser', { email });
         updateLocalUserRecord(rawResult);
-        if (!userRecord) {
-            throw new Error("Utilisateur non trouvé ou format de données invalide.");
-        }
+        if (!userRecord) throw new Error("Utilisateur non trouvé.");
     }
 
     async function createUserData(email, name) {
-        const newUserRecord = await callN8n('createUser', { email: email, name: name });
-        if (!newUserRecord || !newUserRecord.id) throw new Error("La création du profil a échoué.");
+        await callN8n('createUser', { email, name });
     }
 
-    // --- FONCTIONS DU DASHBOARD ---
     async function addLink(fieldName, inputId) {
-        if (!userRecord) return;
         const inputElement = document.getElementById(inputId);
         const newLinks = inputElement.value.trim();
         if (!newLinks) return;
         const existingLinks = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
-        const newLinksArray = newLinks.split(',').map(s => s.trim()).filter(Boolean);
-        const allLinks = [...new Set([...existingLinks, ...newLinksArray])].join(',');
+        const allLinks = [...new Set([...existingLinks, ...newLinks.split(',').map(s => s.trim()).filter(Boolean)])].join(',');
         try {
-            const updatedRecord = await callN8n('addLink', { recordId: userRecord.id, fieldName: fieldName, allLinks: allLinks });
-            updateLocalUserRecord(updatedRecord);
+            updateLocalUserRecord(await callN8n('addLink', { recordId: userRecord.id, fieldName, allLinks }));
             inputElement.value = '';
             showDashboard();
-        } catch (error) {
-            showNotification('Erreur', "Impossible de sauvegarder le lien: " + error.message, 'error');
-        }
+        } catch (e) { showNotification('Erreur', e.message, 'error'); }
     }
 
     async function saveUserPersona() {
-        if (!userRecord) return;
         const personaText = document.getElementById('user-persona-input').value.trim();
         try {
-            const updatedRecord = await callN8n('updateUserPersona', { recordId: userRecord.id, personaText: personaText });
-            updateLocalUserRecord(updatedRecord);
+            updateLocalUserRecord(await callN8n('updateUserPersona', { recordId: userRecord.id, personaText }));
             showNotification('Profil Enregistré', 'Votre profil pour l\'IA a été mis à jour.', 'success');
-            showDashboard();
-        } catch (error) {
-            showNotification('Erreur', "Erreur lors de la sauvegarde du profil : " + error.message, 'error');
-        }
+        } catch (e) { showNotification('Erreur', e.message, 'error'); }
     }
 
     async function addPodcast() {
-        if (!userRecord) return;
         const newLink = document.getElementById('podcast-link-input').value.trim();
         const newTitle = document.getElementById('podcast-title-input').value.trim();
-        if (!newLink) {
-            showNotification("Attention", "Veuillez remplir au moins le lien du podcast.", 'error');
-            return;
-        }
+        if (!newLink) { showNotification("Attention", "Veuillez fournir le lien du podcast.", 'error'); return; }
         let podcasts = [];
-        try {
-            podcasts = JSON.parse(userRecord.fields['Podcast RSS Links'] || '[]');
-        } catch (e) { podcasts = []; }
+        try { podcasts = JSON.parse(userRecord.fields['Podcast RSS Links'] || '[]'); } catch (e) {}
         podcasts.push({ link: newLink, title: newTitle });
         try {
-            const updatedRecord = await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: JSON.stringify(podcasts) });
-            updateLocalUserRecord(updatedRecord);
+            updateLocalUserRecord(await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: JSON.stringify(podcasts) }));
             document.getElementById('podcast-link-input').value = '';
             document.getElementById('podcast-title-input').value = '';
             showDashboard();
-        } catch (error) {
-            showNotification('Erreur', "Impossible de sauvegarder le podcast: " + error.message, 'error');
-        }
+        } catch (e) { showNotification('Erreur', e.message, 'error'); }
     }
-    
+
     async function clearLinks(fieldName) {
-        if (!userRecord) return;
-        const confirmed = await showNotification('Confirmation', 'Vider tous les liens de cette catégorie ?', 'confirm');
-        if (!confirmed) return;
-        try {
-            const updatedRecord = await callN8n('clearLinks', { recordId: userRecord.id, fieldName: fieldName });
-            updateLocalUserRecord(updatedRecord);
-            showDashboard();
-        } catch (error) {
-            showNotification('Erreur', "Impossible de vider les liens : " + error.message, 'error');
+        if (await showNotification('Confirmation', 'Vider tous les liens de cette catégorie ?', 'confirm')) {
+            try {
+                updateLocalUserRecord(await callN8n('clearLinks', { recordId: userRecord.id, fieldName }));
+                showDashboard();
+            } catch (e) { showNotification('Erreur', e.message, 'error'); }
         }
     }
 
     async function clearPodcast() {
-        if (!userRecord) return;
-        const confirmed = await showNotification('Confirmation', 'Vider tous les podcasts ?', 'confirm');
-        if (!confirmed) return;
-        try {
-            const updatedRecord = await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: '[]' });
-            updateLocalUserRecord(updatedRecord);
-            showDashboard();
-        } catch (error) {
-            showNotification('Erreur', "Impossible de vider les podcasts : " + error.message, 'error');
+        if (await showNotification('Confirmation', 'Vider tous les podcasts ?', 'confirm')) {
+            try {
+                updateLocalUserRecord(await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: '[]' }));
+                showDashboard();
+            } catch (e) { showNotification('Erreur', e.message, 'error'); }
         }
     }
 
     async function startDebrief() {
-        if (!userRecord) return;
-        const personaText = userRecord.fields['User Persona (AI)'] || '';
-        if (personaText.trim() === '') {
-            showNotification("Profil manquant", "Veuillez décrire votre profil dans la section 'Ajouter des sources' avant de lancer un débrief.", 'error');
+        if (!userRecord.fields['User Persona (AI)']?.trim()) {
+            showNotification("Profil manquant", "Veuillez décrire votre profil avant de lancer un débrief.", 'error');
             return;
         }
-        const hasLinks = userRecord.fields['Article RSS Links'] || userRecord.fields['YouTube Links'] || (userRecord.fields['Podcast RSS Links'] && userRecord.fields['Podcast RSS Links'] !== '[]');
-        if (!hasLinks) {
-            showNotification("Sources manquantes", "Vous devez ajouter au moins un lien avant de lancer le débrief.", 'error');
+        if (!userRecord.fields['Article RSS Links'] && !userRecord.fields['YouTube Links'] && (!userRecord.fields['Podcast RSS Links'] || userRecord.fields['Podcast RSS Links'] === '[]')) {
+            showNotification("Sources manquantes", "Ajoutez au moins un lien avant de lancer le débrief.", 'error');
             return;
         }
-        const debriefButton = document.getElementById('start-debrief-button');
-        debriefButton.disabled = true;
-        debriefButton.innerHTML = 'En cours...';
+        const btn = document.getElementById('start-debrief-button');
+        btn.disabled = true;
+        btn.innerHTML = 'En cours...';
         try {
-            const updatedRecord = await callN8n('startDebrief', { recordId: userRecord.id });
-            updateLocalUserRecord(updatedRecord);
+            updateLocalUserRecord(await callN8n('startDebrief', { recordId: userRecord.id }));
             showDashboard();
-            showNotification('Lancement du Débrief', 'Votre débrief est en cours ! Vous recevrez la synthèse dans quelques minutes sur votre boîte mail.', 'success');
-        } catch (error) {
-            showNotification('Erreur', "Erreur lors du lancement du débrief: " + error.message, 'error');
+            showNotification('Lancement du Débrief', 'Votre débrief est en cours ! Vous recevrez la synthèse par mail.', 'success');
+        } catch (e) {
+            showNotification('Erreur', e.message, 'error');
         } finally {
-            updateUsageLimit(); // Restore button state and text
+            updateUsageLimit();
         }
     }
 
     function showTab(tabName) {
-        document.querySelectorAll('.tab-content-section').forEach(section => section.classList.remove('active'));
-        document.querySelectorAll('.profile-nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('.tab-content-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.profile-nav-item').forEach(i => i.classList.remove('active'));
         document.getElementById(`${tabName}-content-section`).classList.add('active');
         document.getElementById(`${tabName}-tab-btn`).classList.add('active');
     }
 
     function showDashboard() {
-        if (!userRecord || !userRecord.fields || !firebaseUser) { handleLogout(); return; }
+        if (!userRecord || !firebaseUser) { handleLogout(); return; }
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('dashboard-section').classList.remove('hidden');
         document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
         const status = userRecord.fields.Status || 'Free';
         document.getElementById('user-status').textContent = status;
-        const debriefsRemainingEl = document.getElementById('debriefs-remaining');
+        const debriefsEl = document.getElementById('debriefs-remaining');
         if (status === 'Premium') {
-            debriefsRemainingEl.classList.add('hidden');
+            debriefsEl.classList.add('hidden');
         } else {
-            debriefsRemainingEl.classList.remove('hidden');
-            debriefsRemainingEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Débriefs`;
+            debriefsEl.classList.remove('hidden');
+            debriefsEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Débriefs`;
         }
         const debriefContent = document.getElementById('debrief-content');
-        const debriefPlaceholder = document.getElementById('debrief-placeholder');
-        const debriefHtml = userRecord.fields['Debrief HTML'];
-        if (debriefHtml && debriefHtml.trim() !== '') {
-            debriefContent.innerHTML = debriefHtml;
+        const placeholder = document.getElementById('debrief-placeholder');
+        const html = userRecord.fields['Debrief HTML'];
+        if (html?.trim()) {
+            debriefContent.innerHTML = html;
             debriefContent.classList.remove('hidden');
-            debriefPlaceholder.classList.add('hidden');
+            placeholder.classList.add('hidden');
         } else {
             debriefContent.innerHTML = '';
             debriefContent.classList.add('hidden');
-            debriefPlaceholder.classList.remove('hidden');
+            placeholder.classList.remove('hidden');
         }
         updateSourcesTable();
         updateUsageLimit();
@@ -546,36 +493,30 @@
         const placeholder = document.getElementById('sources-placeholder');
         tableBody.innerHTML = '';
         let hasContent = false;
-        const fieldsToShow = [
-            { name: 'Article RSS Links', title: 'Articles / RSS' },
-            { name: 'YouTube Links', title: 'Vidéos YouTube' },
-            { name: 'Podcast RSS Links', title: 'Podcasts' }
-        ];
-        fieldsToShow.forEach(field => {
-            let contentExists = false;
-            let cardContent = '';
-            let clearAction = '';
-            if (field.name === 'Podcast RSS Links') {
-                let podcasts = [];
-                try { podcasts = JSON.parse(userRecord.fields[field.name] || '[]'); } catch (e) {}
-                if (podcasts.length > 0) {
+        const fields = [ { n: 'Article RSS Links', t: 'Articles / RSS' }, { n: 'YouTube Links', t: 'Vidéos YouTube' }, { n: 'Podcast RSS Links', t: 'Podcasts' }];
+        fields.forEach(f => {
+            let contentExists = false, cardContent = '', clearAction = '';
+            if (f.n === 'Podcast RSS Links') {
+                let p = [];
+                try { p = JSON.parse(userRecord.fields[f.n] || '[]'); } catch (e) {}
+                if (p.length > 0) {
                     contentExists = true;
-                    cardContent = podcasts.map(p => `<div class="text-xs truncate text-gray-500" title="${p.link}">${p.title || p.link}</div>`).join('');
+                    cardContent = p.map(i => `<div class="text-xs truncate text-gray-500" title="${i.link}">${i.title || i.link}</div>`).join('');
                     clearAction = `clearPodcast()`;
                 }
             } else {
-                const linksArray = userRecord.fields[field.name] ? String(userRecord.fields[field.name]).split(',').filter(Boolean) : [];
-                if (linksArray.length > 0) {
+                const links = userRecord.fields[f.n] ? String(userRecord.fields[f.n]).split(',').filter(Boolean) : [];
+                if (links.length > 0) {
                     contentExists = true;
-                    cardContent = linksArray.map(link => `<div class="text-xs truncate text-gray-500" title="${link}">${link}</div>`).join('');
-                    clearAction = `clearLinks('${field.name}')`;
+                    cardContent = links.map(l => `<div class="text-xs truncate text-gray-500" title="${l}">${l}</div>`).join('');
+                    clearAction = `clearLinks('${f.n}')`;
                 }
             }
             if (contentExists) {
                 hasContent = true;
                 const card = document.createElement('div');
                 card.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200';
-                card.innerHTML = `<div class="flex justify-between items-center mb-2"><h4 class="font-medium text-sm text-gray-800">${field.title}</h4><button onclick="${clearAction}" class="text-xs text-gray-500 hover:text-red-600">Vider</button></div><div class="space-y-1">${cardContent}</div>`;
+                card.innerHTML = `<div class="flex justify-between items-center mb-2"><h4 class="font-medium text-sm text-gray-800">${f.t}</h4><button onclick="${clearAction}" class="text-xs text-gray-500 hover:text-red-600">Vider</button></div><div class="space-y-1">${cardContent}</div>`;
                 tableBody.appendChild(card);
             }
         });
@@ -583,145 +524,111 @@
     }
 
     function updateUsageLimit() {
-        if (!userRecord || !userRecord.fields) return;
-        const usageElement = document.getElementById('usage-limit');
-        const debriefButton = document.getElementById('start-debrief-button');
-        const debriefsRemaining = parseInt(userRecord.fields['Debriefs Restants']) || 0;
-        const buttonContent = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1.157a4.002 4.002 0 00-3.13 3.131V10a1 1 0 102 0v-2.712A2.002 2.002 0 0110 5.288 2.002 2.002 0 0112.712 7.5h2.89A6.979 6.979 0 0010.156 3H11zM4.132 9.01A7.002 7.002 0 0010 16.845a7.002 7.002 0 005.868-7.836l-2.89.717A2.002 2.002 0 0110 11.288 2.002 2.002 0 017.288 9.5H4.132z" /></svg>`;
+        const usageEl = document.getElementById('usage-limit');
+        const btn = document.getElementById('start-debrief-button');
+        const remaining = parseInt(userRecord.fields['Debriefs Restants']) || 0;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1.157a4.002 4.002 0 00-3.13 3.131V10a1 1 0 102 0v-2.712A2.002 2.002 0 0110 5.288 2.002 2.002 0 0112.712 7.5h2.89A6.979 6.979 0 0010.156 3H11zM4.132 9.01A7.002 7.002 0 0010 16.845a7.002 7.002 0 005.868-7.836l-2.89.717A2.002 2.002 0 0110 11.288 2.002 2.002 0 017.288 9.5H4.132z" /></svg>`;
         if (userRecord.fields.Status === 'Free' || !userRecord.fields.Status) {
-            usageElement.textContent = `Offre Gratuite : Il vous reste ${debriefsRemaining} débrief(s).`;
-            debriefButton.disabled = debriefsRemaining <= 0;
-            debriefButton.innerHTML = buttonContent + (debriefsRemaining <= 0 ? 'Limite atteinte' : 'Lancer le Débrief');
+            usageEl.textContent = `Offre Gratuite : Il vous reste ${remaining} débrief(s).`;
+            btn.disabled = remaining <= 0;
+            btn.innerHTML = svg + (remaining <= 0 ? 'Limite atteinte' : 'Lancer le Débrief');
         } else {
-            usageElement.textContent = `Plan Premium : Débriefs illimités.`;
-            debriefButton.disabled = false;
-            debriefButton.innerHTML = buttonContent + 'Lancer le Débrief';
+            usageEl.textContent = `Plan Premium : Débriefs illimités.`;
+            btn.disabled = false;
+            btn.innerHTML = svg + 'Lancer le Débrief';
         }
     }
 
     async function handleLogout() {
-        try {
-            await auth.signOut();
-            location.reload();
-        } catch (error) {
-            console.error("Erreur lors de la déconnexion:", error);
-        }
+        try { await auth.signOut(); location.reload(); } catch (e) { console.error(e); }
     }
 
     auth.onAuthStateChanged(async (user) => {
-        const loadingIndicator = document.getElementById('loading-indicator');
-        loadingIndicator.classList.remove('hidden');
+        const loader = document.getElementById('loading-indicator');
         if (user) {
             firebaseUser = user;
             try {
                 await getUserDataByEmail(user.email);
                 showDashboard();
-            } catch (error) {
-                console.error("Erreur de récupération des données utilisateur:", error);
-                showNotification("Erreur Critique", "Impossible de charger vos données. Veuillez actualiser la page ou contacter le support.", "error");
+            } catch (e) {
+                console.error(e);
+                showNotification("Erreur Critique", "Impossible de charger vos données. Veuillez actualiser ou contacter le support.", "error");
             }
         } else {
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
         }
-        loadingIndicator.classList.add('hidden');
+        loader.classList.add('hidden');
     });
 
     document.getElementById('login-button').addEventListener('click', async () => {
-        const email = document.getElementById('auth-email').value.trim();
-        const password = document.getElementById('auth-password').value.trim();
-        const errorElement = document.getElementById('auth-error');
-        errorElement.classList.add('hidden');
+        const email = document.getElementById('auth-email').value;
+        const password = document.getElementById('auth-password').value;
+        const errorEl = document.getElementById('auth-error');
+        errorEl.classList.add('hidden');
         try {
             await auth.signInWithEmailAndPassword(email, password);
-            location.reload(); 
-        } catch (error) {
-            errorElement.textContent = "Email ou mot de passe incorrect.";
-            errorElement.classList.remove('hidden');
+            location.reload();
+        } catch (e) {
+            errorEl.textContent = "Email ou mot de passe incorrect.";
+            errorEl.classList.remove('hidden');
         }
     });
-
+    
+    // Listeners Profile Modal
     document.getElementById('open-profile-modal').addEventListener('click', () => {
-        if (!userRecord || !firebaseUser) return;
         document.getElementById('profile-name').value = userRecord.fields.Name || '';
         document.getElementById('profile-email').value = firebaseUser.email;
         document.getElementById('profile-modal-user-name').textContent = userRecord.fields.Name || firebaseUser.email;
         const status = userRecord.fields.Status || 'Free';
         document.getElementById('plan-status-display').textContent = status;
-        const upgradeSection = document.getElementById('plans-upgrade-section');
-        const cancelSection = document.getElementById('plans-cancel-section');
-        if (status === 'Premium') {
-            upgradeSection.classList.add('hidden');
-            cancelSection.classList.remove('hidden');
-        } else {
-            upgradeSection.classList.remove('hidden');
-            cancelSection.classList.add('hidden');
-        }
+        document.getElementById('plans-upgrade-section').classList.toggle('hidden', status === 'Premium');
+        document.getElementById('plans-cancel-section').classList.toggle('hidden', status !== 'Premium');
         document.getElementById('profile-modal').classList.remove('hidden');
         showTab('profile');
     });
-    
     document.getElementById('close-profile-modal').addEventListener('click', () => document.getElementById('profile-modal').classList.add('hidden'));
-    document.getElementById('profile-tab-btn').addEventListener('click', (e) => { e.preventDefault(); showTab('profile'); });
-    document.getElementById('security-tab-btn').addEventListener('click', (e) => { e.preventDefault(); showTab('security'); });
-    document.getElementById('plans-tab-btn').addEventListener('click', (e) => { e.preventDefault(); showTab('plans'); });
-    
+    document.getElementById('profile-tab-btn').addEventListener('click', e => { e.preventDefault(); showTab('profile'); });
+    document.getElementById('security-tab-btn').addEventListener('click', e => { e.preventDefault(); showTab('security'); });
+    document.getElementById('plans-tab-btn').addEventListener('click', e => { e.preventDefault(); showTab('plans'); });
     document.getElementById('save-profile-button').addEventListener('click', async () => {
-        if (!userRecord) return;
         const newName = document.getElementById('profile-name').value.trim();
         try {
             await callN8n('updateProfile', { recordId: userRecord.id, fields: { Name: newName } });
             showNotification('Succès', 'Profil mis à jour !', 'success');
             document.getElementById('profile-modal-user-name').textContent = newName;
             document.getElementById('user-display-name').textContent = newName;
-        } catch (error) {
-            showNotification('Erreur', 'Impossible de mettre à jour le profil.', 'error');
-        }
+        } catch (e) { showNotification('Erreur', e.message, 'error'); }
     });
-
     document.getElementById('update-password-button').addEventListener('click', async () => {
-        const oldPassword = document.getElementById('security-old-password').value;
-        const newPassword = document.getElementById('security-new-password').value;
-        const confirmPassword = document.getElementById('security-confirm-password').value;
-        if (newPassword && newPassword !== confirmPassword) {
+        const oldPass = document.getElementById('security-old-password').value;
+        const newPass = document.getElementById('security-new-password').value;
+        if (newPass && newPass !== document.getElementById('security-confirm-password').value) {
             showNotification('Erreur', 'Les nouveaux mots de passe ne correspondent pas.', 'error');
             return;
         }
         try {
-            if (oldPassword && newPassword) {
-                const credential = firebase.auth.EmailAuthProvider.credential(firebaseUser.email, oldPassword);
-                await firebaseUser.reauthenticateWithCredential(credential);
-                await firebaseUser.updatePassword(newPassword);
-                showNotification('Succès', 'Mot de passe mis à jour !', 'success');
-                document.getElementById('security-old-password').value = '';
-                document.getElementById('security-new-password').value = '';
-                document.getElementById('security-confirm-password').value = '';
-            }
-        } catch (error) {
-            showNotification('Erreur', "La mise à jour a échoué. Vérifiez votre ancien mot de passe.", 'error');
-        }
+            const cred = firebase.auth.EmailAuthProvider.credential(firebaseUser.email, oldPass);
+            await firebaseUser.reauthenticateWithCredential(cred);
+            await firebaseUser.updatePassword(newPass);
+            showNotification('Succès', 'Mot de passe mis à jour !', 'success');
+            ['security-old-password', 'security-new-password', 'security-confirm-password'].forEach(id => document.getElementById(id).value = '');
+        } catch (e) { showNotification('Erreur', "La mise à jour a échoué. Vérifiez votre ancien mot de passe.", 'error'); }
     });
-
     document.getElementById('plans-upgrade-button').addEventListener('click', async () => {
         try {
             const session = await callN8n('createCheckoutSession', { recordId: userRecord.id });
             if (session.url) window.location.href = session.url;
-        } catch (error) {
-            showNotification("Erreur", "Impossible de créer la session de paiement.", 'error');
-        }
+        } catch (e) { showNotification("Erreur", "Impossible de créer la session de paiement.", 'error'); }
     });
-    
     document.getElementById('plans-cancel-button').addEventListener('click', async () => {
-        const confirmed = await showNotification('Confirmation', "Êtes-vous sûr de vouloir annuler votre abonnement ? L'action est irréversible.", 'confirm');
-        if (!confirmed) return;
-        try {
-            await callN8n('cancelSubscription', { recordId: userRecord.id });
-            location.reload();
-        } catch (error) {
-            showNotification("Erreur", "Impossible d'annuler l'abonnement.", 'error');
+        if (await showNotification('Confirmation', "Êtes-vous sûr de vouloir annuler votre abonnement ?", 'confirm')) {
+            try { await callN8n('cancelSubscription', { recordId: userRecord.id }); location.reload(); }
+            catch (e) { showNotification("Erreur", "Impossible d'annuler l'abonnement.", 'error'); }
         }
     });
-    
+
+    // Other listeners
     document.getElementById('show-add-source-modal').addEventListener('click', () => document.getElementById('add-source-modal').classList.remove('hidden'));
     document.getElementById('close-add-source-modal').addEventListener('click', () => document.getElementById('add-source-modal').classList.add('hidden'));
     document.getElementById('logout-button').addEventListener('click', handleLogout);
