@@ -387,8 +387,9 @@
         } catch (e) { showNotification('Erreur', e.message, 'error'); }
     }
 
- async function saveUserPersona() {
-    if (!userRecord) return;
+async function saveUserPersona() {
+    const button = document.getElementById('save-persona-button');
+    button.disabled = true;
     const personaText = document.getElementById('user-persona-input').value.trim();
     try {
         const updatedRecord = await callN8n('updateUserPersona', {
@@ -397,9 +398,14 @@
         });
         updateLocalUserRecord(updatedRecord);
         showNotification('Profil Enregistré', 'Votre profil pour l\'IA a été mis à jour.', 'success');
-        // La ligne showDashboard(); a été supprimée ici.
+        
+        // La ligne ci-dessous a été rajoutée pour forcer la mise à jour de l'affichage
+        showDashboard(); 
+
     } catch (error) {
         showNotification('Erreur', "Erreur lors de la sauvegarde du profil : " + error.message, 'error');
+    } finally {
+        button.disabled = false;
     }
 }
 
