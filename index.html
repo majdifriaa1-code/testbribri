@@ -26,10 +26,28 @@
         }
         body { font-family: 'Roboto', sans-serif; background-color: var(--bg-primary); color: var(--text-primary); overflow: hidden; }
         h1, h2, h3, .font-display { font-family: 'Google Sans', sans-serif; }
-        .main-grid { display: grid; grid-template-columns: 300px 1fr 320px; height: 100vh; gap: 8px; padding: 8px; }
-        .panel { background-color: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
+        .main-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr 320px;
+  min-height: 100vh;
+  gap: 8px;
+  padding: 8px;
+  overflow-y: auto; /* <-- Ajout crucial */
+}
+        .panel {
+  background-color: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* <-- Garde l'overflow caché pour le contenu interne */
+}
         .panel-header { padding: 1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
-        .panel-content { padding: 1rem; overflow-y: auto; flex-grow: 1; }
+       .panel-content {
+  padding: 1rem;
+  overflow-y: auto; /* <-- Important pour les listes longues */
+  flex-grow: 1;
+}
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-family: 'Google Sans', sans-serif; font-weight: 500; border-radius: 99px; padding: 0.5rem 1rem; border: 1px solid transparent; cursor: pointer; transition: all 0.2s; }
         .btn:disabled { background-color: #ccc !important; color: #888 !important; cursor: not-allowed; }
         .btn-primary { background-color: var(--accent-primary); color: white; }
@@ -61,20 +79,22 @@
         grid-template-columns: 1fr;
         padding: 4px;
         gap: 6px;
+        min-height: auto;
         height: auto;
-        min-height: 100vh;
+        overflow-y: auto;
     }
 
     .panel {
         min-height: auto;
         max-height: none;
+        overflow: hidden;
     }
 
     .panel-content {
         max-height: none;
+        overflow-y: auto;
     }
 
-    /* Réduire les en-têtes et paddings */
     .panel-header {
         padding: 0.75rem;
     }
@@ -83,36 +103,47 @@
         padding: 0.75rem;
     }
 
-    /* Cacher temporairement le Studio sur mobile (optionnel) */
-    /* Si tu veux le garder, supprime ce bloc */
-    .main-grid > :nth-child(3) {
-        display: none;
-    }
-
-    /* Ajuster le bouton "Ajouter" dans Sources */
     #show-add-source-modal {
         padding: 0.4rem 0.8rem;
         font-size: 0.875rem;
     }
 
-    /* Ajuster le textarea du profil IA */
     #user-persona-input {
         font-size: 0.875rem;
         padding: 0.5rem;
     }
 
-    /* Ajuster les boutons */
     .btn {
         font-size: 0.875rem;
         padding: 0.4rem 0.8rem;
     }
 
-    /* Éviter le débordement horizontal */
     body {
         overflow-x: hidden;
     }
-}
 
+    /* Ajustement pour le profil modal sur mobile */
+    #profile-modal .modal-content {
+        max-width: 95vw;
+        width: 95vw;
+        padding: 1rem;
+    }
+
+    #profile-modal .w-1/4 {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    #profile-modal .flex-1 {
+        width: 100%;
+    }
+
+    /* Empiler les boutons d'action dans le profil */
+    #profile-modal .space-y-4 {
+        flex-direction: column;
+    }
+}
 
         
     </style>
