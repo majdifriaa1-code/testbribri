@@ -396,10 +396,10 @@
             personaText: personaText
         });
         updateLocalUserRecord(updatedRecord);
-        alert("Profil enregistré avec succès !");
-        showDashboard();
+        showNotification('Profil Enregistré', 'Votre profil pour l\'IA a été mis à jour.', 'success');
+        // La ligne showDashboard(); a été supprimée ici.
     } catch (error) {
-        alert("Erreur lors de la sauvegarde du profil : " + error.message);
+        showNotification('Erreur', "Erreur lors de la sauvegarde du profil : " + error.message, 'error');
     }
 }
 
