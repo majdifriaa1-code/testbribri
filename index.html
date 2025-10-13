@@ -128,6 +128,12 @@
                     <p class="font-display font-medium">Prêt à lancer un débrief ?</p>
                     <p class="text-sm mt-1">Ajoutez vos sources, puis cliquez sur le bouton ci-dessous.</p>
                 </div>
+                
+<div id="debrief-loading-overlay" class="hidden absolute inset-0 bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center">
+    <div class="w-8 h-8 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
+    <p class="mt-4 font-medium text-gray-600">Création du débrief en cours...</p>
+</div>
+                
             </div>
             <div class="p-4 border-t border-gray-200 flex-shrink-0">
                  <button id="start-debrief-button" class="w-full btn btn-primary py-3"></button>
@@ -437,28 +443,71 @@
         }
     }
 
-    async function startDebrief() {
-        if (!userRecord.fields['User Persona (AI)']?.trim()) {
-            showNotification("Profil manquant", "Veuillez décrire votre profil avant de lancer un débrief.", 'error');
+  // REMPLACEZ votre fonction startDebrief actuelle par celle-ci
+async function startDebrief() {
+    if (!userRecord) return;
+    const personaText = userRecord.fields['User Persona (AI)'] || '';
+    if (personaText.trim() === '') {
+        showNotification("Profil manquant", "Veuillez décrire votre profil avant de lancer un débrief.", 'error');
+        return;
+    }
+    const hasLinks = userRecord.fields['Article RSS Links'] || userRecord.fields['YouTube Links'] || (userRecord.fields['Podcast RSS Links'] && userRecord.fields['Podcast RSS Links'] !== '[]');
+    if (!hasLinks) {
+        showNotification("Sources manquantes", "Vous devez ajouter au moins un lien avant de lancer le débrief.", 'error');
+        return;
+    }
+
+    const debriefButton = document.getElementById('start-debrief-button');
+    const loadingOverlay = document.getElementById('debrief-loading-overlay');
+    
+    debriefButton.disabled = true;
+    loadingOverlay.classList.remove('hidden'); // Affiche le flou et le message de chargement
+
+    try {
+        // On lance le débrief. n8n répondra immédiatement "OK".
+        await callN8n('startDebrief', { recordId: userRecord.id });
+        
+        // On commence à vérifier le statut toutes les 5 secondes.
+        pollDebriefStatus(userRecord.id);
+
+    } catch (error) {
+        showNotification('Erreur', "Erreur lors du lancement du débrief: " + error.message, 'error');
+        loadingOverlay.classList.add('hidden');
+        updateUsageLimit();
+    }
+}
+
+// AJOUTEZ cette nouvelle fonction juste après la fonction startDebrief
+function pollDebriefStatus(recordId) {
+    let attempts = 0;
+    const maxAttempts = 24; // 24 tentatives * 5 secondes = 2 minutes max
+
+    const intervalId = setInterval(async () => {
+        if (attempts >= maxAttempts) {
+            clearInterval(intervalId);
+            showNotification('Délai dépassé', 'La création du débrief prend plus de temps que prévu. Vous recevrez le résultat par email.', 'error');
+            document.getElementById('debrief-loading-overlay').classList.add('hidden');
+            updateUsageLimit();
             return;
         }
-        if (!userRecord.fields['Article RSS Links'] && !userRecord.fields['YouTube Links'] && (!userRecord.fields['Podcast RSS Links'] || userRecord.fields['Podcast RSS Links'] === '[]')) {
-            showNotification("Sources manquantes", "Ajoutez au moins un lien avant de lancer le débrief.", 'error');
-            return;
-        }
-        const btn = document.getElementById('start-debrief-button');
-        btn.disabled = true;
-        btn.innerHTML = 'En cours...';
+
         try {
-            updateLocalUserRecord(await callN8n('startDebrief', { recordId: userRecord.id }));
-            showDashboard();
-            showNotification('Lancement du Débrief', 'Votre débrief est en cours ! Vous recevrez la synthèse par mail.', 'success');
-        } catch (e) {
-            showNotification('Erreur', e.message, 'error');
-        } finally {
+            const response = await callN8n('checkDebriefStatus', { recordId: recordId });
+            if (response.status === 'complete') {
+                clearInterval(intervalId);
+                location.reload(); // Le débrief est prêt, on actualise !
+            }
+            // Si le statut est 'pending', on ne fait rien et on attend la prochaine vérification.
+        } catch (error) {
+            clearInterval(intervalId);
+            showNotification('Erreur', 'Impossible de vérifier le statut du débrief.', 'error');
+            document.getElementById('debrief-loading-overlay').classList.add('hidden');
             updateUsageLimit();
         }
-    }
+
+        attempts++;
+    }, 5000); // Vérifie toutes les 5 secondes
+}
 
     function showTab(tabName) {
         document.querySelectorAll('.tab-content-section').forEach(s => s.classList.remove('active'));
