@@ -559,7 +559,7 @@ function pollDebriefStatus(recordId) {
     document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
 
     // Restaure la sélection du format de rapport (avec le nom de champ corrigé)
-    const savedFormat = userRecord.fields['reportFormat'] || 'Default format';
+    const savedFormat = userRecord.fields['Report format'] || 'Default format';
     document.getElementById('debrief-format-selector').value = savedFormat;
     
     // Gère l'affichage du statut utilisateur et des débriefs restants
@@ -607,15 +607,6 @@ function pollDebriefStatus(recordId) {
             debriefPlaceholder.classList.remove('hidden');
         }
     }
-
-    updateSourcesTable();
-    updateUsageLimit();
-}
-
-    updateSourcesTable();
-    updateUsageLimit();
-}
-    // --- FIN DE LA GESTION DE L'ÉTAT ---
 
     updateSourcesTable();
     updateUsageLimit();
