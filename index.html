@@ -116,7 +116,7 @@
         <div class="panel">
              <div class="panel-header">
                 <h2 class="font-display font-medium text-lg">Chat / Débrief</h2>
-                 <select id="debrief-format-selector" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                 <select id="debrief-format-selector" onchange="saveReportFormat()" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
         <option selected>Défault format</option>
         <option>🎓 EduScience Learning Format</option>
         <option>📚 Research Digest Format</option>
@@ -412,6 +412,25 @@
         // La ligne showDashboard(); a été supprimée ici.
     } catch (error) {
         showNotification('Erreur', "Erreur lors de la sauvegarde du profil : " + error.message, 'error');
+    }
+}
+
+    async function saveReportFormat() {
+    if (!userRecord) return; // S'assure que l'utilisateur est bien chargé
+
+    const selectedFormat = document.getElementById('debrief-format-selector').value;
+
+    try {
+        // On appelle n8n avec une nouvelle action 'updateReportFormat'
+        await callN8n('updateReportFormat', { 
+            recordId: userRecord.id,
+            reportFormat: selectedFormat 
+        });
+        // Pas de notification pour ne pas déranger l'utilisateur
+        console.log("Format de rapport sauvegardé :", selectedFormat);
+    } catch (error) {
+        console.error("Erreur lors de la sauvegarde du format:", error);
+        // On pourrait afficher une notification d'erreur si nécessaire
     }
 }
 
