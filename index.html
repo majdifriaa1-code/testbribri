@@ -51,6 +51,62 @@
         .tab-content-section { display: none; }
         .tab-content-section.active { display: block; }
         .studio-item { background-color: transparent; border-radius: 8px; padding: 0.75rem; display: flex; align-items: center; gap: 1rem; color: var(--text-secondary); cursor: not-allowed; font-size: 1rem; }
+
+
+        /* --- AJOUTS POUR LA VERSION MOBILE --- */
+        @media (max-width: 1024px) {
+            body {
+                /* Permet le défilement vertical sur mobile */
+                overflow: auto; 
+            }
+
+            .main-grid {
+                /* Passe la grille de 3 colonnes à 1 seule colonne */
+                grid-template-columns: 1fr; 
+                /* La hauteur s'adapte au contenu, plus besoin de 100vh fixe */
+                height: auto;
+                min-height: 100vh;
+                 /* Empile les panneaux verticalement */
+                grid-template-rows: auto auto auto;
+            }
+
+            .panel {
+                /* S'assure que les panneaux ont une hauteur minimale */
+                min-height: 400px; 
+            }
+            
+            #auth-section {
+                 /* Ajoute un peu d'espace sur les côtés de la carte de connexion */
+                padding: 1rem;
+            }
+
+            .modal-content {
+                /* Réduit la largeur maximale des modales pour les petits écrans */
+                max-width: 90vw;
+            }
+
+            /* --- Spécifique à la modale du profil --- */
+            #profile-modal .modal-content {
+                /* Change la direction de flex pour empiler les éléments */
+                flex-direction: column;
+                min-height: auto;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            #profile-modal .modal-content > div:first-child { /* Le menu latéral */
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 1rem;
+            }
+
+             #profile-modal .modal-content > div:last-child { /* Le contenu principal */
+                width: 100%;
+            }
+        }
+
+        
     </style>
 </head>
 <body>
