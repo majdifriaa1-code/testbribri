@@ -51,63 +51,11 @@
         .tab-content-section { display: none; }
         .tab-content-section.active { display: block; }
         .studio-item { background-color: transparent; border-radius: 8px; padding: 0.75rem; display: flex; align-items: center; gap: 1rem; color: var(--text-secondary); cursor: not-allowed; font-size: 1rem; }
-
-
-        /* Styles pour la responsivité mobile */
-        @media (max-width: 768px) {
-            .main-grid {
-                display: flex;
-                flex-direction: column;
-                padding: 0;
-                gap: 0;
-                padding-bottom: 60px; /* Espace pour la barre de nav */
-            }
-            .panel {
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
-                display: none; /* Cacher tous les panneaux par défaut */
-                height: 100%;
-            }
-            .panel.active {
-                display: flex; /* Afficher seulement le panneau actif */
-            }
-            #mobile-tab-bar {
-                display: flex;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 60px;
-                background-color: var(--bg-secondary);
-                border-top: 1px solid var(--border-color);
-                z-index: 100;
-            }
-            .mobile-tab-btn {
-                flex-grow: 1;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                font-size: 0.75rem;
-                color: var(--text-secondary);
-                background-color: transparent;
-                border: none;
-                cursor: pointer;
-            }
-            .mobile-tab-btn.active {
-                color: var(--accent-primary);
-                background-color: #e8f0fe;
-            }
-        }
-
-
-
-        
     </style>
 </head>
-<body>    
-<div id="loading-indicator" class="fixed inset-0 bg-white/50 z-[100] flex items-center justify-center">
+<body>
+
+    <div id="loading-indicator" class="fixed inset-0 bg-white/50 z-[100] flex items-center justify-center">
         <div class="w-12 h-12 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
     </div>
 
@@ -117,27 +65,21 @@
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-2 font-display">Bienvenue sur BRIOVA</h2>
             <p class="text-center text-gray-500 mb-8">Connectez-vous pour continuer</p>
             <div class="space-y-4">
-                <div>
-                    <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label>
-                    <input type="email" id="auth-email" placeholder="nom@exemple.com" class="input-field">
-                </div>
-                <div>
-                    <label for="auth-password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-                    <input type="password" id="auth-password" placeholder="••••••••" class="input-field">
-                </div>
+                <div><label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="auth-email" placeholder="nom@exemple.com" class="input-field"></div>
+                <div><label for="auth-password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label><input type="password" id="auth-password" placeholder="••••••••" class="input-field"></div>
                 <p id="auth-error" class="text-sm text-red-500 hidden"></p>
                 <button id="login-button" class="w-full btn btn-primary py-3 mt-4">Se Connecter</button>
             </div>
             <div class="text-center mt-6">
                  <button id="show-signup-modal-button" class="text-sm font-medium text-blue-600 hover:underline">Créer un compte</button>
                  <span class="mx-2 text-gray-300">|</span>
-                 <button id="show-forgot-password-modal" class="text-sm text-blue-600 hover:underline">Mot de passe oublié ?</button>
+                 <button id="show-forgot-password-modal" class="text-sm font-medium text-blue-600 hover:underline">Mot de passe oublié ?</button>
             </div>
         </div>
     </div>
     
     <div id="dashboard-section" class="main-grid hidden">
-        <div id="sources-panel" class="panel">
+        <div class="panel">
             <div class="panel-header">
                 <h2 class="font-display font-medium text-lg">Sources</h2>
                 <button id="show-add-source-modal" class="btn btn-primary text-sm">
@@ -156,14 +98,14 @@
             <div class="border-t border-gray-200 p-4">
                 <h3 class="font-medium text-gray-700 mb-2 text-sm">Profil pour l'IA</h3>
                 <textarea id="user-persona-input" rows="3" class="input-field text-sm" placeholder="Ex: Spécialiste en marketing digital..."></textarea>
-                <button onclick="saveUserPersona()" class="btn btn-secondary mt-2 text-sm w-full">Valider Profil</button>
+                <button onclick="saveUserPersona(this)" class="btn btn-secondary mt-2 text-sm w-full">Valider Profil</button>
             </div>
         </div>
 
-        <div id="chat-panel" class="panel active">
+        <div class="panel">
              <div class="panel-header">
                 <h2 class="font-display font-medium text-lg">Chat / Débrief</h2>
-                 <select id="debrief-format-selector" onchange="saveReportFormat()" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                <select id="debrief-format-selector" onchange="saveReportFormat()" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     <option selected>Default format</option>
                     <option>🎓 EduScience Learning Format</option>
                     <option>📚 Research Digest Format</option>
@@ -174,15 +116,17 @@
                 </div>
             </div>
             <div class="panel-content" id="debrief-output-container">
-                <div id="debrief-content" class="prose prose-sm max-w-none"></div>
-                <div id="debrief-placeholder" class="placeholder-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                    <p class="font-display font-medium">Prêt à lancer un débrief ?</p>
-                    <p class="text-sm mt-1">Ajoutez vos sources, puis cliquez sur le bouton ci-dessous.</p>
+                <div id="blur-target">
+                    <div id="debrief-content" class="prose prose-sm max-w-none"></div>
+                    <div id="debrief-placeholder" class="placeholder-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                        <p class="font-display font-medium">Prêt à lancer un débrief ?</p>
+                        <p class="text-sm mt-1">Ajoutez vos sources, puis cliquez sur le bouton ci-dessous.</p>
+                    </div>
                 </div>
-                <div id="debrief-loading-overlay" class="hidden absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-lg">
+                <div id="debrief-loading-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center z-10">
                     <div class="w-8 h-8 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
-                    <p class="mt-4 font-medium text-gray-600">Création du débrief en cours...</p>
+                    <p class="mt-4 font-medium text-gray-800 bg-white/80 px-4 py-2 rounded-lg shadow-md">Création du débrief en cours...</p>
                 </div>
             </div>
             <div class="p-4 border-t border-gray-200 flex-shrink-0">
@@ -191,7 +135,7 @@
             </div>
         </div>
 
-        <div id="studio-panel" class="panel">
+        <div class="panel">
             <div class="panel-header">
                 <h2 class="font-display font-medium text-lg">Studio</h2>
                  <div class="flex items-center gap-1">
@@ -353,21 +297,6 @@
     <div id="premium-modal" class="hidden"></div>
     <button id="upgrade-button" class="hidden"></button>
     <button id="cancel-premium-button" class="hidden"></button>
-
-    <div id="mobile-tab-bar" class="hidden md:hidden"> <button class="mobile-tab-btn" onclick="showMobilePanel('sources-panel')">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
-            Sources
-        </button>
-        <button class="mobile-tab-btn active" onclick="showMobilePanel('chat-panel')">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-            Chat
-        </button>
-        <button class="mobile-tab-btn" onclick="showMobilePanel('studio-panel')">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.707.707M3 21v-1m18 1v-1"></path></svg>
-            Studio
-        </button>
-    </div>
-
 
 <script>
     // --- Le script complet est ici, vous n'avez rien à modifier ---
@@ -543,16 +472,14 @@ async function startDebrief() {
 
     const debriefButton = document.getElementById('start-debrief-button');
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
+    // On cible maintenant les éléments de contenu individuellement
     const debriefContent = document.getElementById('debrief-content');
     const debriefPlaceholder = document.getElementById('debrief-placeholder');
+    const blurTarget = document.getElementById('blur-target'); // Nouvelle cible
+
     
     debriefButton.disabled = true;
-    
-    // On floute les éléments de contenu individuellement
-    debriefContent.classList.add('blur-sm'); 
-    debriefPlaceholder.classList.add('blur-sm');
-    
-    // On affiche l'overlay (qui reste net) par-dessus
+    blurTarget.classList.add('blur-sm'); // On floute la nouvelle cible
     loadingOverlay.classList.remove('hidden'); 
 
     try {
@@ -560,14 +487,10 @@ async function startDebrief() {
             recordId: userRecord.id,
             reportFormat: document.getElementById('debrief-format-selector').value
         });
-        
         pollDebriefStatus(userRecord.id);
-
     } catch (error) {
         showNotification('Erreur', "Erreur lors du lancement du débrief: " + error.message, 'error');
-        // En cas d'erreur, on retire le flou et on cache l'overlay
-        debriefContent.classList.remove('blur-sm');
-        debriefPlaceholder.classList.remove('blur-sm');
+        blurTarget.classList.remove('blur-sm'); // On retire le flou de la cible
         loadingOverlay.classList.add('hidden');
         updateUsageLimit();
     }
@@ -576,19 +499,16 @@ async function startDebrief() {
 function pollDebriefStatus(recordId) {
     let attempts = 0;
     const maxAttempts = 24; 
-
     const intervalId = setInterval(async () => {
         if (attempts >= maxAttempts) {
             clearInterval(intervalId);
             showNotification('Délai dépassé', 'La création du débrief prend plus de temps que prévu. Vous recevrez le résultat par email.', 'error');
-            
+
+            document.getElementById('blur-target').classList.remove('blur-sm');
             document.getElementById('debrief-loading-overlay').classList.add('hidden');
-            document.getElementById('debrief-content').classList.remove('blur-sm');
-            document.getElementById('debrief-placeholder').classList.remove('blur-sm');
             updateUsageLimit();
             return;
         }
-
         try {
             const response = await callN8n('checkDebriefStatus', { recordId: recordId });
             if (response.status === 'complete') {
@@ -598,13 +518,11 @@ function pollDebriefStatus(recordId) {
         } catch (error) {
             clearInterval(intervalId);
             showNotification('Erreur', 'Impossible de vérifier le statut du débrief.', 'error');
-            
+
+            document.getElementById('blur-target').classList.remove('blur-sm');
             document.getElementById('debrief-loading-overlay').classList.add('hidden');
-            document.getElementById('debrief-content').classList.remove('blur-sm');
-            document.getElementById('debrief-placeholder').classList.remove('blur-sm');
             updateUsageLimit();
         }
-
         attempts++;
     }, 5000); 
 }
@@ -625,7 +543,7 @@ function pollDebriefStatus(recordId) {
     document.getElementById('dashboard-section').classList.remove('hidden');
     document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
 
-    const savedFormat = userRecord.fields['reportFormat'] || 'Default format';
+    const savedFormat = userRecord.fields['reportFormat'] || 'default';
     document.getElementById('debrief-format-selector').value = savedFormat;
     
     const userStatus = userRecord.fields.Status || 'Free';
@@ -640,23 +558,22 @@ function pollDebriefStatus(recordId) {
 
     document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
     
-    const debriefStatus = userRecord.fields['Debrief Status'];
+  const debriefStatus = userRecord.fields['Debrief Status'];
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
+    const blurTarget = document.getElementById('blur-target'); // Nouvelle cible
     const debriefContent = document.getElementById('debrief-content');
     const debriefPlaceholder = document.getElementById('debrief-placeholder');
 
     if (debriefStatus === 'En cours') {
-        debriefContent.classList.add('blur-sm', 'hidden');
-        debriefPlaceholder.classList.add('blur-sm', 'hidden');
+        blurTarget.classList.add('blur-sm');
         loadingOverlay.classList.remove('hidden');
-        
+        debriefContent.classList.add('hidden');
+        debriefPlaceholder.classList.add('hidden');
         document.getElementById('start-debrief-button').disabled = true; 
         pollDebriefStatus(userRecord.id); 
     } else {
+        blurTarget.classList.remove('blur-sm');
         loadingOverlay.classList.add('hidden');
-        debriefContent.classList.remove('blur-sm');
-        debriefPlaceholder.classList.remove('blur-sm');
-        
         const debriefHtml = userRecord.fields['Debrief HTML'];
         if (debriefHtml && debriefHtml.trim() !== '') {
             debriefContent.innerHTML = debriefHtml;
@@ -668,7 +585,6 @@ function pollDebriefStatus(recordId) {
             debriefPlaceholder.classList.remove('hidden');
         }
     }
-
     updateSourcesTable();
     updateUsageLimit();
 }
@@ -722,24 +638,6 @@ function pollDebriefStatus(recordId) {
             btn.innerHTML = svg + 'Lancer le Débrief';
         }
     }
-
-function showMobilePanel(panelIdToShow) {
-    // Cacher tous les panneaux principaux
-    document.querySelectorAll('.main-grid > .panel').forEach(panel => {
-        panel.classList.remove('active');
-    });
-
-    // Afficher seulement le panneau cliqué
-    document.getElementById(panelIdToShow).classList.add('active');
-
-    // Mettre à jour le style du bouton actif dans la barre de navigation
-    document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    // Trouve le bouton qui correspond au panneau et l'active
-    event.currentTarget.classList.add('active');
-}
-
 
     async function handleLogout() {
         try { await auth.signOut(); location.reload(); } catch (e) { console.error(e); }
@@ -836,8 +734,5 @@ function showMobilePanel(panelIdToShow) {
     document.getElementById('logout-button').addEventListener('click', handleLogout);
     document.getElementById('start-debrief-button').addEventListener('click', startDebrief);
 </script>
-
-
-    
 </body>
 </html>
