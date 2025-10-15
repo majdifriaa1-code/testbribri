@@ -549,6 +549,11 @@ function pollDebriefStatus(recordId) {
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('dashboard-section').classList.remove('hidden');
         document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
+           // MODIFICATION : AJOUTEZ CE BLOC DE CODE ICI
+    // Récupère le format sauvegardé et met à jour le menu déroulant
+    const savedFormat = userRecord.fields['Report format'] || 'Default format';
+    document.getElementById('debrief-format-selector').value = savedFormat;
+    // FIN DE LA MODIFICATION
         document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
         const status = userRecord.fields.Status || 'Free';
         document.getElementById('user-status').textContent = status;
