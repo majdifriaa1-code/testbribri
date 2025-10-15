@@ -551,7 +551,7 @@ function pollDebriefStatus(recordId) {
         document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
            // MODIFICATION : AJOUTEZ CE BLOC DE CODE ICI
     // Récupère le format sauvegardé et met à jour le menu déroulant
-    const savedFormat = userRecord.fields['Report format'] || 'Default format';
+    const savedFormat = userRecord.fields['reportFormat'] || 'Default format';
     document.getElementById('debrief-format-selector').value = savedFormat;
     // FIN DE LA MODIFICATION
         document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
