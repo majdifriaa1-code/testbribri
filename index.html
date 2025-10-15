@@ -543,14 +543,16 @@ async function startDebrief() {
 
     const debriefButton = document.getElementById('start-debrief-button');
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
-    // On cible maintenant les éléments de contenu individuellement
     const debriefContent = document.getElementById('debrief-content');
     const debriefPlaceholder = document.getElementById('debrief-placeholder');
-    const blurTarget = document.getElementById('blur-target'); // Nouvelle cible
-
     
     debriefButton.disabled = true;
-    blurTarget.classList.add('blur-sm'); // On floute la nouvelle cible
+    
+    // On floute les éléments de contenu individuellement
+    debriefContent.classList.add('blur-sm'); 
+    debriefPlaceholder.classList.add('blur-sm');
+    
+    // On affiche l'overlay (qui reste net) par-dessus
     loadingOverlay.classList.remove('hidden'); 
 
     try {
@@ -558,10 +560,14 @@ async function startDebrief() {
             recordId: userRecord.id,
             reportFormat: document.getElementById('debrief-format-selector').value
         });
+        
         pollDebriefStatus(userRecord.id);
+
     } catch (error) {
         showNotification('Erreur', "Erreur lors du lancement du débrief: " + error.message, 'error');
-        blurTarget.classList.remove('blur-sm'); // On retire le flou de la cible
+        // En cas d'erreur, on retire le flou et on cache l'overlay
+        debriefContent.classList.remove('blur-sm');
+        debriefPlaceholder.classList.remove('blur-sm');
         loadingOverlay.classList.add('hidden');
         updateUsageLimit();
     }
@@ -570,16 +576,19 @@ async function startDebrief() {
 function pollDebriefStatus(recordId) {
     let attempts = 0;
     const maxAttempts = 24; 
+
     const intervalId = setInterval(async () => {
         if (attempts >= maxAttempts) {
             clearInterval(intervalId);
             showNotification('Délai dépassé', 'La création du débrief prend plus de temps que prévu. Vous recevrez le résultat par email.', 'error');
-
-            document.getElementById('blur-target').classList.remove('blur-sm');
+            
             document.getElementById('debrief-loading-overlay').classList.add('hidden');
+            document.getElementById('debrief-content').classList.remove('blur-sm');
+            document.getElementById('debrief-placeholder').classList.remove('blur-sm');
             updateUsageLimit();
             return;
         }
+
         try {
             const response = await callN8n('checkDebriefStatus', { recordId: recordId });
             if (response.status === 'complete') {
@@ -589,11 +598,13 @@ function pollDebriefStatus(recordId) {
         } catch (error) {
             clearInterval(intervalId);
             showNotification('Erreur', 'Impossible de vérifier le statut du débrief.', 'error');
-
-            document.getElementById('blur-target').classList.remove('blur-sm');
+            
             document.getElementById('debrief-loading-overlay').classList.add('hidden');
+            document.getElementById('debrief-content').classList.remove('blur-sm');
+            document.getElementById('debrief-placeholder').classList.remove('blur-sm');
             updateUsageLimit();
         }
+
         attempts++;
     }, 5000); 
 }
@@ -614,7 +625,7 @@ function pollDebriefStatus(recordId) {
     document.getElementById('dashboard-section').classList.remove('hidden');
     document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
 
-    const savedFormat = userRecord.fields['reportFormat'] || 'default';
+    const savedFormat = userRecord.fields['reportFormat'] || 'Default format';
     document.getElementById('debrief-format-selector').value = savedFormat;
     
     const userStatus = userRecord.fields.Status || 'Free';
@@ -629,22 +640,23 @@ function pollDebriefStatus(recordId) {
 
     document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
     
-  const debriefStatus = userRecord.fields['Debrief Status'];
+    const debriefStatus = userRecord.fields['Debrief Status'];
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
-    const blurTarget = document.getElementById('blur-target'); // Nouvelle cible
     const debriefContent = document.getElementById('debrief-content');
     const debriefPlaceholder = document.getElementById('debrief-placeholder');
 
     if (debriefStatus === 'En cours') {
-        blurTarget.classList.add('blur-sm');
+        debriefContent.classList.add('blur-sm', 'hidden');
+        debriefPlaceholder.classList.add('blur-sm', 'hidden');
         loadingOverlay.classList.remove('hidden');
-        debriefContent.classList.add('hidden');
-        debriefPlaceholder.classList.add('hidden');
+        
         document.getElementById('start-debrief-button').disabled = true; 
         pollDebriefStatus(userRecord.id); 
     } else {
-        blurTarget.classList.remove('blur-sm');
         loadingOverlay.classList.add('hidden');
+        debriefContent.classList.remove('blur-sm');
+        debriefPlaceholder.classList.remove('blur-sm');
+        
         const debriefHtml = userRecord.fields['Debrief HTML'];
         if (debriefHtml && debriefHtml.trim() !== '') {
             debriefContent.innerHTML = debriefHtml;
@@ -656,6 +668,7 @@ function pollDebriefStatus(recordId) {
             debriefPlaceholder.classList.remove('hidden');
         }
     }
+
     updateSourcesTable();
     updateUsageLimit();
 }
