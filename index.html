@@ -317,6 +317,31 @@
                         <button onclick="addPodcast()" class="btn btn-secondary">Ajouter</button>
                     </div>
                 </div>
+
+<div>
+    <h3 class="font-medium text-gray-700 mb-2">Fichiers PDF (Premium)</h3>
+    
+    <div id="pdf-upload-container" class="relative">
+        
+        <div class="flex flex-col md:flex-row gap-2">
+            <input type="file" id="pdf-file-input" accept=".pdf" class="input-field flex-grow">
+            <button id="add-pdf-button" class="btn btn-secondary">Ajouter</button>
+        </div>
+
+        <div id="pdf-premium-overlay" class="hidden absolute inset-0 bg-gray-200 bg-opacity-70 flex flex-col items-center justify-center rounded-lg">
+            <span class="text-yellow-500 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+            </span>
+            <p class="font-semibold text-gray-700">Fonctionnalité Premium</p>
+            <button id="upgrade-from-pdf" class="mt-2 text-sm font-bold text-blue-600 hover:underline">Passer Premium</button>
+        </div>
+
+    </div>
+</div>
+
+                
             </div>
         </div>
     </div>
@@ -1004,6 +1029,83 @@ document.addEventListener('DOMContentLoaded', () => {
         showPanel(1); 
     }
 });
+
+// **Code à ajouter à ton fichier JavaScript**
+
+// 1. Mets à jour la fonction qui affiche la modale pour gérer la restriction
+document.getElementById('show-add-source-modal').addEventListener('click', () => {
+    const isPremium = userRecord.fields.Status === 'Premium';
+    
+    document.getElementById('pdf-file-input').disabled = !isPremium;
+    document.getElementById('add-pdf-button').disabled = !isPremium;
+    
+    const overlay = document.getElementById('pdf-premium-overlay');
+    if (isPremium) {
+        overlay.classList.add('hidden');
+    } else {
+        overlay.classList.remove('hidden');
+    }
+
+    document.getElementById('add-source-modal').classList.remove('hidden');
+});
+
+// 2. Ajoute un listener pour le bouton "Ajouter" du PDF
+document.getElementById('add-pdf-button').addEventListener('click', handlePdfUpload);
+
+// 3. Crée la fonction qui gère l'upload
+async function handlePdfUpload() {
+    const fileInput = document.getElementById('pdf-file-input');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        showNotification('Aucun fichier', 'Veuillez sélectionner un fichier PDF.', 'error');
+        return;
+    }
+
+    // Vérification de la taille du fichier (50 Mo en octets)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+        showNotification('Fichier trop volumineux', 'Le fichier ne doit pas dépasser 50 Mo.', 'error');
+        return;
+    }
+
+    // Convertir le fichier en base64 pour l'envoi
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+        try {
+            const base64File = reader.result;
+            
+            // Appelle n8n avec une nouvelle action "addPdfFile"
+            await callN8n('addPdfFile', {
+                recordId: userRecord.id,
+                fileName: file.name,
+                fileData: base64File // Le fichier encodé
+            });
+
+            showNotification('Succès', 'Votre fichier PDF a été ajouté comme source.', 'success');
+            fileInput.value = ''; // Réinitialiser le champ
+            document.getElementById('add-source-modal').classList.add('hidden');
+            // Optionnel : recharger les sources si tu les affiches
+            // showDashboard(); 
+
+        } catch (e) {
+            showNotification('Erreur', `L'envoi du fichier a échoué : ${e.message}`, 'error');
+        }
+    };
+    reader.onerror = (error) => {
+        showNotification('Erreur de lecture', `Impossible de lire le fichier : ${error}`, 'error');
+    };
+}
+
+// 4. (Optionnel) Gère le clic sur le bouton "Passer Premium" dans le voile
+document.getElementById('upgrade-from-pdf').addEventListener('click', () => {
+    // Ferme la modale des sources et ouvre celle du profil sur l'onglet des plans
+    document.getElementById('add-source-modal').classList.add('hidden');
+    document.getElementById('open-profile-modal').click();
+    document.getElementById('plans-tab-btn').click();
+});
+
 
 // --- AJOUTS POUR L'INSCRIPTION ET LE MOT DE PASSE OUBLIÉ ---
 
