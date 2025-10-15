@@ -116,6 +116,11 @@
         <div class="panel">
              <div class="panel-header">
                 <h2 class="font-display font-medium text-lg">Chat / Débrief</h2>
+                 <select id="debrief-format-selector" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+        <option selected>Défault format</option>
+        <option>🎓 EduScience Learning Format</option>
+        <option>📚 Research Digest Format</option>
+    </select>
                 <div class="flex items-center gap-2">
                      <div id="user-status" class="text-xs font-medium px-2 py-1 rounded-full bg-yellow-100 text-yellow-800"></div>
                      <div id="debriefs-remaining" class="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800"></div>
@@ -446,8 +451,8 @@
   // REMPLACEZ votre fonction startDebrief actuelle par celle-ci
 async function startDebrief() {
     if (!userRecord) return;
-    const personaText = userRecord.fields['User Persona (AI)'] || '';
-    if (personaText.trim() === '') {
+    // ... (les vérifications pour personaText et hasLinks restent les mêmes)
+    if (!userRecord.fields['User Persona (AI)']?.trim()) {
         showNotification("Profil manquant", "Veuillez décrire votre profil avant de lancer un débrief.", 'error');
         return;
     }
@@ -457,17 +462,22 @@ async function startDebrief() {
         return;
     }
 
+    // MODIFICATION : On récupère la valeur du sélecteur
+    const selectedFormat = document.getElementById('debrief-format-selector').value;
+
     const debriefButton = document.getElementById('start-debrief-button');
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
     
     debriefButton.disabled = true;
-    loadingOverlay.classList.remove('hidden'); // Affiche le flou et le message de chargement
+    loadingOverlay.classList.remove('hidden');
 
     try {
-        // On lance le débrief. n8n répondra immédiatement "OK".
-        await callN8n('startDebrief', { recordId: userRecord.id });
+        // MODIFICATION : On envoie le "reportFormat" à n8n
+        await callN8n('startDebrief', { 
+            recordId: userRecord.id,
+            reportFormat: selectedFormat // Ajout de cette ligne
+        });
         
-        // On commence à vérifier le statut toutes les 5 secondes.
         pollDebriefStatus(userRecord.id);
 
     } catch (error) {
@@ -476,7 +486,6 @@ async function startDebrief() {
         updateUsageLimit();
     }
 }
-
 // AJOUTEZ cette nouvelle fonction juste après la fonction startDebrief
 function pollDebriefStatus(recordId) {
     let attempts = 0;
