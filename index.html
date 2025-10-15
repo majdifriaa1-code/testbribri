@@ -762,6 +762,119 @@ function pollDebriefStatus(recordId) {
             errorEl.classList.remove('hidden');
         }
     });
+
+// Fonction qui génère le HTML pour la modale d'inscription
+function createSignupModalHTML() {
+    return `
+        <div class="modal-overlay">
+            <div class="modal-content max-w-md">
+                <button id="close-signup-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button>
+                <h2 class="font-display text-2xl mb-6 text-center">Créer votre compte</h2>
+                <div class="space-y-4 text-left">
+                    <div>
+                        <label for="signup-name" class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+                        <input type="text" id="signup-name" placeholder="John Doe" class="input-field">
+                    </div>
+                    <div>
+                        <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label>
+                        <input type="email" id="signup-email" placeholder="nom@exemple.com" class="input-field">
+                    </div>
+                    <div>
+                        <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+                        <input type="password" id="signup-password" placeholder="••••••••" class="input-field">
+                    </div>
+                    <p id="signup-error" class="text-sm text-red-500 hidden"></p>
+                    <button id="signup-button" class="w-full btn btn-primary py-3 mt-4">S'inscrire</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Fonction qui génère le HTML pour la modale de mot de passe oublié
+function createForgotPasswordModalHTML() {
+    return `
+        <div class="modal-overlay">
+            <div class="modal-content max-w-md">
+                <button id="close-forgot-password-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button>
+                <h2 class="font-display text-2xl mb-6 text-center">Réinitialiser le mot de passe</h2>
+                <p class="text-center text-gray-500 mb-6">Entrez votre email pour recevoir un lien de réinitialisation.</p>
+                <div class="space-y-4 text-left">
+                    <div>
+                        <label for="reset-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label>
+                        <input type="email" id="reset-email" placeholder="nom@exemple.com" class="input-field">
+                    </div>
+                    <p id="reset-error" class="text-sm text-red-500 hidden"></p>
+                    <button id="reset-password-button" class="w-full btn btn-primary py-3 mt-4">Envoyer le lien</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+
+    // Gère la soumission du formulaire d'inscription
+async function handleSignup() {
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const errorEl = document.getElementById('signup-error');
+    errorEl.classList.add('hidden');
+
+    if (!name || !email || !password) {
+        errorEl.textContent = "Tous les champs sont obligatoires.";
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        // 1. Créer l'utilisateur dans Firebase Auth
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        // 2. Mettre à jour le nom d'affichage dans Firebase
+        await userCredential.user.updateProfile({ displayName: name });
+        // 3. Créer l'enregistrement de l'utilisateur dans votre backend (via n8n)
+        await createUserData(email, name);
+
+        // Cacher la modale et afficher une notification de succès
+        document.getElementById('signup-modal').classList.add('hidden');
+        await showNotification('Compte créé !', 'Bienvenue sur BRIOVA ! Vous allez être redirigé.', 'success');
+        location.reload(); // Recharger la page pour que l'état de connexion soit pris en compte
+
+    } catch (e) {
+        if (e.code === 'auth/email-already-in-use') {
+            errorEl.textContent = "Cette adresse email est déjà utilisée.";
+        } else if (e.code === 'auth/weak-password') {
+            errorEl.textContent = "Le mot de passe doit contenir au moins 6 caractères.";
+        } else {
+            errorEl.textContent = "Une erreur est survenue. Veuillez réessayer.";
+        }
+        errorEl.classList.remove('hidden');
+    }
+}
+
+// Gère la soumission du formulaire de mot de passe oublié
+async function handlePasswordReset() {
+    const email = document.getElementById('reset-email').value.trim();
+    const errorEl = document.getElementById('reset-error');
+    errorEl.classList.add('hidden');
+
+    if (!email) {
+        errorEl.textContent = "Veuillez entrer votre adresse email.";
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        await auth.sendPasswordResetEmail(email);
+        document.getElementById('forgot-password-modal').classList.add('hidden');
+        showNotification('Email envoyé', 'Vérifiez votre boîte de réception pour le lien de réinitialisation.', 'success');
+    } catch (e) {
+        errorEl.textContent = "Aucun compte n'est associé à cet email.";
+        errorEl.classList.remove('hidden');
+    }
+}
+
+    
     
     // Listeners Profile Modal
     document.getElementById('open-profile-modal').addEventListener('click', () => {
@@ -855,6 +968,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// --- AJOUTS POUR L'INSCRIPTION ET LE MOT DE PASSE OUBLIÉ ---
+
+// Affiche la modale d'inscription
+document.getElementById('show-signup-modal-button').addEventListener('click', () => {
+    const modalContainer = document.getElementById('signup-modal');
+    // On injecte le HTML de la modale (voir ci-dessous)
+    modalContainer.innerHTML = createSignupModalHTML();
+    modalContainer.classList.remove('hidden');
+
+    // On ajoute les listeners pour les nouveaux éléments
+    document.getElementById('close-signup-modal').addEventListener('click', () => modalContainer.classList.add('hidden'));
+    document.getElementById('signup-button').addEventListener('click', handleSignup);
+});
+
+// Affiche la modale de mot de passe oublié
+document.getElementById('show-forgot-password-modal').addEventListener('click', () => {
+    const modalContainer = document.getElementById('forgot-password-modal');
+    // On injecte le HTML de la modale (voir ci-dessous)
+    modalContainer.innerHTML = createForgotPasswordModalHTML();
+    modalContainer.classList.remove('hidden');
+
+    // On ajoute les listeners pour les nouveaux éléments
+    document.getElementById('close-forgot-password-modal').addEventListener('click', () => modalContainer.classList.add('hidden'));
+    document.getElementById('reset-password-button').addEventListener('click', handlePasswordReset);
+});
+
+
+    
     
 </script>
 
