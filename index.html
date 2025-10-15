@@ -483,15 +483,17 @@ async function startDebrief() {
 
     const debriefButton = document.getElementById('start-debrief-button');
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
-    // On cible directement le conteneur qui doit être flouté
-    const contentContainer = document.getElementById('debrief-output-container'); 
+    // On cible maintenant les éléments de contenu individuellement
+    const debriefContent = document.getElementById('debrief-content');
+    const debriefPlaceholder = document.getElementById('debrief-placeholder');
     
     debriefButton.disabled = true;
     
-    // On applique la classe de flou au conteneur parent
-    contentContainer.classList.add('blur-sm'); 
+    // On applique le flou uniquement aux éléments de fond
+    debriefContent.classList.add('blur-sm'); 
+    debriefPlaceholder.classList.add('blur-sm');
     
-    // On affiche l'overlay (maintenant sans effet de flou) par-dessus
+    // On affiche l'overlay (qui reste net) par-dessus
     loadingOverlay.classList.remove('hidden'); 
 
     try {
@@ -505,7 +507,8 @@ async function startDebrief() {
     } catch (error) {
         showNotification('Erreur', "Erreur lors du lancement du débrief: " + error.message, 'error');
         // En cas d'erreur, on retire le flou et on cache l'overlay
-        contentContainer.classList.remove('blur-sm');
+        debriefContent.classList.remove('blur-sm');
+        debriefPlaceholder.classList.remove('blur-sm');
         loadingOverlay.classList.add('hidden');
         updateUsageLimit();
     }
@@ -513,13 +516,17 @@ async function startDebrief() {
 // AJOUTEZ cette nouvelle fonction juste après la fonction startDebrief
 function pollDebriefStatus(recordId) {
     let attempts = 0;
-    const maxAttempts = 24; // 24 tentatives * 5 secondes = 2 minutes max
+    const maxAttempts = 24; 
 
     const intervalId = setInterval(async () => {
         if (attempts >= maxAttempts) {
             clearInterval(intervalId);
             showNotification('Délai dépassé', 'La création du débrief prend plus de temps que prévu. Vous recevrez le résultat par email.', 'error');
+            
+            // On retire le flou et l'overlay
             document.getElementById('debrief-loading-overlay').classList.add('hidden');
+            document.getElementById('debrief-content').classList.remove('blur-sm');
+            document.getElementById('debrief-placeholder').classList.remove('blur-sm');
             updateUsageLimit();
             return;
         }
@@ -528,18 +535,21 @@ function pollDebriefStatus(recordId) {
             const response = await callN8n('checkDebriefStatus', { recordId: recordId });
             if (response.status === 'complete') {
                 clearInterval(intervalId);
-                location.reload(); // Le débrief est prêt, on actualise !
+                location.reload(); 
             }
-            // Si le statut est 'pending', on ne fait rien et on attend la prochaine vérification.
         } catch (error) {
             clearInterval(intervalId);
             showNotification('Erreur', 'Impossible de vérifier le statut du débrief.', 'error');
+            
+            // On retire le flou et l'overlay
             document.getElementById('debrief-loading-overlay').classList.add('hidden');
+            document.getElementById('debrief-content').classList.remove('blur-sm');
+            document.getElementById('debrief-placeholder').classList.remove('blur-sm');
             updateUsageLimit();
         }
 
         attempts++;
-    }, 5000); // Vérifie toutes les 5 secondes
+    }, 5000); 
 }
 
     function showTab(tabName) {
@@ -558,11 +568,9 @@ function pollDebriefStatus(recordId) {
     document.getElementById('dashboard-section').classList.remove('hidden');
     document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
 
-    // Restaure la sélection du format de rapport (avec le nom de champ corrigé)
-    const savedFormat = userRecord.fields['Report format'] || 'Default format';
+    const savedFormat = userRecord.fields['reportFormat'] || 'default';
     document.getElementById('debrief-format-selector').value = savedFormat;
     
-    // Gère l'affichage du statut utilisateur et des débriefs restants
     const userStatus = userRecord.fields.Status || 'Free';
     document.getElementById('user-status').textContent = userStatus;
     const debriefsRemainingEl = document.getElementById('debriefs-remaining');
@@ -573,28 +581,26 @@ function pollDebriefStatus(recordId) {
         debriefsRemainingEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Débriefs`;
     }
 
-    // Restaure le profil pour l'IA
     document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
     
-    // Gère l'état de chargement au rafraîchissement
     const debriefStatus = userRecord.fields['Debrief Status'];
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
-    const contentContainer = document.getElementById('debrief-output-container');
     const debriefContent = document.getElementById('debrief-content');
     const debriefPlaceholder = document.getElementById('debrief-placeholder');
 
     if (debriefStatus === 'En cours') {
-        // Un débrief est en cours, on applique le flou et on affiche le chargement
-        contentContainer.classList.add('blur-sm');
+        // On floute les éléments de fond et on affiche le chargement par-dessus
+        debriefContent.classList.add('blur-sm', 'hidden');
+        debriefPlaceholder.classList.add('blur-sm', 'hidden');
         loadingOverlay.classList.remove('hidden');
-        debriefContent.classList.add('hidden');
-        debriefPlaceholder.classList.add('hidden');
+        
         document.getElementById('start-debrief-button').disabled = true; 
         pollDebriefStatus(userRecord.id); 
     } else {
-        // Pas de débrief en cours, on s'assure que tout est normal
-        contentContainer.classList.remove('blur-sm');
+        // Pas de débrief en cours, on s'assure que tout est net
         loadingOverlay.classList.add('hidden');
+        debriefContent.classList.remove('blur-sm');
+        debriefPlaceholder.classList.remove('blur-sm');
         
         const debriefHtml = userRecord.fields['Debrief HTML'];
         if (debriefHtml && debriefHtml.trim() !== '') {
