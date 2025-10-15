@@ -134,11 +134,10 @@
                     <p class="text-sm mt-1">Ajoutez vos sources, puis cliquez sur le bouton ci-dessous.</p>
                 </div>
                 
-<div id="debrief-loading-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center z-10">
+<div id="debrief-loading-overlay" class="hidden absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-lg">
     <div class="w-8 h-8 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
-    <p class="mt-4 font-medium text-gray-800 bg-white/80 px-4 py-2 rounded-lg shadow-md">Création du débrief en cours...</p>
+    <p class="mt-4 font-medium text-gray-600">Création du débrief en cours...</p>
 </div>
-
                 
             </div>
             <div class="p-4 border-t border-gray-200 flex-shrink-0">
@@ -471,8 +470,8 @@
   // REMPLACEZ votre fonction startDebrief actuelle par celle-ci
 async function startDebrief() {
     if (!userRecord || !userRecord.fields) return;
-    // ... (Les vérifications pour personaText et hasLinks restent ici) ...
-    if (!userRecord.fields['User Persona (AI)']?.trim()) {
+    const personaText = userRecord.fields['User Persona (AI)'] || '';
+    if (personaText.trim() === '') {
         showNotification("Profil manquant", "Veuillez décrire votre profil avant de lancer un débrief.", 'error');
         return;
     }
@@ -484,14 +483,14 @@ async function startDebrief() {
 
     const debriefButton = document.getElementById('start-debrief-button');
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
-    const contentContainer = document.getElementById('debrief-output-container'); // On cible le conteneur principal du contenu
+    const debriefContent = document.getElementById('debrief-content');
+    const debriefPlaceholder = document.getElementById('debrief-placeholder');
 
     debriefButton.disabled = true;
-
-    // On floute le conteneur de contenu directement
-    contentContainer.classList.add('blur-sm'); 
-
-    // On affiche l'overlay (maintenant sans effet de flou) par-dessus
+    // On floute le contenu existant
+    debriefContent.classList.add('blur-sm');
+    debriefPlaceholder.classList.add('blur-sm');
+    // On affiche l'overlay de chargement par-dessus
     loadingOverlay.classList.remove('hidden'); 
 
     try {
@@ -505,7 +504,8 @@ async function startDebrief() {
     } catch (error) {
         showNotification('Erreur', "Erreur lors du lancement du débrief: " + error.message, 'error');
         // En cas d'erreur, on retire le flou et l'overlay
-        contentContainer.classList.remove('blur-sm');
+        debriefContent.classList.remove('blur-sm');
+        debriefPlaceholder.classList.remove('blur-sm');
         loadingOverlay.classList.add('hidden');
         updateUsageLimit();
     }
@@ -549,7 +549,7 @@ function pollDebriefStatus(recordId) {
         document.getElementById(`${tabName}-tab-btn`).classList.add('active');
     }
 
-   function showDashboard() {
+    function showDashboard() {
     if (!userRecord || !firebaseUser) { 
         handleLogout(); 
         return; 
@@ -558,8 +558,8 @@ function pollDebriefStatus(recordId) {
     document.getElementById('dashboard-section').classList.remove('hidden');
     document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
 
-    // Restaure la sélection du format de rapport
-    const savedFormat = userRecord.fields['reportFormat'] || 'Default format';
+    // Corrige et restaure la sélection du format de rapport
+     const savedFormat = userRecord.fields['reportFormat'] || 'Default format';
     document.getElementById('debrief-format-selector').value = savedFormat;
     
     // Gère l'affichage du statut utilisateur et des débriefs restants
@@ -573,48 +573,6 @@ function pollDebriefStatus(recordId) {
         debriefsRemainingEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Débriefs`;
     }
 
-    // Restaure le profil pour l'IA
-    document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
-    
-    // --- GESTION DE L'ÉTAT DE CHARGEMENT AU RAFRAÎCHISSEMENT ---
-    const debriefStatus = userRecord.fields['Debrief Status'];
-    const loadingOverlay = document.getElementById('debrief-loading-overlay');
-    const contentContainer = document.getElementById('debrief-output-container'); // Cible le conteneur
-    const debriefContent = document.getElementById('debrief-content');
-    const debriefPlaceholder = document.getElementById('debrief-placeholder');
-
-    if (debriefStatus === 'En cours') {
-        // Un débrief est déjà en cours, on affiche l'état de chargement
-        contentContainer.classList.add('blur-sm'); // Floute le conteneur
-        loadingOverlay.classList.remove('hidden'); // Affiche le message de chargement
-        
-        // On s'assure que le contenu textuel est bien caché
-        debriefContent.classList.add('hidden');
-        debriefPlaceholder.classList.add('hidden');
-        
-        document.getElementById('start-debrief-button').disabled = true; 
-        pollDebriefStatus(userRecord.id); // On relance la vérification du statut
-    } else {
-        // Pas de débrief en cours, on affiche le contenu normal et on retire le flou
-        contentContainer.classList.remove('blur-sm');
-        loadingOverlay.classList.add('hidden');
-        
-        const debriefHtml = userRecord.fields['Debrief HTML'];
-        if (debriefHtml && debriefHtml.trim() !== '') {
-            debriefContent.innerHTML = debriefHtml;
-            debriefContent.classList.remove('hidden');
-            debriefPlaceholder.classList.add('hidden');
-        } else {
-            debriefContent.innerHTML = '';
-            debriefContent.classList.add('hidden');
-            debriefPlaceholder.classList.remove('hidden');
-        }
-    }
-    // --- FIN DE LA GESTION DE L'ÉTAT ---
-
-    updateSourcesTable();
-    updateUsageLimit();
-}
     // Restaure le profil pour l'IA
     document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
     
