@@ -126,17 +126,19 @@
                      <div id="debriefs-remaining" class="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800"></div>
                 </div>
             </div>
-            <div class="panel-content" id="debrief-output-container">
-                <div id="debrief-content" class="prose prose-sm max-w-none"></div>
-                <div id="debrief-placeholder" class="placeholder-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                    <p class="font-display font-medium">Prêt à lancer un débrief ?</p>
-                    <p class="text-sm mt-1">Ajoutez vos sources, puis cliquez sur le bouton ci-dessous.</p>
-                </div>
-                
-<div id="debrief-loading-overlay" class="hidden absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-lg">
-    <div class="w-8 h-8 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
-    <p class="mt-4 font-medium text-gray-600">Création du débrief en cours...</p>
+           <div class="panel-content" id="debrief-output-container">
+    <div id="blur-target">
+        <div id="debrief-content" class="prose prose-sm max-w-none"></div>
+        <div id="debrief-placeholder" class="placeholder-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+            <p class="font-display font-medium">Prêt à lancer un débrief ?</p>
+            <p class="text-sm mt-1">Ajoutez vos sources, puis cliquez sur le bouton ci-dessous.</p>
+        </div>
+    </div>
+    <div id="debrief-loading-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center z-10">
+        <div class="w-8 h-8 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
+        <p class="mt-4 font-medium text-gray-800 bg-white/80 px-4 py-2 rounded-lg shadow-md">Création du débrief en cours...</p>
+    </div>
 </div>
                 
             </div>
@@ -486,14 +488,11 @@ async function startDebrief() {
     // On cible maintenant les éléments de contenu individuellement
     const debriefContent = document.getElementById('debrief-content');
     const debriefPlaceholder = document.getElementById('debrief-placeholder');
+    const blurTarget = document.getElementById('blur-target'); // Nouvelle cible
+
     
     debriefButton.disabled = true;
-    
-    // On applique le flou uniquement aux éléments de fond
-    debriefContent.classList.add('blur-sm'); 
-    debriefPlaceholder.classList.add('blur-sm');
-    
-    // On affiche l'overlay (qui reste net) par-dessus
+    blurTarget.classList.add('blur-sm'); // On floute la nouvelle cible
     loadingOverlay.classList.remove('hidden'); 
 
     try {
@@ -501,14 +500,10 @@ async function startDebrief() {
             recordId: userRecord.id,
             reportFormat: document.getElementById('debrief-format-selector').value
         });
-        
         pollDebriefStatus(userRecord.id);
-
     } catch (error) {
         showNotification('Erreur', "Erreur lors du lancement du débrief: " + error.message, 'error');
-        // En cas d'erreur, on retire le flou et on cache l'overlay
-        debriefContent.classList.remove('blur-sm');
-        debriefPlaceholder.classList.remove('blur-sm');
+        blurTarget.classList.remove('blur-sm'); // On retire le flou de la cible
         loadingOverlay.classList.add('hidden');
         updateUsageLimit();
     }
@@ -583,25 +578,22 @@ function pollDebriefStatus(recordId) {
 
     document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
     
-    const debriefStatus = userRecord.fields['Debrief Status'];
+  const debriefStatus = userRecord.fields['Debrief Status'];
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
+    const blurTarget = document.getElementById('blur-target'); // Nouvelle cible
     const debriefContent = document.getElementById('debrief-content');
     const debriefPlaceholder = document.getElementById('debrief-placeholder');
 
     if (debriefStatus === 'En cours') {
-        // On floute les éléments de fond et on affiche le chargement par-dessus
-        debriefContent.classList.add('blur-sm', 'hidden');
-        debriefPlaceholder.classList.add('blur-sm', 'hidden');
+        blurTarget.classList.add('blur-sm');
         loadingOverlay.classList.remove('hidden');
-        
+        debriefContent.classList.add('hidden');
+        debriefPlaceholder.classList.add('hidden');
         document.getElementById('start-debrief-button').disabled = true; 
         pollDebriefStatus(userRecord.id); 
     } else {
-        // Pas de débrief en cours, on s'assure que tout est net
+        blurTarget.classList.remove('blur-sm');
         loadingOverlay.classList.add('hidden');
-        debriefContent.classList.remove('blur-sm');
-        debriefPlaceholder.classList.remove('blur-sm');
-        
         const debriefHtml = userRecord.fields['Debrief HTML'];
         if (debriefHtml && debriefHtml.trim() !== '') {
             debriefContent.innerHTML = debriefHtml;
@@ -613,7 +605,6 @@ function pollDebriefStatus(recordId) {
             debriefPlaceholder.classList.remove('hidden');
         }
     }
-
     updateSourcesTable();
     updateUsageLimit();
 }
