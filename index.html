@@ -134,9 +134,9 @@
                     <p class="text-sm mt-1">Ajoutez vos sources, puis cliquez sur le bouton ci-dessous.</p>
                 </div>
                 
-<div id="debrief-loading-overlay" class="hidden absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-lg">
+                <div id="debrief-loading-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center z-10">
     <div class="w-8 h-8 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
-    <p class="mt-4 font-medium text-gray-600">Création du débrief en cours...</p>
+    <p class="mt-4 font-medium text-gray-800 bg-white/80 px-4 py-2 rounded-lg shadow-md">Création du débrief en cours...</p>
 </div>
                 
             </div>
@@ -483,13 +483,14 @@ async function startDebrief() {
 
     const debriefButton = document.getElementById('start-debrief-button');
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
-    const debriefContent = document.getElementById('debrief-content');
-    const debriefPlaceholder = document.getElementById('debrief-placeholder');
-
+    // On cible directement le conteneur du contenu
+    const contentContainer = document.getElementById('debrief-output-container'); 
+    
     debriefButton.disabled = true;
-    // On floute le contenu existant
-    debriefContent.classList.add('blur-sm');
-    debriefPlaceholder.classList.add('blur-sm');
+    
+    // On applique le flou au conteneur parent
+    contentContainer.classList.add('blur-sm'); 
+    
     // On affiche l'overlay de chargement par-dessus
     loadingOverlay.classList.remove('hidden'); 
 
@@ -498,14 +499,13 @@ async function startDebrief() {
             recordId: userRecord.id,
             reportFormat: document.getElementById('debrief-format-selector').value
         });
-
+        
         pollDebriefStatus(userRecord.id);
 
     } catch (error) {
         showNotification('Erreur', "Erreur lors du lancement du débrief: " + error.message, 'error');
-        // En cas d'erreur, on retire le flou et l'overlay
-        debriefContent.classList.remove('blur-sm');
-        debriefPlaceholder.classList.remove('blur-sm');
+        // En cas d'erreur, on retire le flou du conteneur et on cache l'overlay
+        contentContainer.classList.remove('blur-sm');
         loadingOverlay.classList.add('hidden');
         updateUsageLimit();
     }
@@ -558,8 +558,8 @@ function pollDebriefStatus(recordId) {
     document.getElementById('dashboard-section').classList.remove('hidden');
     document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
 
-    // Corrige et restaure la sélection du format de rapport
-     const savedFormat = userRecord.fields['reportFormat'] || 'Default format';
+    // Restaure la sélection du format de rapport
+        const savedFormat = userRecord.fields['reportFormat'] || 'Default format';
     document.getElementById('debrief-format-selector').value = savedFormat;
     
     // Gère l'affichage du statut utilisateur et des débriefs restants
@@ -579,21 +579,25 @@ function pollDebriefStatus(recordId) {
     // --- GESTION DE L'ÉTAT DE CHARGEMENT AU RAFRAÎCHISSEMENT ---
     const debriefStatus = userRecord.fields['Debrief Status'];
     const loadingOverlay = document.getElementById('debrief-loading-overlay');
+    const contentContainer = document.getElementById('debrief-output-container'); // Cible le conteneur
     const debriefContent = document.getElementById('debrief-content');
     const debriefPlaceholder = document.getElementById('debrief-placeholder');
 
     if (debriefStatus === 'En cours') {
         // Un débrief est déjà en cours, on affiche l'état de chargement
-        debriefContent.classList.add('blur-sm', 'hidden');
-        debriefPlaceholder.classList.add('blur-sm', 'hidden');
-        loadingOverlay.classList.remove('hidden');
+        contentContainer.classList.add('blur-sm'); // Floute le conteneur
+        loadingOverlay.classList.remove('hidden'); // Affiche le message de chargement
+        
+        // On s'assure que le contenu textuel est bien caché
+        debriefContent.classList.add('hidden');
+        debriefPlaceholder.classList.add('hidden');
+        
         document.getElementById('start-debrief-button').disabled = true; 
         pollDebriefStatus(userRecord.id); // On relance la vérification du statut
     } else {
-        // Pas de débrief en cours, on affiche le contenu normal et on s'assure que le flou est retiré
+        // Pas de débrief en cours, on affiche le contenu normal et on retire le flou
+        contentContainer.classList.remove('blur-sm');
         loadingOverlay.classList.add('hidden');
-        debriefContent.classList.remove('blur-sm');
-        debriefPlaceholder.classList.remove('blur-sm');
         
         const debriefHtml = userRecord.fields['Debrief HTML'];
         if (debriefHtml && debriefHtml.trim() !== '') {
@@ -606,6 +610,11 @@ function pollDebriefStatus(recordId) {
             debriefPlaceholder.classList.remove('hidden');
         }
     }
+    // --- FIN DE LA GESTION DE L'ÉTAT ---
+
+    updateSourcesTable();
+    updateUsageLimit();
+}
     // --- FIN DE LA GESTION DE L'ÉTAT ---
 
     updateSourcesTable();
