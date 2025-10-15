@@ -512,20 +512,16 @@ async function startDebrief() {
 function pollDebriefStatus(recordId) {
     let attempts = 0;
     const maxAttempts = 24; 
-
     const intervalId = setInterval(async () => {
         if (attempts >= maxAttempts) {
             clearInterval(intervalId);
             showNotification('Délai dépassé', 'La création du débrief prend plus de temps que prévu. Vous recevrez le résultat par email.', 'error');
-            
-            // On retire le flou et l'overlay
+
+            document.getElementById('blur-target').classList.remove('blur-sm');
             document.getElementById('debrief-loading-overlay').classList.add('hidden');
-            document.getElementById('debrief-content').classList.remove('blur-sm');
-            document.getElementById('debrief-placeholder').classList.remove('blur-sm');
             updateUsageLimit();
             return;
         }
-
         try {
             const response = await callN8n('checkDebriefStatus', { recordId: recordId });
             if (response.status === 'complete') {
@@ -535,14 +531,11 @@ function pollDebriefStatus(recordId) {
         } catch (error) {
             clearInterval(intervalId);
             showNotification('Erreur', 'Impossible de vérifier le statut du débrief.', 'error');
-            
-            // On retire le flou et l'overlay
+
+            document.getElementById('blur-target').classList.remove('blur-sm');
             document.getElementById('debrief-loading-overlay').classList.add('hidden');
-            document.getElementById('debrief-content').classList.remove('blur-sm');
-            document.getElementById('debrief-placeholder').classList.remove('blur-sm');
             updateUsageLimit();
         }
-
         attempts++;
     }, 5000); 
 }
