@@ -24,9 +24,24 @@
             --danger-color: #d93025;
             --danger-hover-color: #c5221f;
         }
-        body { font-family: 'Roboto', sans-serif; background-color: var(--bg-primary); color: var(--text-primary); overflow: hidden; }
+        body { 
+    font-family: 'Roboto', sans-serif; 
+    background-color: var(--bg-primary); 
+    color: var(--text-primary); 
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Le body fait 100% de la hauteur de l'écran */
+    overflow: hidden; /* On garde ça pour que seul l'intérieur des panneaux défile */
+}
         h1, h2, h3, .font-display { font-family: 'Google Sans', sans-serif; }
-        .main-grid { display: grid; grid-template-columns: 300px 1fr 320px; height: 100vh; gap: 8px; padding: 8px; }
+        .main-grid { 
+    display: grid; 
+    grid-template-columns: 300px 1fr 320px; 
+    flex-grow: 1; /* C'est la ligne clé : la grille grandit pour remplir l'espace */
+    gap: 8px; 
+    padding: 8px; 
+    min-height: 0; /* Correction pour éviter des problèmes de dépassement dans Flexbox */
+}
         .panel { background-color: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
         .panel-header { padding: 1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
         .panel-content { position: relative; padding: 1rem; overflow-y: auto; flex-grow: 1; }
