@@ -163,13 +163,173 @@
             }
         }
 
+/* --- NOUVEAU STYLE HEADER --- */
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    z-index: 50;
+    min-width: 200px;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    pointer-events: none;
+}
+.dropdown-menu.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.dropdown-item {
+    display: block;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: #374151;
+    text-decoration: none;
+}
+.dropdown-item:hover {
+    background-color: #f3f4f6;
+}
 
+/* --- NOUVEAU STYLE MODALE "ADD SOURCES" --- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+}
+.modal-content-lg {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+#close-add-source-modal {
+    font-size: 2rem;
+    line-height: 1;
+}
+.upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9fafb;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+.upload-area:hover {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+.upload-icon-wrapper {
+    background-color: #e0e7ff;
+    border-radius: 50%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+.source-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+.source-grid-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+.source-grid-item:hover {
+    background-color: #f3f4f6;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
         
         
     </style>
 </head>
 <body>
 
+<header id="main-header" class="px-4 py-2 flex items-center justify-between bg-white border-b border-gray-200">
+    <div class="flex items-center gap-2">
+        <svg width="24" height="24" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="60" r="60" fill="#4A4A4A"/>
+            <path d="M40 60C40 48.9543 48.9543 40 60 40C71.0457 40 80 48.9543 80 60V80H40V60Z" fill="#80D0FF"/>
+            <path d="M60 20C71.0457 20 80 28.9543 80 40V60H60V20Z" fill="#FF8080"/>
+            <path d="M20 60C20 71.0457 28.9543 80 40 80H60V60H20Z" fill="#FFD480"/>
+            <path d="M60 80H80V100C80 94.4772 75.5228 90 70 90H60V80Z" fill="#B399FF"/>
+        </svg>
+        <span class="font-bold text-lg text-gray-800">BRIEOVA</span>
+    </div>
+
+    <div class="relative flex items-center gap-2">
+        <button id="settings-button" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <svg class="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </button>
+        <div id="settings-dropdown" class="dropdown-menu hidden">
+            <a href="#" class="dropdown-item">NotebookLM Help</a>
+            <a href="#" class="dropdown-item">Send feedback</a>
+            <a href="#" class="dropdown-item">Discord</a>
+            <a href="#" class="dropdown-item">Output Language</a>
+            <a href="#" class="dropdown-item">Device</a>
+            <div class="border-t border-gray-100 my-1"></div>
+            <a href="#" class="dropdown-item">Upgrade to Plus</a>
+        </div>
+
+        <button id="profile-button" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <img src="https://via.placeholder.com/32" alt="User Avatar" class="w-8 h-8 rounded-full">
+        </button>
+        </div>
+</header>
+
+<div id="add-source-modal" class="modal-overlay hidden">
+    <div class="modal-content-lg">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">Add sources</h2>
+            <button id="close-add-source-modal" class="text-gray-400 hover:text-gray-600">&times;</button>
+        </div>
+        <p class="text-gray-500 mb-8 text-sm">Sources let BRIEOVA base its responses on the information that matters most to you. <br>(Examples: marketing plans, course reading, research notes, meeting transcripts, sales documents, etc.)</p>
+        
+        <div class="upload-area">
+            <div class="upload-icon-wrapper">
+                <svg class="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h10a4 4 0 014 4v5a4 4 0 01-4 4H7z M10 9l-3 3m0 0l3 3m-3-3h12" /></svg>
+            </div>
+            <p class="font-semibold text-gray-700">Upload sources</p>
+            <p class="text-sm text-gray-500">Drag & drop or <button class="text-blue-600 font-semibold hover:underline">choose file</button> to upload</p>
+        </div>
+        <p class="text-xs text-gray-400 text-center my-4">Supported file types: PDF, .txt, Markdown, Audio (e.g. mp3)</p>
+        
+        <div class="source-grid">
+            <button class="source-grid-item"><img src="https://www.google.com/images/icons/product/sites-32.png" class="w-5 h-5" alt="Google Workspace icon"> Google Workspace</button>
+            <button class="source-grid-item"><img src="https://www.google.com/images/icons/product/drive-32.png" class="w-5 h-5" alt="Google Drive icon"> Google Drive</button>
+            <button class="source-grid-item"><svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg> Link</button>
+            <button class="source-grid-item"><svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg> Website</button>
+            <button class="source-grid-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg> YouTube</button>
+            <button class="source-grid-item"><svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Paste text</button>
+        </div>
+    </div>
+</div>
+
+
+
+    
     <div id="loading-indicator" class="fixed inset-0 bg-white/50 z-[100] flex items-center justify-center">
         <div class="w-12 h-12 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
     </div>
@@ -956,7 +1116,50 @@ async function handlePasswordReset() {
     }
 }
 
+    // --- SCRIPT POUR LE NOUVEAU HEADER ---
+document.addEventListener('DOMContentLoaded', () => {
+    const settingsButton = document.getElementById('settings-button');
+    const settingsDropdown = document.getElementById('settings-dropdown');
     
+    // Le bouton de profil existant pour ouvrir la modale
+    const profileButton = document.getElementById('profile-button');
+    const openProfileModalButton = document.getElementById('open-profile-modal');
+    
+    // Ouvre/Ferme le menu Settings
+    settingsButton.addEventListener('click', (event) => {
+        event.stopPropagation(); // Empêche le clic de se propager à la fenêtre
+        settingsDropdown.classList.toggle('active');
+    });
+    
+    // Gère le clic sur le nouveau bouton profil du header
+    profileButton.addEventListener('click', () => {
+        // Simule un clic sur l'ancien bouton caché pour réutiliser votre logique existante
+        if(openProfileModalButton) {
+            openProfileModalButton.click();
+        }
+    });
+
+    // Ferme le menu si on clique n'importe où ailleurs
+    window.addEventListener('click', () => {
+        if (settingsDropdown.classList.contains('active')) {
+            settingsDropdown.classList.remove('active');
+        }
+    });
+
+    // --- SCRIPT POUR LA NOUVELLE MODALE ---
+    const addSourceModal = document.getElementById('add-source-modal');
+    const closeAddSourceModalButton = document.getElementById('close-add-source-modal');
+
+    // Votre bouton existant pour ouvrir la modale
+    // document.getElementById('show-add-source-modal').addEventListener...
+
+    // Ferme la nouvelle modale
+    if (closeAddSourceModalButton) {
+        closeAddSourceModalButton.addEventListener('click', () => {
+            addSourceModal.classList.add('hidden');
+        });
+    }
+});
     
     // Listeners Profile Modal
     document.getElementById('open-profile-modal').addEventListener('click', () => {
