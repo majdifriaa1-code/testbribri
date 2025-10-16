@@ -924,7 +924,10 @@ function pollDebriefStatus(recordId) {
     document.getElementById('auth-section').classList.add('hidden');
     document.getElementById('dashboard-section').classList.remove('hidden');
     document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
-       updateUserAvatar(userRecord.fields.Name);
+    
+       if (typeof window.updateUserAvatar === 'function') {
+        window.updateUserAvatar(userRecord.fields.Name); 
+    }
 
     const savedFormat = userRecord.fields['reportFormat'] || 'default';
     document.getElementById('debrief-format-selector').value = savedFormat;
@@ -1189,18 +1192,7 @@ async function handlePasswordReset() {
     }
 }
 
-function updateUserAvatar(userName) {
-    const avatarDiv = document.getElementById('profile-avatar-initial');
-    let initial = '?'; // Valeur par défaut si le nom est vide
 
-    if (userName && userName.trim().length > 0) {
-        initial = userName.trim().charAt(0).toUpperCase();
-    }
-    
-    if (avatarDiv) {
-        avatarDiv.textContent = initial;
-    }
-}
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1213,14 +1205,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsButton = document.getElementById('settings-button');
     const settingsDropdown = document.getElementById('settings-dropdown');
     const profileButton = document.getElementById('profile-button');
-    const openProfileModalButton = document.getElementById('open-profile-modal'); // L'ancien bouton pour la compatibilité
-    const logoutButton = document.getElementById('logout-button'); // Ajoutez cette ligne
+    const openProfileModalButton = document.getElementById('open-profile-modal');
+    const logoutButton = document.getElementById('logout-button');
+
     // --- Modale Principale "Add Sources" (Le Menu) ---
     const showMainModalBtn = document.getElementById('show-add-source-modal');
     const mainModal = document.getElementById('add-source-modal');
     const closeModalBtn = document.getElementById('close-add-source-modal');
 
-    // --- Zone d'upload PDF / Fichier ---
+    // --- Zone d'upload Fichier (PDF, etc.) ---
     const pdfUploadArea = document.getElementById('pdf-upload-area');
     const pdfFileInput = document.getElementById('pdf-file-input');
 
@@ -1262,7 +1255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             avatarDiv.textContent = initial;
         }
     }
-    // On rend la fonction accessible globalement pour pouvoir l'appeler depuis showDashboard()
+    // Rend la fonction accessible globalement pour l'appeler depuis showDashboard()
     window.updateUserAvatar = updateUserAvatar;
 
     /**
@@ -1289,7 +1282,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (profileButton && openProfileModalButton) {
         profileButton.addEventListener('click', () => {
-            openProfileModalButton.click(); // Simule un clic sur l'ancien bouton pour réutiliser la logique existante
+            openProfileModalButton.click();
+        });
+    }
+
+    if (logoutButton && typeof logout === 'function') {
+        logoutButton.addEventListener('click', () => {
+            logout(); // Appelle votre fonction de déconnexion globale
         });
     }
 
@@ -1299,13 +1298,6 @@ document.addEventListener('DOMContentLoaded', () => {
             settingsDropdown.classList.remove('active');
         }
     });
-
-// Logique du bouton de déconnexion
-    if (logoutButton && typeof logout === 'function') { // Assurez-vous que logout() existe
-        logoutButton.addEventListener('click', () => {
-            logout(); // Appelle votre fonction de déconnexion existante
-        });
-    }
 
     // --- Logique de la Modale Principale ---
     if (showMainModalBtn && mainModal) {
