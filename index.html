@@ -278,7 +278,7 @@
 <body>
 
 
-<header id="main-header" class="px-4 py-2 flex items-center justify-between bg-white border-b border-gray-200">
+<<header id="main-header" class="px-4 py-2 flex items-center justify-between bg-white border-b border-gray-200">
     <div class="flex items-center gap-2">
         <svg width="24" height="24" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="60" cy="60" r="60" fill="#4A4A4A"/>
@@ -304,14 +304,15 @@
             <a href="#" class="dropdown-item">Upgrade to Plus</a>
         </div>
 
+        <button id="logout-button" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </button>
+
         <button id="profile-button" class="rounded-full hover:bg-gray-100 transition-colors">
-    <div id="profile-avatar-initial" class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm">
-        </div>
-</button>
-        </div>
+            <div id="profile-avatar-initial" class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm"></div>
+        </button>
+    </div>
 </header>
-
-
 
 
 
@@ -856,7 +857,9 @@ function pollDebriefStatus(recordId) {
     document.getElementById('auth-section').classList.add('hidden');
     document.getElementById('dashboard-section').classList.remove('hidden');
     document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
-       updateUserAvatar(userRecord.fields.Name);
+       if (typeof window.updateUserAvatar === 'function') {
+        window.updateUserAvatar(userRecord.fields.Name); 
+    }
 
     const savedFormat = userRecord.fields['reportFormat'] || 'default';
     document.getElementById('debrief-format-selector').value = savedFormat;
@@ -1121,19 +1124,6 @@ async function handlePasswordReset() {
     }
 }
 
-function updateUserAvatar(userName) {
-    const avatarDiv = document.getElementById('profile-avatar-initial');
-    let initial = '?'; // Valeur par défaut si le nom est vide
-
-    if (userName && userName.trim().length > 0) {
-        initial = userName.trim().charAt(0).toUpperCase();
-    }
-    
-    if (avatarDiv) {
-        avatarDiv.textContent = initial;
-    }
-}
-
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -1145,14 +1135,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsButton = document.getElementById('settings-button');
     const settingsDropdown = document.getElementById('settings-dropdown');
     const profileButton = document.getElementById('profile-button');
-    const openProfileModalButton = document.getElementById('open-profile-modal'); // L'ancien bouton pour la compatibilité
+    const openProfileModalButton = document.getElementById('open-profile-modal');
+    const logoutButton = document.getElementById('logout-button');
 
     // --- Modale Principale "Add Sources" (Le Menu) ---
     const showMainModalBtn = document.getElementById('show-add-source-modal');
     const mainModal = document.getElementById('add-source-modal');
     const closeModalBtn = document.getElementById('close-add-source-modal');
 
-    // --- Zone d'upload PDF / Fichier ---
+    // --- Zone d'upload Fichier (PDF, etc.) ---
     const pdfUploadArea = document.getElementById('pdf-upload-area');
     const pdfFileInput = document.getElementById('pdf-file-input');
 
@@ -1194,7 +1185,7 @@ document.addEventListener('DOMContentLoaded', () => {
             avatarDiv.textContent = initial;
         }
     }
-    // On rend la fonction accessible globalement pour pouvoir l'appeler depuis showDashboard()
+    // Rend la fonction accessible globalement pour l'appeler depuis showDashboard()
     window.updateUserAvatar = updateUserAvatar;
 
     /**
@@ -1221,7 +1212,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (profileButton && openProfileModalButton) {
         profileButton.addEventListener('click', () => {
-            openProfileModalButton.click(); // Simule un clic sur l'ancien bouton pour réutiliser la logique existante
+            openProfileModalButton.click();
+        });
+    }
+
+    if (logoutButton && typeof logout === 'function') {
+        logoutButton.addEventListener('click', () => {
+            logout(); // Appelle votre fonction de déconnexion globale
         });
     }
 
