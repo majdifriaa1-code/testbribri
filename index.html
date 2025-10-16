@@ -94,82 +94,95 @@
   
 
       /* --- AJOUTS POUR LA VERSION MOBILE --- */
-        @media (max-width: 1024px) {
-            body {
-                overflow: auto; 
-            }
+       /* --- MODIFICATIONS POUR LA VERSION MOBILE --- */
+@media (max-width: 1024px) {
+    body {
+        /* On passe le body en conteneur Flex vertical qui prend 100% de la hauteur */
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden; /* Le body lui-même ne défile plus */
+    }
 
-            .main-grid {
-                display: block; /* On n'utilise plus la grille sur mobile */
-                height: auto;
-                /* On ajoute de l'espace en bas pour ne pas que le contenu soit caché par la nav bar */
-                padding-bottom: 80px; 
-            }
+    .main-grid {
+        display: block; 
+        flex-grow: 1; /* La grille remplit l'espace restant sous le header */
+        min-height: 0; /* Correction de bug Flexbox pour le défilement interne */
+        position: relative;
+    }
 
-            /* Cache les panneaux par défaut sur mobile */
-            .main-grid > .panel {
-                display: none;
-                height: calc(100vh - 80px); /* Chaque panneau prend toute la hauteur visible */
-            }
+    /* Cache les panneaux par défaut */
+    .main-grid > .panel {
+        display: none;
+        height: 100%; /* Chaque panneau prend 100% de la hauteur de la grille */
+        border: none; /* On peut enlever les bordures sur mobile pour un look plus propre */
+        border-radius: 0;
+    }
 
-            /* Affiche le panneau actif */
-            .main-grid > .panel.mobile-active {
-                display: flex; /* Utilise flex comme dans la version desktop */
-            }
+    /* Affiche le panneau actif */
+    .main-grid > .panel.mobile-active {
+        display: flex;
+    }
 
-            /* Style de la barre de navigation mobile */
-            #mobile-nav {
-                display: flex;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 70px;
-                background-color: var(--bg-secondary);
-                border-top: 1px solid var(--border-color);
-                justify-content: space-around;
-                align-items: center;
-                z-index: 10;
-                box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            }
+    /* Le contenu du panneau est maintenant la seule chose qui défile */
+    .panel-content {
+        /* On ajoute l'espace en bas pour ne pas que la barre de navigation cache le contenu */
+        padding-bottom: 80px; 
+    }
 
-            .mobile-nav-btn {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 4px;
-                font-size: 0.75rem;
-                color: var(--text-secondary);
-                background: none;
-                border: none;
-                padding: 0.5rem;
-                border-radius: 8px;
-                width: 80px;
-            }
+    /* Style de la barre de navigation mobile (inchangé) */
+    #mobile-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background-color: var(--bg-secondary);
+        border-top: 1px solid var(--border-color);
+        justify-content: space-around;
+        align-items: center;
+        z-index: 10;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
 
-            .mobile-nav-btn.active {
-                color: var(--accent-primary);
-                background-color: #e8f0fe; /* Couleur d'accentuation légère */
-            }
-            
-            /* -- Autres ajustements -- */
-            #auth-section {
-                padding: 1rem;
-            }
-            .modal-content {
-                max-width: 90vw;
-            }
-            #profile-modal .modal-content {
-                flex-direction: column; min-height: auto; max-height: 90vh; overflow-y: auto;
-            }
-            #profile-modal .modal-content > div:first-child {
-                width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;
-            }
-             #profile-modal .modal-content > div:last-child {
-                width: 100%;
-            }
-        }
+    .mobile-nav-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 8px;
+        width: 80px;
+    }
+
+    .mobile-nav-btn.active {
+        color: var(--accent-primary);
+        background-color: #e8f0fe;
+    }
+    
+    /* Autres ajustements (inchangés) */
+    #auth-section {
+        padding: 1rem;
+    }
+    .modal-content, .modal-content-lg, .modal-content-sm {
+        max-width: 90vw;
+    }
+    #profile-modal .modal-content {
+        flex-direction: column; min-height: auto; max-height: 90vh; overflow-y: auto;
+    }
+    #profile-modal .modal-content > div:first-child {
+        width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;
+    }
+    #profile-modal .modal-content > div:last-child {
+        width: 100%;
+    }
+}
 
         /* Cache la barre de navigation sur les grands écrans */
         @media (min-width: 1025px) {
