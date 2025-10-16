@@ -94,43 +94,44 @@
   
 
       /* --- AJOUTS POUR LA VERSION MOBILE --- */
-       /* --- MODIFICATIONS POUR LA VERSION MOBILE --- */
+ /* --- MODIFICATIONS POUR LA VERSION MOBILE (CORRIGÉ) --- */
 @media (max-width: 1024px) {
     body {
-        /* On passe le body en conteneur Flex vertical qui prend 100% de la hauteur */
         display: flex;
         flex-direction: column;
         height: 100vh;
-        overflow: hidden; /* Le body lui-même ne défile plus */
+        overflow: hidden; 
     }
 
     .main-grid {
         display: block; 
-        flex-grow: 1; /* La grille remplit l'espace restant sous le header */
-        min-height: 0; /* Correction de bug Flexbox pour le défilement interne */
+        flex-grow: 1; 
+        min-height: 0;
         position: relative;
     }
 
-    /* Cache les panneaux par défaut */
     .main-grid > .panel {
         display: none;
-        height: 100%; /* Chaque panneau prend 100% de la hauteur de la grille */
-        border: none; /* On peut enlever les bordures sur mobile pour un look plus propre */
+        height: 100%; 
+        border: none;
         border-radius: 0;
     }
 
-    /* Affiche le panneau actif */
     .main-grid > .panel.mobile-active {
         display: flex;
     }
 
-    /* Le contenu du panneau est maintenant la seule chose qui défile */
+    /* * LA CORRECTION EST ICI 
+     * On restaure les propriétés flex-grow et overflow-y pour permettre
+     * au contenu du panneau de grandir et de défiler.
+    */
     .panel-content {
-        /* On ajoute l'espace en bas pour ne pas que la barre de navigation cache le contenu */
-        padding-bottom: 80px; 
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-bottom: 90px; /* Un peu plus d'espace pour la barre de navigation */
     }
 
-    /* Style de la barre de navigation mobile (inchangé) */
+    /* Le reste est inchangé */
     #mobile-nav {
         display: flex;
         position: fixed;
@@ -166,7 +167,6 @@
         background-color: #e8f0fe;
     }
     
-    /* Autres ajustements (inchangés) */
     #auth-section {
         padding: 1rem;
     }
