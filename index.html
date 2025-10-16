@@ -739,39 +739,59 @@ function pollDebriefStatus(recordId) {
     updateUsageLimit();
 }
     function updateSourcesTable() {
-        const tableBody = document.getElementById('sources-table');
-        const placeholder = document.getElementById('sources-placeholder');
-        tableBody.innerHTML = '';
-        let hasContent = false;
-        const fields = [ { n: 'Article RSS Links', t: 'Articles / RSS' }, { n: 'YouTube Links', t: 'Vidéos YouTube' }, { n: 'Podcast RSS Links', t: 'Podcasts' }];
-        fields.forEach(f => {
-            let contentExists = false, cardContent = '', clearAction = '';
-            if (f.n === 'Podcast RSS Links') {
-                let p = [];
-                try { p = JSON.parse(userRecord.fields[f.n] || '[]'); } catch (e) {}
-                if (p.length > 0) {
-                    contentExists = true;
-                    cardContent = p.map(i => `<div class="text-xs truncate text-gray-500" title="${i.link}">${i.title || i.link}</div>`).join('');
-                    clearAction = `clearPodcast()`;
-                }
-            } else {
-                const links = userRecord.fields[f.n] ? String(userRecord.fields[f.n]).split(',').filter(Boolean) : [];
-                if (links.length > 0) {
-                    contentExists = true;
-                    cardContent = links.map(l => `<div class="text-xs truncate text-gray-500" title="${l}">${l}</div>`).join('');
-                    clearAction = `clearLinks('${f.n}')`;
-                }
+    const tableBody = document.getElementById('sources-table');
+    const placeholder = document.getElementById('sources-placeholder');
+    tableBody.innerHTML = '';
+    let hasContent = false;
+    
+    // ON AJOUTE 'PdfFiles' À LA LISTE DES CHAMPS À AFFICHER
+    const fields = [
+        { n: 'Article RSS Links', t: 'Articles / RSS' }, 
+        { n: 'YouTube Links', t: 'Vidéos YouTube' }, 
+        { n: 'Podcast RSS Links', t: 'Podcasts' },
+        { n: 'PdfFiles', t: 'Fichiers PDF' } // <-- NOUVELLE LIGNE
+    ];
+
+    fields.forEach(f => {
+        let contentExists = false, cardContent = '', clearAction = '';
+        const fieldData = userRecord.fields[f.n];
+
+        if (f.n === 'Podcast RSS Links') {
+            let p = [];
+            try { p = JSON.parse(fieldData || '[]'); } catch (e) {}
+            if (p.length > 0) {
+                contentExists = true;
+                cardContent = p.map(i => `<div class="text-xs truncate text-gray-500" title="${i.link}">${i.title || i.link}</div>`).join('');
+                clearAction = `clearPodcast()`;
             }
-            if (contentExists) {
-                hasContent = true;
-                const card = document.createElement('div');
-                card.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200';
-                card.innerHTML = `<div class="flex justify-between items-center mb-2"><h4 class="font-medium text-sm text-gray-800">${f.t}</h4><button onclick="${clearAction}" class="text-xs text-gray-500 hover:text-red-600">Vider</button></div><div class="space-y-1">${cardContent}</div>`;
-                tableBody.appendChild(card);
+        } else if (f.n === 'PdfFiles') { // <-- NOUVEAU BLOC POUR GÉRER LES PDFS
+            // Le champ PDF d'Airtable est un tableau d'objets
+            if (Array.isArray(fieldData) && fieldData.length > 0) {
+                contentExists = true;
+                // On affiche le nom de chaque fichier
+                cardContent = fieldData.map(file => `<div class="text-xs truncate text-gray-500" title="${file.url}">${file.filename}</div>`).join('');
+                // On réutilise la fonction clearLinks, mais pour le champ 'PdfFiles'
+                clearAction = `clearLinks('PdfFiles')`;
             }
-        });
-        placeholder.classList.toggle('hidden', hasContent);
-    }
+        } else { // Pour les liens RSS et YouTube (champs de texte)
+            const links = fieldData ? String(fieldData).split(',').filter(Boolean) : [];
+            if (links.length > 0) {
+                contentExists = true;
+                cardContent = links.map(l => `<div class="text-xs truncate text-gray-500" title="${l}">${l}</div>`).join('');
+                clearAction = `clearLinks('${f.n}')`;
+            }
+        }
+
+        if (contentExists) {
+            hasContent = true;
+            const card = document.createElement('div');
+            card.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200';
+            card.innerHTML = `<div class="flex justify-between items-center mb-2"><h4 class="font-medium text-sm text-gray-800">${f.t}</h4><button onclick="${clearAction}" class="text-xs text-gray-500 hover:text-red-600">Vider</button></div><div class="space-y-1">${cardContent}</div>`;
+            tableBody.appendChild(card);
+        }
+    });
+    placeholder.classList.toggle('hidden', hasContent);
+}
 
     function updateUsageLimit() {
         const usageEl = document.getElementById('usage-limit');
