@@ -277,6 +277,45 @@
 </head>
 <body>
 
+
+<header id="main-header" class="px-4 py-2 flex items-center justify-between bg-white border-b border-gray-200">
+    <div class="flex items-center gap-2">
+        <svg width="24" height="24" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="60" r="60" fill="#4A4A4A"/>
+            <path d="M40 60C40 48.9543 48.9543 40 60 40C71.0457 40 80 48.9543 80 60V80H40V60Z" fill="#80D0FF"/>
+            <path d="M60 20C71.0457 20 80 28.9543 80 40V60H60V20Z" fill="#FF8080"/>
+            <path d="M20 60C20 71.0457 28.9543 80 40 80H60V60H20Z" fill="#FFD480"/>
+            <path d="M60 80H80V100C80 94.4772 75.5228 90 70 90H60V80Z" fill="#B399FF"/>
+        </svg>
+        <span class="font-bold text-lg text-gray-800">BRIEOVA</span>
+    </div>
+
+    <div class="relative flex items-center gap-2">
+        <button id="settings-button" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <svg class="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </button>
+        <div id="settings-dropdown" class="dropdown-menu">
+            <a href="#" class="dropdown-item">NotebookLM Help</a>
+            <a href="#" class="dropdown-item">Send feedback</a>
+            <a href="#" class="dropdown-item">Discord</a>
+            <a href="#" class="dropdown-item">Output Language</a>
+            <a href="#" class="dropdown-item">Device</a>
+            <div class="border-t border-gray-100 my-1"></div>
+            <a href="#" class="dropdown-item">Upgrade to Plus</a>
+        </div>
+
+        <button id="profile-button" class="rounded-full hover:bg-gray-100 transition-colors">
+    <div id="profile-avatar-initial" class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm">
+        </div>
+</button>
+        </div>
+</header>
+
+
+
+
+
+    
     <div id="loading-indicator" class="fixed inset-0 bg-white/50 z-[100] flex items-center justify-center">
         <div class="w-12 h-12 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
     </div>
@@ -817,6 +856,7 @@ function pollDebriefStatus(recordId) {
     document.getElementById('auth-section').classList.add('hidden');
     document.getElementById('dashboard-section').classList.remove('hidden');
     document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
+       updateUserAvatar(userRecord.fields.Name);
 
     const savedFormat = userRecord.fields['reportFormat'] || 'default';
     document.getElementById('debrief-format-selector').value = savedFormat;
@@ -1081,89 +1121,171 @@ async function handlePasswordReset() {
     }
 }
 
-    // --- SCRIPT POUR LE NOUVEAU HEADER ---
+function updateUserAvatar(userName) {
+    const avatarDiv = document.getElementById('profile-avatar-initial');
+    let initial = '?'; // Valeur par défaut si le nom est vide
+
+    if (userName && userName.trim().length > 0) {
+        initial = userName.trim().charAt(0).toUpperCase();
+    }
+    
+    if (avatarDiv) {
+        avatarDiv.textContent = initial;
+    }
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Récupération des éléments ---
+
+    // ===================================================================
+    //  1. SÉLECTION DE TOUS LES ÉLÉMENTS DU DOM
+    // ===================================================================
+
+    // --- Header ---
+    const settingsButton = document.getElementById('settings-button');
+    const settingsDropdown = document.getElementById('settings-dropdown');
+    const profileButton = document.getElementById('profile-button');
+    const openProfileModalButton = document.getElementById('open-profile-modal'); // L'ancien bouton pour la compatibilité
+
+    // --- Modale Principale "Add Sources" (Le Menu) ---
     const showMainModalBtn = document.getElementById('show-add-source-modal');
     const mainModal = document.getElementById('add-source-modal');
     const closeModalBtn = document.getElementById('close-add-source-modal');
 
-    // Modales "Enfants"
+    // --- Zone d'upload PDF / Fichier ---
+    const pdfUploadArea = document.getElementById('pdf-upload-area');
+    const pdfFileInput = document.getElementById('pdf-file-input');
+
+    // --- Sous-Modales ---
     const websiteModal = document.getElementById('website-modal');
     const youtubeModal = document.getElementById('youtube-modal');
     const podcastModal = document.getElementById('podcast-modal');
     const textModal = document.getElementById('text-modal');
-
-    // Boutons "Lanceurs" depuis la modale principale
+    
+    // --- Boutons "Lanceurs" des sous-modales ---
     const websiteLauncherBtn = document.getElementById('website-launcher-btn');
     const youtubeLauncherBtn = document.getElementById('youtube-launcher-btn');
     const podcastLauncherBtn = document.getElementById('podcast-launcher-btn');
     const textLauncherBtn = document.getElementById('text-launcher-btn');
     
-    // Boutons "Ajouter" des sous-modales
+    // --- Boutons "Ajouter" des sous-modales ---
     const addArticleLinkBtn = document.getElementById('add-article-link-btn');
     const addYoutubeLinkBtn = document.getElementById('add-youtube-link-btn');
     const addPodcastBtn = document.getElementById('add-podcast-btn');
 
-    // Zone d'upload PDF
-    const pdfUploadArea = document.getElementById('pdf-upload-area');
-    const pdfFileInput = document.getElementById('pdf-file-input');
-
-    // --- Logique d'ouverture/fermeture ---
     
-    // Ouvre la modale principale
-    showMainModalBtn.addEventListener('click', () => mainModal.classList.remove('hidden'));
-    
-    // Ferme la modale principale
-    closeModalBtn.addEventListener('click', () => mainModal.classList.add('hidden'));
+    // ===================================================================
+    //  2. FONCTIONS UTILES
+    // ===================================================================
 
-    // Fonction pour ouvrir une sous-modale
+    /**
+     * Met à jour l'avatar de l'utilisateur avec l'initiale de son nom.
+     * @param {string} userName - Le nom complet de l'utilisateur.
+     */
+    function updateUserAvatar(userName) {
+        const avatarDiv = document.getElementById('profile-avatar-initial');
+        let initial = '?'; // Valeur par défaut si pas de nom
+
+        if (userName && userName.trim().length > 0) {
+            initial = userName.trim().charAt(0).toUpperCase();
+        }
+        
+        if (avatarDiv) {
+            avatarDiv.textContent = initial;
+        }
+    }
+    // On rend la fonction accessible globalement pour pouvoir l'appeler depuis showDashboard()
+    window.updateUserAvatar = updateUserAvatar;
+
+    /**
+     * Ouvre une sous-modale et ferme la modale principale.
+     * @param {HTMLElement} modal - L'élément de la modale à ouvrir.
+     */
     const openSubModal = (modal) => {
-        mainModal.classList.add('hidden'); // Ferme la modale principale
-        modal.classList.remove('hidden'); // Ouvre la sous-modale
+        if (mainModal) mainModal.classList.add('hidden');
+        if (modal) modal.classList.remove('hidden');
     };
-    
-    // Associe les lanceurs à leurs modales
-    websiteLauncherBtn.addEventListener('click', () => openSubModal(websiteModal));
-    youtubeLauncherBtn.addEventListener('click', () => openSubModal(youtubeModal));
-    podcastLauncherBtn.addEventListener('click', () => openSubModal(podcastModal));
-    textLauncherBtn.addEventListener('click', () => openSubModal(textModal));
 
-    // Ajoute la logique de fermeture à tous les boutons "Cancel"
+
+    // ===================================================================
+    //  3. LOGIQUE DES ÉVÉNEMENTS (EVENT LISTENERS)
+    // ===================================================================
+
+    // --- Logique du Header ---
+    if (settingsButton && settingsDropdown) {
+        settingsButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            settingsDropdown.classList.toggle('active');
+        });
+    }
+
+    if (profileButton && openProfileModalButton) {
+        profileButton.addEventListener('click', () => {
+            openProfileModalButton.click(); // Simule un clic sur l'ancien bouton pour réutiliser la logique existante
+        });
+    }
+
+    // Ferme le menu "Settings" si on clique n'importe où ailleurs
+    window.addEventListener('click', () => {
+        if (settingsDropdown && settingsDropdown.classList.contains('active')) {
+            settingsDropdown.classList.remove('active');
+        }
+    });
+
+    // --- Logique de la Modale Principale ---
+    if (showMainModalBtn && mainModal) {
+        showMainModalBtn.addEventListener('click', () => mainModal.classList.remove('hidden'));
+    }
+    if (closeModalBtn && mainModal) {
+        closeModalBtn.addEventListener('click', () => mainModal.classList.add('hidden'));
+    }
+
+    // --- Logique des lanceurs de sous-modales ---
+    if (websiteLauncherBtn) websiteLauncherBtn.addEventListener('click', () => openSubModal(websiteModal));
+    if (youtubeLauncherBtn) youtubeLauncherBtn.addEventListener('click', () => openSubModal(youtubeModal));
+    if (podcastLauncherBtn) podcastLauncherBtn.addEventListener('click', () => openSubModal(podcastModal));
+    if (textLauncherBtn) textLauncherBtn.addEventListener('click', () => openSubModal(textModal));
+
+    // --- Logique de fermeture des sous-modales ---
     document.querySelectorAll('.btn-close-sub-modal').forEach(btn => {
         btn.addEventListener('click', () => {
-            btn.closest('.modal-overlay').classList.add('hidden');
+            const modalToClose = btn.closest('.modal-overlay');
+            if (modalToClose) modalToClose.classList.add('hidden');
         });
     });
 
-    // --- Logique d'ajout de sources (réutilise vos fonctions) ---
+    // --- Logique d'appel de vos fonctions backend ---
+    if (addArticleLinkBtn) {
+        addArticleLinkBtn.addEventListener('click', () => {
+            addLink('Article RSS Links', 'article-link-input');
+            if (websiteModal) websiteModal.classList.add('hidden');
+        });
+    }
 
-    // Ajout Site Web / RSS
-    addArticleLinkBtn.addEventListener('click', () => {
-        addLink('Article RSS Links', 'article-link-input'); // APPEL DE VOTRE FONCTION
-        websiteModal.classList.add('hidden');
-    });
+    if (addYoutubeLinkBtn) {
+        addYoutubeLinkBtn.addEventListener('click', () => {
+            addLink('YouTube Links', 'youtube-link-input');
+            if (youtubeModal) youtubeModal.classList.add('hidden');
+        });
+    }
 
-    // Ajout YouTube
-    addYoutubeLinkBtn.addEventListener('click', () => {
-        addLink('YouTube Links', 'youtube-link-input'); // APPEL DE VOTRE FONCTION
-        youtubeModal.classList.add('hidden');
-    });
-
-    // Ajout Podcast
-    addPodcastBtn.addEventListener('click', () => {
-        addPodcast(); // APPEL DE VOTRE FONCTION
-        podcastModal.classList.add('hidden');
-    });
-
-    // Ajout Fichier PDF
-    pdfUploadArea.addEventListener('click', () => pdfFileInput.click());
-    pdfFileInput.addEventListener('change', () => {
-        // Une fois un fichier choisi, on appelle votre fonction existante
-        handlePdfUpload(); // APPEL DE VOTRE FONCTION
-        mainModal.classList.add('hidden');
-    });
-
+    if (addPodcastBtn) {
+        addPodcastBtn.addEventListener('click', () => {
+            addPodcast();
+            if (podcastModal) podcastModal.classList.add('hidden');
+        });
+    }
+    
+    // --- Logique de l'upload de fichier (PDF, etc.) ---
+    if (pdfUploadArea && pdfFileInput) {
+        pdfUploadArea.addEventListener('click', () => pdfFileInput.click());
+        pdfFileInput.addEventListener('change', () => {
+            if (typeof handlePdfUpload === 'function') {
+                handlePdfUpload();
+            }
+            if (mainModal) mainModal.classList.add('hidden');
+        });
+    }
 });
     
     // Listeners Profile Modal
