@@ -220,11 +220,31 @@
         z-index: 20;
     }
 
+#mobile-nav {
+        display: flex;
+        justify-content: space-around;
+        background-color: var(--bg-secondary);
+        /* On la positionne de manière fixe SOUS le header */
+        position: fixed;
+        top: 57px; /* <-- Hauteur approximative de votre header. Ajustez si besoin. */
+        left: 0;
+        right: 0;
+        z-index: 19; /* Juste en dessous du header */
+        /* On change la bordure et l'ombre */
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+
+
+         
     /* 3. On ajoute de l'ESPACE pour que le contenu ne soit pas caché */
-    .main-grid {
+   .main-grid {
         display: block;
-        padding-top: 70px;     /* <-- VALEUR IMPORTANTE : Espace pour le header fixe */
-        padding-bottom: 90px;  /* <-- VALEUR IMPORTANTE : Espace pour la navigation fixe en bas */
+        /* On augmente l'espace en haut pour laisser la place au header ET à la nouvelle barre d'onglets */
+        padding-top: 125px; 
+        /* On peut réduire l'espace en bas car la barre de nav n'y est plus */
+        padding-bottom: 24px;  
     }
 
     /* Le panneau actif s'affiche normalement */
@@ -257,20 +277,21 @@
         z-index: 20;
         box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
-            .mobile-nav-btn {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 4px;
-                font-size: 0.75rem;
-                color: var(--text-secondary);
-                background: none;
-                border: none;
-                padding: 0.5rem;
-                border-radius: 8px;
-                width: 80px;
-            }
+            /* On ajuste les boutons pour qu'ils ressemblent à des onglets */
+    .mobile-nav-btn {
+        flex-grow: 1; /* Pour qu'ils prennent toute la largeur disponible */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        background: none;
+        border: none;
+        padding: 0.5rem 0;
+        border-radius: 0; /* On retire l'arrondi pour un look "onglet" */
+    }
 
             .mobile-nav-btn.active {
                 color: var(--accent-primary);
@@ -449,7 +470,26 @@
         </div>
 </header>
 
-
+<nav id="mobile-nav" class="hidden">
+    <button id="mobile-nav-sources" class="mobile-nav-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Sources</span>
+    </button>
+    <button id="mobile-nav-chat" class="mobile-nav-btn active">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        <span>Chat</span>
+    </button>
+    <button id="mobile-nav-studio" class="mobile-nav-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+        <span>Studio</span>
+    </button>
+</nav>
 
 
 
@@ -1762,26 +1802,7 @@ document.getElementById('show-forgot-password-modal').addEventListener('click', 
     
 </script>
 
-    <nav id="mobile-nav" class="hidden">
-    <button id="mobile-nav-sources" class="mobile-nav-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <span>Sources</span>
-    </button>
-    <button id="mobile-nav-chat" class="mobile-nav-btn active">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-        <span>Chat</span>
-    </button>
-    <button id="mobile-nav-studio" class="mobile-nav-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-        </svg>
-        <span>Studio</span>
-    </button>
-</nav>
+    
 
     
 </body>
