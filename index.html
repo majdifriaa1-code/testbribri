@@ -44,7 +44,11 @@
 }
         .panel { background-color: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
         .panel-header { padding: 1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
-        .panel-content { position: relative; padding: 1rem; overflow-y: auto; flex-grow: 1; }
+        .panel-content .space-y-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 colonnes de taille égale */
+    gap: 1rem; /* Espace entre les cartes */
+}
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-family: 'Google Sans', sans-serif; font-weight: 500; border-radius: 99px; padding: 0.5rem 1rem; border: 1px solid transparent; cursor: pointer; transition: all 0.2s; }
         .btn:disabled { background-color: #ccc !important; color: #888 !important; cursor: not-allowed; opacity: 0.7; }
         .btn-primary { background-color: var(--accent-primary); color: white; }
@@ -65,7 +69,41 @@
         .profile-nav-item svg { margin-right: 1rem; width: 1.25rem; height: 1.25rem; }
         .tab-content-section { display: none; }
         .tab-content-section.active { display: block; }
-        .studio-item { background-color: transparent; border-radius: 8px; padding: 0.75rem; display: flex; align-items: center; gap: 1rem; color: var(--text-secondary); cursor: not-allowed; font-size: 1rem; }
+        .studio-item {
+    /* Apparence de la carte */
+    background-color: var(--bg-tertiary); /* Fond gris clair */
+    border: 1px solid var(--border-color);   /* Bordure discrète */
+    border-radius: 12px;                     /* Bords plus arrondis */
+    padding: 1.25rem;                        /* Plus d'espace intérieur */
+    
+    /* Disposition verticale (icône au-dessus du texte) */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Aligne le contenu à gauche */
+    gap: 0.75rem;            /* Espace entre l'icône et le texte */
+
+    /* Style du texte et de l'icône */
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+
+    /* Interactivité */
+    cursor: not-allowed; /* Garde le curseur non autorisé pour le moment */
+    transition: all 0.2s ease-in-out;
+}
+
+        .studio-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    background-color: #e8eaed; /* Un gris légèrement plus foncé */
+}
+
+/* On s'assure que les icônes ont une bonne taille */
+.studio-item svg {
+    width: 1.75rem;
+    height: 1.75rem;
+    color: var(--text-secondary);
+}
 
 .pill-select {
     /* --- Style de base et apparence --- */
