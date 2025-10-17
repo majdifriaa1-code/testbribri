@@ -696,7 +696,7 @@
         <p class="text-gray-500 mb-8 text-sm">Sources let BRIEOVA base its responses on the information that matters most to you.</p>
 
         <div id="pdf-upload-area" class="upload-area relative">
-            <input type="file" id="pdf-file-input" class="hidden" accept=".pdf,.txt,.md,.mp3"/>
+            <input type="file" id="pdf-file-input" class="hidden" accept=".pdf"/>
             <div class="upload-icon-wrapper">
                  <svg class="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
             </div>
@@ -709,7 +709,7 @@
                 <button class="upgrade-button">Passer Premium</button>
             </div>
         </div>
-        <p class="text-xs text-gray-400 text-center my-4">Supported file types: PDF, .txt, Markdown, Audio (e.g. mp3)</p>
+        <p class="text-xs text-gray-400 text-center my-4">Supported file types: PDF </p>
 
         <div class="source-grid">
             <button id="website-launcher-btn" class="source-grid-item"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.25 9.75h17.5M9 3.25a15.3 15.3 0 016 0m-6 17.5a15.3 15.3 0 006 0"></path></svg> Website</button>
@@ -954,18 +954,45 @@
         await callN8n('createUser', { email, name });
     }
 
-    async function addLink(fieldName, inputId) {
-        const inputElement = document.getElementById(inputId);
-        const newLinks = inputElement.value.trim();
-        if (!newLinks) return;
-        const existingLinks = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
-        const allLinks = [...new Set([...existingLinks, ...newLinks.split(',').map(s => s.trim()).filter(Boolean)])].join(',');
-        try {
-            updateLocalUserRecord(await callN8n('addLink', { recordId: userRecord.id, fieldName, allLinks }));
-            inputElement.value = '';
-            showDashboard();
-        } catch (e) { showNotification('Erreur', e.message, 'error'); }
+   async function addLink(fieldName, inputId) {
+    const inputElement = document.getElementById(inputId);
+    const newLinksRaw = inputElement.value.trim();
+    if (!newLinksRaw) return;
+
+    const newLinks = newLinksRaw.split(',').map(link => link.trim()).filter(Boolean);
+    
+    // Expression régulière pour détecter les URLs YouTube
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+
+    // --- NOUVELLE LOGIQUE DE VALIDATION ---
+    for (const link of newLinks) {
+        const isYoutubeLink = youtubeRegex.test(link);
+
+        if (fieldName === 'YouTube Links') {
+            if (!isYoutubeLink) {
+                showNotification('Lien invalide', `"${link}" n'est pas un lien YouTube valide.`, 'error');
+                return; // Stoppe l'opération
+            }
+        } else { // Pour les autres champs comme "Article RSS Links"
+            if (isYoutubeLink) {
+                showNotification('Lien incorrect', 'Veuillez ajouter les liens YouTube dans la section dédiée.', 'error');
+                return; // Stoppe l'opération
+            }
+        }
     }
+    // --- FIN DE LA VALIDATION ---
+
+    const existingLinks = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
+    const allLinks = [...new Set([...existingLinks, ...newLinks])].join(',');
+    
+    try {
+        updateLocalUserRecord(await callN8n('addLink', { recordId: userRecord.id, fieldName, allLinks }));
+        inputElement.value = '';
+        showDashboard();
+    } catch (e) {
+        showNotification('Erreur', e.message, 'error');
+    }
+}
 
  async function saveUserPersona() {
     if (!userRecord) return;
@@ -1749,37 +1776,37 @@ async function handlePdfUpload() {
     const file = fileInput.files[0];
 
     if (!file) {
-        showNotification('Aucun fichier', 'Veuillez sélectionner un fichier PDF.', 'error');
+        showNotification('Aucun fichier', 'Veuillez sélectionner un fichier.', 'error');
         return;
     }
 
-    // Vérification de la taille du fichier (50 Mo en octets)
+    // --- NOUVELLE VÉRIFICATION DU TYPE DE FICHIER ---
+    if (file.type !== 'application/pdf') {
+        showNotification('Type de fichier incorrect', 'Seuls les fichiers PDF sont autorisés.', 'error');
+        fileInput.value = ''; // Réinitialise le champ de fichier
+        return;
+    }
+    // --- FIN DE LA VÉRIFICATION ---
+
     const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
         showNotification('Fichier trop volumineux', 'Le fichier ne doit pas dépasser 50 Mo.', 'error');
         return;
     }
 
-    // Convertir le fichier en base64 pour l'envoi
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = async () => {
         try {
-            const base64File = reader.result;
-            
-            // Appelle n8n avec une nouvelle action "addPdfFile"
             await callN8n('addPdfFile', {
                 recordId: userRecord.id,
                 fileName: file.name,
-                fileData: base64File // Le fichier encodé
+                fileData: reader.result
             });
-
             showNotification('Succès', 'Votre fichier PDF a été ajouté comme source.', 'success');
-            fileInput.value = ''; // Réinitialiser le champ
+            fileInput.value = '';
             document.getElementById('add-source-modal').classList.add('hidden');
-            // Optionnel : recharger les sources si tu les affiches
-            // showDashboard(); 
-
+            showDashboard(); 
         } catch (e) {
             showNotification('Erreur', `L'envoi du fichier a échoué : ${e.message}`, 'error');
         }
