@@ -307,7 +307,7 @@
 <body>
 
 
-<header id="main-header" class="px-4 py-2 flex items-center justify-between bg-white border-b border-gray-200">
+<header id="main-header" class="px-4 py-2 flex items-center justify-between bg-white border-b border-gray-200 hidden">
     <div class="flex items-center gap-2">
         <svg width="24" height="24" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="60" cy="60" r="60" fill="#4A4A4A"/>
@@ -1007,9 +1007,12 @@ function pollDebriefStatus(recordId) {
         try { await auth.signOut(); location.reload(); } catch (e) { console.error(e); }
     }
 
-    auth.onAuthStateChanged(async (user) => {
+   auth.onAuthStateChanged(async (user) => {
         const loader = document.getElementById('loading-indicator');
+        const header = document.getElementById('main-header'); // On récupère le header
+
         if (user) {
+            header.classList.remove('hidden'); // <-- ON AFFICHE LE HEADER
             firebaseUser = user;
             try {
                 await getUserDataByEmail(user.email);
@@ -1019,6 +1022,7 @@ function pollDebriefStatus(recordId) {
                 showNotification("Erreur Critique", "Impossible de charger vos données. Veuillez actualiser ou contacter le support.", "error");
             }
         } else {
+            header.classList.add('hidden'); // <-- ON S'ASSURE QUE LE HEADER EST CACHÉ
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
         }
