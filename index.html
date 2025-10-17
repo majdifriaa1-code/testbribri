@@ -95,43 +95,53 @@
 
       /* --- AJOUTS POUR LA VERSION MOBILE --- */
  /* --- AJOUTS POUR LA VERSION MOBILE --- */
-        @media (max-width: 1024px) {
-            body {
-                overflow: auto; 
-            }
+       @media (max-width: 1024px) {
 
-            .main-grid {
-                display: block;    /* On garde 'block' pour que les panneaux ne soient pas en colonnes */
-                flex-grow: 1;      /* NOUVEAU: Fait en sorte que ce conteneur grandisse pour remplir l'espace disponible */
-                min-height: 0;     /* NOUVEAU: Correction de sécurité pour Flexbox */
-                padding-bottom: 0; /* On retire le padding du bas, car la nav n'est plus superposée */
-            }
-            /* Cache les panneaux par défaut sur mobile */
-          .main-grid > .panel {
-                display: none;
-                height: 100%;      /* MODIFIÉ: Le panneau prend 100% de son parent (.main-grid) qui a déjà la bonne taille */
-            }
+    /* 1. ON REND LE HEADER "STICKY" */
+    #main-header {
+        position: sticky;
+        top: 0;
+        z-index: 20; /* S'assure qu'il reste au-dessus du contenu */
+    }
 
-            /* Affiche le panneau actif */
-            .main-grid > .panel.mobile-active {
-                display: flex; /* Utilise flex comme dans la version desktop */
-            }
+    /* On s'assure que le body reste le conteneur principal de la vue */
+    body {
+        /* Pas de changement nécessaire, les styles par défaut sont corrects */
+    }
 
-            /* Style de la barre de navigation mobile */
-            #mobile-nav {
-                display: flex;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 70px;
-                background-color: var(--bg-secondary);
-                border-top: 1px solid var(--border-color);
-                justify-content: space-around;
-                align-items: center;
-                z-index: 10;
-                box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            }
+    /* 2. ON AJUSTE LE CONTENEUR PRINCIPAL */
+    .main-grid {
+        display: block;
+        flex-grow: 1; /* Le conteneur grandit pour remplir l'espace */
+        min-height: 0; /* Correction de sécurité pour Flexbox */
+        padding: 8px;
+        padding-bottom: 0;
+    }
+
+    .main-grid > .panel {
+        display: none;
+        height: 100%; /* Le panneau prend 100% de la hauteur du .main-grid */
+    }
+
+    .main-grid > .panel.mobile-active {
+        display: flex;
+    }
+
+    /* 3. ON REND LA NAVIGATION DU BAS "STICKY" */
+    #mobile-nav {
+        display: flex;
+        position: sticky; /* MODIFIÉ: de 'fixed' à 'sticky' */
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background-color: var(--bg-secondary);
+        border-top: 1px solid var(--border-color);
+        justify-content: space-around;
+        align-items: center;
+        z-index: 20; /* S'assure qu'il reste au-dessus du contenu */
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
 
             .mobile-nav-btn {
                 display: flex;
