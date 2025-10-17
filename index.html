@@ -1029,20 +1029,41 @@
     }
 }
 
-    async function addPodcast() {
-        const newLink = document.getElementById('podcast-link-input').value.trim();
-        const newTitle = document.getElementById('podcast-title-input').value.trim();
-        if (!newLink) { showNotification("Attention", "Veuillez fournir le lien du podcast.", 'error'); return; }
-        let podcasts = [];
-        try { podcasts = JSON.parse(userRecord.fields['Podcast RSS Links'] || '[]'); } catch (e) {}
-        podcasts.push({ link: newLink, title: newTitle });
-        try {
-            updateLocalUserRecord(await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: JSON.stringify(podcasts) }));
-            document.getElementById('podcast-link-input').value = '';
-            document.getElementById('podcast-title-input').value = '';
-            showDashboard();
-        } catch (e) { showNotification('Erreur', e.message, 'error'); }
+  async function addPodcast() {
+    const newLink = document.getElementById('podcast-link-input').value.trim();
+    const newTitle = document.getElementById('podcast-title-input').value.trim();
+    
+    if (!newLink) { 
+        showNotification("Attention", "Veuillez fournir le lien RSS du podcast.", 'error'); 
+        return; 
     }
+
+    // --- NOUVELLE VÉRIFICATION ANTI-YOUTUBE ---
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+    if (youtubeRegex.test(newLink)) {
+        showNotification('Lien incorrect', 'Veuillez ajouter les liens YouTube dans la section dédiée.', 'error');
+        return; // Stoppe l'opération si c'est un lien YouTube
+    }
+    // --- FIN DE LA VÉRIFICATION ---
+
+    let podcasts = [];
+    try { 
+        podcasts = JSON.parse(userRecord.fields['Podcast RSS Links'] || '[]'); 
+    } catch (e) {
+        console.error("Could not parse podcast JSON", e);
+    }
+    
+    podcasts.push({ link: newLink, title: newTitle });
+    
+    try {
+        updateLocalUserRecord(await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: JSON.stringify(podcasts) }));
+        document.getElementById('podcast-link-input').value = '';
+        document.getElementById('podcast-title-input').value = '';
+        showDashboard();
+    } catch (e) { 
+        showNotification('Erreur', e.message, 'error'); 
+    }
+}
 
     async function clearLinks(fieldName) {
         if (await showNotification('Confirmation', 'Vider tous les liens de cette catégorie ?', 'confirm')) {
