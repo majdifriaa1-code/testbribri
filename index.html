@@ -1288,6 +1288,20 @@ function updateUserAvatar(userName) {
 }
 
 
+    /**
+ * Fait défiler la zone de chat tout en bas.
+ */
+function scrollToBottom() {
+    // On utilise un petit délai pour laisser le temps au DOM de se mettre à jour
+    setTimeout(() => {
+        const chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }, 0);
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // ===================================================================
@@ -1399,6 +1413,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Met à jour la bulle de l'IA avec la vraie réponse
                 typingBubble.textContent = aiMessage;
 
+                // APPELER LA FONCTION ICI AUSSI
+                scrollToBottom();
+
             } catch (error) {
                 typingBubble.textContent = 'Désolé, une erreur est survenue.';
                 console.error('Chat error:', error);
@@ -1424,7 +1441,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.appendChild(row);
         
         // Fait défiler automatiquement vers le bas pour voir le dernier message
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        scrollToBottom();
         
         return bubble; // On retourne la bulle pour pouvoir la modifier plus tard (pour l'indicateur "...")
     }
