@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BRIOVA Dashboard</title>
+    <title>BRIEOVA Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -464,15 +464,9 @@
 <body>
 
 
-<header id="main-header" class="px-4 py-2 flex items-center justify-between bg-white border-b border-gray-200 hidden">
-    <div class="flex items-center gap-2">
-        <svg width="24" height="24" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="60" cy="60" r="60" fill="#4A4A4A"/>
-            <path d="M40 60C40 48.9543 48.9543 40 60 40C71.0457 40 80 48.9543 80 60V80H40V60Z" fill="#80D0FF"/>
-            <path d="M60 20C71.0457 20 80 28.9543 80 40V60H60V20Z" fill="#FF8080"/>
-            <path d="M20 60C20 71.0457 28.9543 80 40 80H60V60H20Z" fill="#FFD480"/>
-            <path d="M60 80H80V100C80 94.4772 75.5228 90 70 90H60V80Z" fill="#B399FF"/>
-        </svg>
+<header id="main-header" class="px-4 py-2 flex items-center justify-between bg-white border-b border-gray-200">
+    <div class="flex items-center gap-3">
+        <img src="https://cdn.prod.website-files.com/68b9f8920957ffd144ee6dd0/68f2cd833c67a2590b977707_Logo%20only.png" alt="Brieova Logo" class="h-8 w-auto">
         <span class="font-bold text-lg text-gray-800">BRIEOVA</span>
     </div>
 
@@ -490,19 +484,14 @@
             <a href="#" class="dropdown-item">Upgrade to Plus</a>
         </div>
 
+        <button id="logout-button" title="Déconnexion" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </button>
+
         <button id="profile-button" class="rounded-full hover:bg-gray-100 transition-colors">
-    <div id="profile-avatar-initial" class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm">
-        </div>
-</button>
-
-<button id="logout-button" title="Déconnexion" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
-        <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-    </button>
-
-        
-        </div>
+            <div id="profile-avatar-initial" class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm"></div>
+        </button>
+    </div>
 </header>
 
 <nav id="mobile-nav" class="hidden">
