@@ -494,6 +494,14 @@
     <div id="profile-avatar-initial" class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm">
         </div>
 </button>
+
+<button id="logout-button" title="Déconnexion" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+        <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+    </button>
+
+        
         </div>
 </header>
 
@@ -1481,6 +1489,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileButton = document.getElementById('profile-button');
     const openProfileModalButton = document.getElementById('open-profile-modal');
     const logoutButton = document.getElementById('logout-button');
+    const logoutButton = document.getElementById('logout-button');
 
     // --- Modale Principale "Add Sources" (Le Menu) ---
     const showMainModalBtn = document.getElementById('show-add-source-modal');
@@ -1571,6 +1580,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (profileButton && openProfileModalButton) {
         profileButton.addEventListener('click', () => openProfileModalButton.click());
     }
+    
     if (logoutButton && typeof handleLogout === 'function') {
         logoutButton.addEventListener('click', handleLogout);
     }
