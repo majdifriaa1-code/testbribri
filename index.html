@@ -167,7 +167,19 @@
     border-bottom-left-radius: 0.5rem; /* Crée une petite "queue" */
 }
 
-        
+        /* --- CORRECTION DÉFINITIVE POUR LE SCROLL DU CHAT --- */
+.panel-content.chat-container {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    /* Correction cruciale qui force le conteneur à respecter ses limites */
+    min-height: 0; 
+}
+
+#chat-messages {
+    flex-grow: 1; /* Fait en sorte que la zone de messages prenne tout l'espace vertical disponible */
+    overflow-y: auto; /* Réactive le défilement pour cette zone uniquement */
+}
 
       /* --- AJOUTS POUR LA VERSION MOBILE --- */
  /* --- AJOUTS POUR LA VERSION MOBILE --- */
@@ -555,9 +567,9 @@
 <div class="panel-header">
         <h2 class="font-display font-medium text-lg">Chat Assistant</h2>
     </div>
-    <div class="panel-content" style="padding: 0; display: flex; flex-direction: column;">
+    <div class="panel-content chat-container">
         
-        <div id="chat-messages" class="flex-1 p-4 space-y-4 overflow-y-auto">
+        <div id="chat-messages" class="p-4 space-y-4">
             <div class="message-row ai">
                 <div class="chat-bubble ai">Bonjour ! En quoi puis-je vous assister aujourd'hui ?</div>
             </div>
