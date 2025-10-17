@@ -181,6 +181,27 @@
     overflow-y: auto; /* Réactive le défilement pour cette zone uniquement */
 }
 
+/* --- NOUVEAU STYLE POUR LA BARRE DE SAISIE DU CHAT --- */
+.chat-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 99px; /* Forme de pilule */
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.chat-input-wrapper:focus-within {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.3);
+}
+
+
+
+
+
+        
       /* --- AJOUTS POUR LA VERSION MOBILE --- */
  /* --- AJOUTS POUR LA VERSION MOBILE --- */
      @media (max-width: 1024px) {
@@ -564,25 +585,27 @@
     </button>
 </div>
 
-<div class="panel-header">
-        <h2 class="font-display font-medium text-lg">Chat Assistant</h2>
-    </div>
-    <div class="panel-content chat-container">
+<div class="panel-content chat-container">
+    
+    <div id="chat-messages" class="p-4 space-y-4">
         
-        <div id="chat-messages" class="p-4 space-y-4">
-            <div class="message-row ai">
-                <div class="chat-bubble ai">Bonjour ! En quoi puis-je vous assister aujourd'hui ?</div>
-            </div>
+        <div id="chat-empty-state" class="flex flex-col items-center justify-center h-full text-gray-400">
+            <h2 class="text-2xl font-medium text-gray-800">Comment puis-je vous aider ?</h2>
         </div>
 
-        <div class="p-4 border-t border-gray-200 bg-white">
-            <form id="chat-form" class="flex gap-3 items-center">
-                <input id="chat-input" type="text" placeholder="Posez votre question..." class="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                <button type="submit" class="bg-blue-600 text-white p-2.5 rounded-full hover:bg-blue-700 transition shadow-sm flex-shrink-0">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                </button>
-            </form>
         </div>
+
+    <div class="p-4 bg-white">
+        <form id="chat-form" class="chat-input-wrapper">
+            <button type="button" class="p-2 text-gray-500 hover:text-gray-700">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+            </button>
+            <input id="chat-input" type="text" placeholder="Poser une question" class="flex-1 bg-transparent border-none focus:outline-none focus:ring-0 text-sm">
+            <button type="submit" class="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition shadow-sm flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+            </button>
+        </form>
+    </div>
 
 
         
@@ -1426,13 +1449,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /**
-     * Ajoute une bulle de message à l'interface
-     * @param {string} text - Le contenu du message
-     * @param {'user' | 'ai'} sender - L'expéditeur du message
-     * @returns {HTMLElement} - L'élément de la bulle de message créé
-     */
-  /**
+  
+ /**
  * Ajoute une bulle de message à l'interface et défile vers le bas.
  * @param {string} text - Le contenu du message
  * @param {'user' | 'ai'} sender - L'expéditeur du message
@@ -1440,6 +1458,15 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 function addMessage(text, sender) {
     const chatMessages = document.getElementById('chat-messages');
+
+    // NOUVEAU : Fait disparaître le message d'accueil au premier message
+    const emptyState = document.getElementById('chat-empty-state');
+    if (emptyState) {
+        emptyState.style.display = 'none';
+        // On retire les classes de centrage pour que les messages s'affichent en haut
+        chatMessages.classList.remove('items-center', 'justify-center', 'h-full');
+    }
+
     const row = document.createElement('div');
     row.className = `message-row ${sender}`;
 
@@ -1450,12 +1477,9 @@ function addMessage(text, sender) {
     row.appendChild(bubble);
     chatMessages.appendChild(row);
     
-    // --- NOUVELLE MÉTHODE DE DÉFILEMENT ---
-    // On demande au navigateur de faire défiler la nouvelle ligne de message
-    // pour qu'elle soit visible, avec une animation fluide.
     row.scrollIntoView({ behavior: 'smooth', block: 'end' });
     
-    return bubble; // On retourne la bulle pour pouvoir la modifier plus tard
+    return bubble;
 }
     // ===================================================================
     //  3. LOGIQUE DES ÉVÉNEMENTS (EVENT LISTENERS)
