@@ -660,7 +660,7 @@
         
     </div>
     
-   <div id="add-source-modal" class="modal-overlay hidden">
+  <div id="add-source-modal" class="modal-overlay hidden">
     <div class="modal-content-lg">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-semibold text-gray-800">Add sources</h2>
@@ -668,13 +668,19 @@
         </div>
         <p class="text-gray-500 mb-8 text-sm">Sources let BRIEOVA base its responses on the information that matters most to you.</p>
 
-        <div id="pdf-upload-area" class="upload-area cursor-pointer">
+        <div id="pdf-upload-area" class="upload-area relative">
             <input type="file" id="pdf-file-input" class="hidden" accept=".pdf,.txt,.md,.mp3"/>
             <div class="upload-icon-wrapper">
                  <svg class="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
             </div>
             <p class="font-semibold text-gray-700">Upload sources</p>
             <p class="text-sm text-gray-500">Drag & drop or <span class="text-blue-600 font-semibold">choose file</span> to upload</p>
+            
+            <div id="upload-premium-overlay" class="premium-overlay hidden">
+                <svg class="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                <p class="font-semibold text-gray-800 mt-2">Fonctionnalité Premium</p>
+                <button class="upgrade-button">Passer Premium</button>
+            </div>
         </div>
         <p class="text-xs text-gray-400 text-center my-4">Supported file types: PDF, .txt, Markdown, Audio (e.g. mp3)</p>
 
@@ -682,7 +688,15 @@
             <button id="website-launcher-btn" class="source-grid-item"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.25 9.75h17.5M9 3.25a15.3 15.3 0 016 0m-6 17.5a15.3 15.3 0 006 0"></path></svg> Website</button>
             <button id="youtube-launcher-btn" class="source-grid-item"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg> YouTube</button>
             <button id="podcast-launcher-btn" class="source-grid-item"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5 5 0 010 7.424M6.75 8.25l4.5 4.5 4.5-4.5"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 100-18 9 9 0 000 18z"></path></svg> Podcast</button>
-            <button id="text-launcher-btn" class="source-grid-item"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Paste text</button>
+            
+            <div class="relative">
+                <button id="text-launcher-btn" class="source-grid-item w-full">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Paste text
+                </button>
+                <div id="paste-text-premium-overlay" class="premium-overlay hidden">
+                    <svg class="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -1407,7 +1421,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const addYoutubeLinkBtn = document.getElementById('add-youtube-link-btn');
     const addPodcastBtn = document.getElementById('add-podcast-btn');
 
-    
+    // --- VOS NOUVELLES LIGNES SONT ICI ---
+    const uploadPremiumOverlay = document.getElementById('upload-premium-overlay');
+    const pasteTextPremiumOverlay = document.getElementById('paste-text-premium-overlay');
+    const textLauncherBtn = document.getElementById('text-launcher-btn');
     // ===================================================================
     //  2. FONCTIONS UTILES
     // ===================================================================
@@ -1547,9 +1564,33 @@ function addMessage(text, sender) {
     });
 
     // --- Logique de la Modale Principale ---
-    if (showMainModalBtn && mainModal) {
-        showMainModalBtn.addEventListener('click', () => mainModal.classList.remove('hidden'));
-    }
+   if (showMainModalBtn && mainModal) {
+    showMainModalBtn.addEventListener('click', () => {
+        // On vérifie le statut de l'utilisateur (assurez-vous que userRecord est disponible)
+        const isPremium = userRecord && userRecord.fields.Status === 'Premium';
+
+        // Gère la visibilité du voile pour l'upload de fichier
+        if (uploadPremiumOverlay && pdfUploadArea) {
+            uploadPremiumOverlay.classList.toggle('hidden', isPremium);
+            pdfUploadArea.style.cursor = isPremium ? 'pointer' : 'not-allowed';
+            pdfFileInput.disabled = !isPremium;
+        }
+
+        // Gère la visibilité du voile pour "Paste text"
+        if (pasteTextPremiumOverlay && textLauncherBtn) {
+            pasteTextPremiumOverlay.classList.toggle('hidden', isPremium);
+            textLauncherBtn.disabled = !isPremium;
+            // On grise visuellement le bouton si non-premium
+            textLauncherBtn.style.opacity = isPremium ? '1' : '0.5';
+            textLauncherBtn.style.cursor = isPremium ? 'pointer' : 'not-allowed';
+        }
+
+        mainModal.classList.remove('hidden');
+    });
+}
+
+
+    
     if (closeModalBtn && mainModal) {
         closeModalBtn.addEventListener('click', () => mainModal.classList.add('hidden'));
     }
@@ -1567,6 +1608,26 @@ function addMessage(text, sender) {
             if (modalToClose) modalToClose.classList.add('hidden');
         });
     });
+
+// AJOUTEZ CETTE NOUVELLE LOGIQUE pour le clic sur le voile
+// Permet de rediriger l'utilisateur vers la page d'abonnement
+document.querySelectorAll('.premium-overlay').forEach(overlay => {
+    overlay.addEventListener('click', () => {
+        // Ferme la modale des sources
+        if (mainModal) mainModal.classList.add('hidden');
+        
+        // Ouvre la modale du profil et va directement à l'onglet "Plans"
+        if (openProfileModalButton) openProfileModalButton.click();
+        if (document.getElementById('plans-tab-btn')) {
+            // Petit délai pour assurer que la modale est ouverte avant de changer d'onglet
+            setTimeout(() => {
+                document.getElementById('plans-tab-btn').click();
+            }, 50);
+        }
+    });
+});
+
+    
 
     // --- Logique d'appel de vos fonctions backend ---
     if (addArticleLinkBtn) {
