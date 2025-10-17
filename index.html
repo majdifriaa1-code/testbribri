@@ -198,7 +198,34 @@
 }
 
 
-
+/* --- STYLE POUR LE VOILE PREMIUM --- */
+.premium-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(249, 250, 251, 0.9); /* Fond semi-transparent */
+    backdrop-filter: blur(2px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+}
+.source-grid .premium-overlay {
+    border-radius: 8px; /* Correspond au radius des boutons de la grille */
+}
+.upgrade-button {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+    background: none;
+    border: none;
+}
+.upgrade-button:hover {
+    text-decoration: underline;
+}
 
 
         
@@ -660,7 +687,7 @@
         
     </div>
     
-  <div id="add-source-modal" class="modal-overlay hidden">
+   <div id="add-source-modal" class="modal-overlay hidden">
     <div class="modal-content-lg">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-semibold text-gray-800">Add sources</h2>
@@ -746,7 +773,7 @@
             <button id="add-text-btn" class="btn btn-primary" disabled>Add (soon)</button>
         </div>
     </div>
-</div>
+</div>>
     
     <div id="profile-modal" class="modal-overlay hidden">
         <div class="modal-content max-w-4xl w-full flex p-0" style="min-height: 500px;">
@@ -1421,10 +1448,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addYoutubeLinkBtn = document.getElementById('add-youtube-link-btn');
     const addPodcastBtn = document.getElementById('add-podcast-btn');
 
-    // --- VOS NOUVELLES LIGNES SONT ICI ---
-    const uploadPremiumOverlay = document.getElementById('upload-premium-overlay');
-    const pasteTextPremiumOverlay = document.getElementById('paste-text-premium-overlay');
-    const textLauncherBtn = document.getElementById('text-launcher-btn');
+    
     // ===================================================================
     //  2. FONCTIONS UTILES
     // ===================================================================
@@ -1564,33 +1588,9 @@ function addMessage(text, sender) {
     });
 
     // --- Logique de la Modale Principale ---
-   if (showMainModalBtn && mainModal) {
-    showMainModalBtn.addEventListener('click', () => {
-        // On vérifie le statut de l'utilisateur (assurez-vous que userRecord est disponible)
-        const isPremium = userRecord && userRecord.fields.Status === 'Premium';
-
-        // Gère la visibilité du voile pour l'upload de fichier
-        if (uploadPremiumOverlay && pdfUploadArea) {
-            uploadPremiumOverlay.classList.toggle('hidden', isPremium);
-            pdfUploadArea.style.cursor = isPremium ? 'pointer' : 'not-allowed';
-            pdfFileInput.disabled = !isPremium;
-        }
-
-        // Gère la visibilité du voile pour "Paste text"
-        if (pasteTextPremiumOverlay && textLauncherBtn) {
-            pasteTextPremiumOverlay.classList.toggle('hidden', isPremium);
-            textLauncherBtn.disabled = !isPremium;
-            // On grise visuellement le bouton si non-premium
-            textLauncherBtn.style.opacity = isPremium ? '1' : '0.5';
-            textLauncherBtn.style.cursor = isPremium ? 'pointer' : 'not-allowed';
-        }
-
-        mainModal.classList.remove('hidden');
-    });
-}
-
-
-    
+    if (showMainModalBtn && mainModal) {
+        showMainModalBtn.addEventListener('click', () => mainModal.classList.remove('hidden'));
+    }
     if (closeModalBtn && mainModal) {
         closeModalBtn.addEventListener('click', () => mainModal.classList.add('hidden'));
     }
@@ -1608,26 +1608,6 @@ function addMessage(text, sender) {
             if (modalToClose) modalToClose.classList.add('hidden');
         });
     });
-
-// AJOUTEZ CETTE NOUVELLE LOGIQUE pour le clic sur le voile
-// Permet de rediriger l'utilisateur vers la page d'abonnement
-document.querySelectorAll('.premium-overlay').forEach(overlay => {
-    overlay.addEventListener('click', () => {
-        // Ferme la modale des sources
-        if (mainModal) mainModal.classList.add('hidden');
-        
-        // Ouvre la modale du profil et va directement à l'onglet "Plans"
-        if (openProfileModalButton) openProfileModalButton.click();
-        if (document.getElementById('plans-tab-btn')) {
-            // Petit délai pour assurer que la modale est ouverte avant de changer d'onglet
-            setTimeout(() => {
-                document.getElementById('plans-tab-btn').click();
-            }, 50);
-        }
-    });
-});
-
-    
 
     // --- Logique d'appel de vos fonctions backend ---
     if (addArticleLinkBtn) {
