@@ -1420,7 +1420,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsButton = document.getElementById('settings-button');
     const settingsDropdown = document.getElementById('settings-dropdown');
     const profileButton = document.getElementById('profile-button');
-    const openProfileModalButton = document.getElementById('open-profile-modal'); // L'ancien bouton pour la compatibilité
+    const openProfileModalButton = document.getElementById('open-profile-modal');
+    const logoutButton = document.getElementById('logout-button');
 
     // --- Modale Principale "Add Sources" (Le Menu) ---
     const showMainModalBtn = document.getElementById('show-add-source-modal');
@@ -1441,130 +1442,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const websiteLauncherBtn = document.getElementById('website-launcher-btn');
     const youtubeLauncherBtn = document.getElementById('youtube-launcher-btn');
     const podcastLauncherBtn = document.getElementById('podcast-launcher-btn');
-    const textLauncherBtn = document.getElementById('text-launcher-btn');
     
     // --- Boutons "Ajouter" des sous-modales ---
     const addArticleLinkBtn = document.getElementById('add-article-link-btn');
     const addYoutubeLinkBtn = document.getElementById('add-youtube-link-btn');
     const addPodcastBtn = document.getElementById('add-podcast-btn');
 
-    // --- VOS NOUVELLES LIGNES SONT ICI ---
+    // --- Éléments pour les restrictions Premium --- // <-- AJOUT
     const uploadPremiumOverlay = document.getElementById('upload-premium-overlay');
     const pasteTextPremiumOverlay = document.getElementById('paste-text-premium-overlay');
     const textLauncherBtn = document.getElementById('text-launcher-btn');
+
+    // --- Chat Intégré ---
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
+    const CHAT_WEBHOOK_URL = 'https://n8n.brieova.com/webhook/chat-assistant';
+
+    
     // ===================================================================
     //  2. FONCTIONS UTILES
     // ===================================================================
 
-    /**
-     * Met à jour l'avatar de l'utilisateur avec l'initiale de son nom.
-     * @param {string} userName - Le nom complet de l'utilisateur.
-     */
     function updateUserAvatar(userName) {
         const avatarDiv = document.getElementById('profile-avatar-initial');
-        let initial = '?'; // Valeur par défaut si pas de nom
-
+        let initial = '?';
         if (userName && userName.trim().length > 0) {
             initial = userName.trim().charAt(0).toUpperCase();
         }
-        
         if (avatarDiv) {
             avatarDiv.textContent = initial;
         }
     }
-    // On rend la fonction accessible globalement pour pouvoir l'appeler depuis showDashboard()
     window.updateUserAvatar = updateUserAvatar;
 
-    /**
-     * Ouvre une sous-modale et ferme la modale principale.
-     * @param {HTMLElement} modal - L'élément de la modale à ouvrir.
-     */
     const openSubModal = (modal) => {
         if (mainModal) mainModal.classList.add('hidden');
         if (modal) modal.classList.remove('hidden');
     };
 
-// ===================================================================
-    //  NOUVELLE LOGIQUE POUR LE CHAT INTÉGRÉ
-    // ===================================================================
-    const chatForm = document.getElementById('chat-form');
-    const chatInput = document.getElementById('chat-input');
-    const chatMessages = document.getElementById('chat-messages');
-    
-    // N'oubliez pas de mettre l'URL de votre webhook n8n ici
-    const CHAT_WEBHOOK_URL = 'https://n8n.brieova.com/webhook/chat-assistant.';
-
-    if (chatForm) {
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const userMessage = chatInput.value.trim();
-            if (!userMessage) return;
-
-            // Affiche le message de l'utilisateur
-            addMessage(userMessage, 'user');
-            chatInput.value = '';
-            chatInput.focus();
-
-            // Affiche un indicateur de "frappe" pour l'IA
-            const typingBubble = addMessage('...', 'ai');
-
-            try {
-                // Envoie le message à votre backend (n8n)
-                const response = await fetch(CHAT_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: userMessage })
-                });
-                
-                if (!response.ok) throw new Error('Network response was not ok');
-
-                const data = await response.json();
-                const aiMessage = data.answer; // Assurez-vous que n8n renvoie une clé "answer"
-
-                // Met à jour la bulle de l'IA avec la vraie réponse
-                typingBubble.textContent = aiMessage;
-
-            
-
-            } catch (error) {
-                typingBubble.textContent = 'Désolé, une erreur est survenue.';
-                console.error('Chat error:', error);
-            }
-        });
+    function addMessage(text, sender) {
+        const emptyState = document.getElementById('chat-empty-state');
+        if (emptyState) {
+            emptyState.style.display = 'none';
+            if(chatMessages) chatMessages.classList.remove('items-center', 'justify-center', 'h-full');
+        }
+        const row = document.createElement('div');
+        row.className = `message-row ${sender}`;
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${sender}`;
+        bubble.textContent = text;
+        row.appendChild(bubble);
+        if(chatMessages) chatMessages.appendChild(row);
+        row.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        return bubble;
     }
 
-  
- /**
- * Ajoute une bulle de message à l'interface et défile vers le bas.
- * @param {string} text - Le contenu du message
- * @param {'user' | 'ai'} sender - L'expéditeur du message
- * @returns {HTMLElement} - L'élément de la bulle de message créé
- */
-function addMessage(text, sender) {
-    const chatMessages = document.getElementById('chat-messages');
-
-    // NOUVEAU : Fait disparaître le message d'accueil au premier message
-    const emptyState = document.getElementById('chat-empty-state');
-    if (emptyState) {
-        emptyState.style.display = 'none';
-        // On retire les classes de centrage pour que les messages s'affichent en haut
-        chatMessages.classList.remove('items-center', 'justify-center', 'h-full');
-    }
-
-    const row = document.createElement('div');
-    row.className = `message-row ${sender}`;
-
-    const bubble = document.createElement('div');
-    bubble.className = `chat-bubble ${sender}`;
-    bubble.textContent = text;
-    
-    row.appendChild(bubble);
-    chatMessages.appendChild(row);
-    
-    row.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    
-    return bubble;
-}
     // ===================================================================
     //  3. LOGIQUE DES ÉVÉNEMENTS (EVENT LISTENERS)
     // ===================================================================
@@ -1576,78 +1509,63 @@ function addMessage(text, sender) {
             settingsDropdown.classList.toggle('active');
         });
     }
-
     if (profileButton && openProfileModalButton) {
-        profileButton.addEventListener('click', () => {
-            openProfileModalButton.click(); // Simule un clic sur l'ancien bouton pour réutiliser la logique existante
-        });
+        profileButton.addEventListener('click', () => openProfileModalButton.click());
     }
-
-    // Ferme le menu "Settings" si on clique n'importe où ailleurs
+    if (logoutButton && typeof handleLogout === 'function') {
+        logoutButton.addEventListener('click', handleLogout);
+    }
     window.addEventListener('click', () => {
         if (settingsDropdown && settingsDropdown.classList.contains('active')) {
             settingsDropdown.classList.remove('active');
         }
     });
 
-    // --- Logique de la Modale Principale ---
+    // --- Logique de la Modale Principale (avec restrictions Premium) --- // <-- AJOUT
     if (showMainModalBtn && mainModal) {
-    showMainModalBtn.addEventListener('click', () => {
-        // On vérifie le statut de l'utilisateur (assurez-vous que userRecord est disponible)
-        const isPremium = userRecord && userRecord.fields.Status === 'Premium';
-
-        // Gère la visibilité du voile pour l'upload de fichier
-        if (uploadPremiumOverlay && pdfUploadArea) {
-            uploadPremiumOverlay.classList.toggle('hidden', isPremium);
-            pdfUploadArea.style.cursor = isPremium ? 'pointer' : 'not-allowed';
-            pdfFileInput.disabled = !isPremium;
-        }
-
-        // Gère la visibilité du voile pour "Paste text"
-        if (pasteTextPremiumOverlay && textLauncherBtn) {
-            pasteTextPremiumOverlay.classList.toggle('hidden', isPremium);
-            textLauncherBtn.disabled = !isPremium;
-            // On grise visuellement le bouton si non-premium
-            textLauncherBtn.style.opacity = isPremium ? '1' : '0.5';
-            textLauncherBtn.style.cursor = isPremium ? 'pointer' : 'not-allowed';
-        }
-
-        mainModal.classList.remove('hidden');
-    });
-}
+        showMainModalBtn.addEventListener('click', () => {
+            const isPremium = userRecord && userRecord.fields.Status === 'Premium';
+            if (uploadPremiumOverlay && pdfUploadArea) {
+                uploadPremiumOverlay.classList.toggle('hidden', isPremium);
+                pdfUploadArea.style.cursor = isPremium ? 'pointer' : 'not-allowed';
+                pdfFileInput.disabled = !isPremium;
+            }
+            if (pasteTextPremiumOverlay && textLauncherBtn) {
+                pasteTextPremiumOverlay.classList.toggle('hidden', isPremium);
+                textLauncherBtn.disabled = !isPremium;
+                textLauncherBtn.style.opacity = isPremium ? '1' : '0.5';
+                textLauncherBtn.style.cursor = isPremium ? 'pointer' : 'not-allowed';
+            }
+            mainModal.classList.remove('hidden');
+        });
+    }
     if (closeModalBtn && mainModal) {
         closeModalBtn.addEventListener('click', () => mainModal.classList.add('hidden'));
     }
+
+    // --- Logique de redirection Premium --- // <-- AJOUT
+    document.querySelectorAll('.premium-overlay').forEach(overlay => {
+        overlay.addEventListener('click', () => {
+            if (mainModal) mainModal.classList.add('hidden');
+            if (openProfileModalButton) openProfileModalButton.click();
+            setTimeout(() => document.getElementById('plans-tab-btn')?.click(), 50);
+        });
+    });
 
     // --- Logique des lanceurs de sous-modales ---
     if (websiteLauncherBtn) websiteLauncherBtn.addEventListener('click', () => openSubModal(websiteModal));
     if (youtubeLauncherBtn) youtubeLauncherBtn.addEventListener('click', () => openSubModal(youtubeModal));
     if (podcastLauncherBtn) podcastLauncherBtn.addEventListener('click', () => openSubModal(podcastModal));
-    if (textLauncherBtn) textLauncherBtn.addEventListener('click', () => openSubModal(textModal));
-    
-document.querySelectorAll('.premium-overlay').forEach(overlay => {
-        overlay.addEventListener('click', () => {
-            // Ferme la modale des sources
-            if (mainModal) mainModal.classList.add('hidden');
-            
-            // Ouvre la modale du profil et va directement à l'onglet "Plans"
-            if (openProfileModalButton) openProfileModalButton.click();
-            if (document.getElementById('plans-tab-btn')) {
-                setTimeout(() => {
-                    document.getElementById('plans-tab-btn').click();
-                }, 50);
-            }
-        });
+    if (textLauncherBtn) textLauncherBtn.addEventListener('click', () => {
+        // N'ouvre la modale que si le bouton n'est pas désactivé
+        if (!textLauncherBtn.disabled) {
+            openSubModal(textModal);
+        }
     });
-    //
-    // ^--- FIN DU NOUVEAU BLOC ---^
-    //
+
     // --- Logique de fermeture des sous-modales ---
     document.querySelectorAll('.btn-close-sub-modal').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const modalToClose = btn.closest('.modal-overlay');
-            if (modalToClose) modalToClose.classList.add('hidden');
-        });
+        btn.addEventListener('click', () => btn.closest('.modal-overlay')?.classList.add('hidden'));
     });
 
     // --- Logique d'appel de vos fonctions backend ---
@@ -1657,14 +1575,12 @@ document.querySelectorAll('.premium-overlay').forEach(overlay => {
             if (websiteModal) websiteModal.classList.add('hidden');
         });
     }
-
     if (addYoutubeLinkBtn) {
         addYoutubeLinkBtn.addEventListener('click', () => {
             addLink('YouTube Links', 'youtube-link-input');
             if (youtubeModal) youtubeModal.classList.add('hidden');
         });
     }
-
     if (addPodcastBtn) {
         addPodcastBtn.addEventListener('click', () => {
             addPodcast();
@@ -1674,12 +1590,41 @@ document.querySelectorAll('.premium-overlay').forEach(overlay => {
     
     // --- Logique de l'upload de fichier (PDF, etc.) ---
     if (pdfUploadArea && pdfFileInput) {
-        pdfUploadArea.addEventListener('click', () => pdfFileInput.click());
-        pdfFileInput.addEventListener('change', () => {
-            if (typeof handlePdfUpload === 'function') {
-                handlePdfUpload();
+        pdfUploadArea.addEventListener('click', () => {
+             // Ne déclenche le clic que si l'input n'est pas désactivé
+            if (!pdfFileInput.disabled) {
+                pdfFileInput.click();
             }
+        });
+        pdfFileInput.addEventListener('change', () => {
+            if (typeof handlePdfUpload === 'function') handlePdfUpload();
             if (mainModal) mainModal.classList.add('hidden');
+        });
+    }
+
+    // --- Logique du Chat ---
+    if (chatForm) {
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return;
+            addMessage(userMessage, 'user');
+            chatInput.value = '';
+            chatInput.focus();
+            const typingBubble = addMessage('...', 'ai');
+            try {
+                const response = await fetch(CHAT_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userMessage })
+                });
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                typingBubble.textContent = data.answer;
+            } catch (error) {
+                typingBubble.textContent = 'Désolé, une erreur est survenue.';
+                console.error('Chat error:', error);
+            }
         });
     }
 });
