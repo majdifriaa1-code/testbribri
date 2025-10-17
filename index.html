@@ -135,7 +135,37 @@
     font-weight: 500;
 }
 
-
+/* --- Styles pour le Chat Intégré --- */
+#chat-messages {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f8f9fa;
+}
+.message-row {
+    display: flex;
+}
+.message-row.user {
+    justify-content: flex-end; /* Messages de l'utilisateur à droite */
+}
+.message-row.ai {
+    justify-content: flex-start; /* Messages de l'IA à gauche */
+}
+.chat-bubble {
+    padding: 0.75rem 1rem;
+    border-radius: 1.25rem;
+    max-width: 80%;
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+.chat-bubble.user {
+    background-color: var(--accent-primary);
+    color: white;
+    border-bottom-right-radius: 0.5rem; /* Crée une petite "queue" */
+}
+.chat-bubble.ai {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-bottom-left-radius: 0.5rem; /* Crée une petite "queue" */
+}
 
         
 
@@ -526,8 +556,38 @@
     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
     <p class="font-display font-medium text-sm">Le contenu du studio sera sauvegardé ici.</p>
 </div>
+                
             </div>
         </div>
+
+
+
+<div class="panel-header">
+        <h2 class="font-display font-medium text-lg">Chat Assistant</h2>
+    </div>
+    <div class="panel-content" style="padding: 0; display: flex; flex-direction: column;">
+        
+        <div id="chat-messages" class="flex-1 p-4 space-y-4 overflow-y-auto">
+            <div class="message-row ai">
+                <div class="chat-bubble ai">Bonjour ! En quoi puis-je vous assister aujourd'hui ?</div>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-gray-200 bg-white">
+            <form id="chat-form" class="flex gap-3 items-center">
+                <input id="chat-input" type="text" placeholder="Posez votre question..." class="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button type="submit" class="bg-blue-600 text-white p-2.5 rounded-full hover:bg-blue-700 transition shadow-sm flex-shrink-0">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+
+
+
+        
     </div>
     
    <div id="add-source-modal" class="modal-overlay hidden">
