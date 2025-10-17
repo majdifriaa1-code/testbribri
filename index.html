@@ -24,36 +24,23 @@
             --danger-color: #d93025;
             --danger-hover-color: #c5221f;
         }
-
-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 20;
-    background-color: white;
-
-
-        
-    body { 
+        body { 
     font-family: 'Roboto', sans-serif; 
     background-color: var(--bg-primary); 
     color: var(--text-primary); 
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-    padding-top: 56px; /* Hauteur du header (ajustez si nécessaire) */
+    height: 100vh; /* Le body fait 100% de la hauteur de l'écran */
+    overflow: hidden; /* On garde ça pour que seul l'intérieur des panneaux défile */
 }
         h1, h2, h3, .font-display { font-family: 'Google Sans', sans-serif; }
-     .main-grid { 
+        .main-grid { 
     display: grid; 
     grid-template-columns: 300px 1fr 320px; 
-    flex-grow: 1;
+    flex-grow: 1; /* C'est la ligne clé : la grille grandit pour remplir l'espace */
     gap: 8px; 
     padding: 8px; 
-    min-height: 0;
-    height: calc(100vh - 56px); /* Hauteur viewport moins le header */
+    min-height: 0; /* Correction pour éviter des problèmes de dépassement dans Flexbox */
 }
         .panel { background-color: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; }
         .panel-header { padding: 1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
@@ -108,28 +95,27 @@ header {
 
       /* --- AJOUTS POUR LA VERSION MOBILE --- */
  /* --- AJOUTS POUR LA VERSION MOBILE --- */
-    @media (max-width: 1024px) {
-    body {
-        overflow: auto; 
-        padding-top: 56px; /* Pour le header fixe */
-    }
+        @media (max-width: 1024px) {
+            body {
+                overflow: auto; 
+            }
 
-    .main-grid {
-        display: block;
-        height: auto;
-        min-height: calc(100vh - 126px); /* viewport - header (56px) - nav mobile (70px) */
-        padding-bottom: 80px; 
-    }
+            .main-grid {
+                display: block;    /* On garde 'block' pour que les panneaux ne soient pas en colonnes */
+                flex-grow: 1;      /* NOUVEAU: Fait en sorte que ce conteneur grandisse pour remplir l'espace disponible */
+                min-height: 0;     /* NOUVEAU: Correction de sécurité pour Flexbox */
+                padding-bottom: 0; /* On retire le padding du bas, car la nav n'est plus superposée */
+            }
+            /* Cache les panneaux par défaut sur mobile */
+          .main-grid > .panel {
+                display: none;
+                height: 100%;      /* MODIFIÉ: Le panneau prend 100% de son parent (.main-grid) qui a déjà la bonne taille */
+            }
 
-    .main-grid > .panel {
-        display: none;
-        min-height: calc(100vh - 126px); /* Permet au contenu d'être visible */
-        height: auto; /* Permet l'extension du contenu */
-    }
-
-    .main-grid > .panel.mobile-active {
-        display: flex;
-    }
+            /* Affiche le panneau actif */
+            .main-grid > .panel.mobile-active {
+                display: flex; /* Utilise flex comme dans la version desktop */
+            }
 
             /* Style de la barre de navigation mobile */
             #mobile-nav {
