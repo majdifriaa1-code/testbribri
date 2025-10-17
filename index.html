@@ -1448,7 +1448,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const addYoutubeLinkBtn = document.getElementById('add-youtube-link-btn');
     const addPodcastBtn = document.getElementById('add-podcast-btn');
 
-    
+    // --- VOS NOUVELLES LIGNES SONT ICI ---
+    const uploadPremiumOverlay = document.getElementById('upload-premium-overlay');
+    const pasteTextPremiumOverlay = document.getElementById('paste-text-premium-overlay');
+    const textLauncherBtn = document.getElementById('text-launcher-btn');
     // ===================================================================
     //  2. FONCTIONS UTILES
     // ===================================================================
@@ -1589,8 +1592,29 @@ function addMessage(text, sender) {
 
     // --- Logique de la Modale Principale ---
     if (showMainModalBtn && mainModal) {
-        showMainModalBtn.addEventListener('click', () => mainModal.classList.remove('hidden'));
-    }
+    showMainModalBtn.addEventListener('click', () => {
+        // On vérifie le statut de l'utilisateur (assurez-vous que userRecord est disponible)
+        const isPremium = userRecord && userRecord.fields.Status === 'Premium';
+
+        // Gère la visibilité du voile pour l'upload de fichier
+        if (uploadPremiumOverlay && pdfUploadArea) {
+            uploadPremiumOverlay.classList.toggle('hidden', isPremium);
+            pdfUploadArea.style.cursor = isPremium ? 'pointer' : 'not-allowed';
+            pdfFileInput.disabled = !isPremium;
+        }
+
+        // Gère la visibilité du voile pour "Paste text"
+        if (pasteTextPremiumOverlay && textLauncherBtn) {
+            pasteTextPremiumOverlay.classList.toggle('hidden', isPremium);
+            textLauncherBtn.disabled = !isPremium;
+            // On grise visuellement le bouton si non-premium
+            textLauncherBtn.style.opacity = isPremium ? '1' : '0.5';
+            textLauncherBtn.style.cursor = isPremium ? 'pointer' : 'not-allowed';
+        }
+
+        mainModal.classList.remove('hidden');
+    });
+}
     if (closeModalBtn && mainModal) {
         closeModalBtn.addEventListener('click', () => mainModal.classList.add('hidden'));
     }
@@ -1600,7 +1624,24 @@ function addMessage(text, sender) {
     if (youtubeLauncherBtn) youtubeLauncherBtn.addEventListener('click', () => openSubModal(youtubeModal));
     if (podcastLauncherBtn) podcastLauncherBtn.addEventListener('click', () => openSubModal(podcastModal));
     if (textLauncherBtn) textLauncherBtn.addEventListener('click', () => openSubModal(textModal));
-
+    
+document.querySelectorAll('.premium-overlay').forEach(overlay => {
+        overlay.addEventListener('click', () => {
+            // Ferme la modale des sources
+            if (mainModal) mainModal.classList.add('hidden');
+            
+            // Ouvre la modale du profil et va directement à l'onglet "Plans"
+            if (openProfileModalButton) openProfileModalButton.click();
+            if (document.getElementById('plans-tab-btn')) {
+                setTimeout(() => {
+                    document.getElementById('plans-tab-btn').click();
+                }, 50);
+            }
+        });
+    });
+    //
+    // ^--- FIN DU NOUVEAU BLOC ---^
+    //
     // --- Logique de fermeture des sous-modales ---
     document.querySelectorAll('.btn-close-sub-modal').forEach(btn => {
         btn.addEventListener('click', () => {
