@@ -1475,6 +1475,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileButton = document.getElementById('profile-button');
     const openProfileModalButton = document.getElementById('open-profile-modal');
     const logoutButton = document.getElementById('logout-button');
+    // À ajouter en haut de votre DOMContentLoaded, avec les autres const...
+const closeProfileModalBtn = document.getElementById('close-profile-modal');
+const profileTabBtn = document.getElementById('profile-tab-btn');
+const securityTabBtn = document.getElementById('security-tab-btn');
+const plansTabBtn = document.getElementById('plans-tab-btn');
     
 
     // --- Modale Principale "Add Sources" (Le Menu) ---
@@ -1576,7 +1581,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-if (profileButton) {
+
+    // --- Logique pour la navigation interne de la Modale Profil ---
+if (closeProfileModalBtn) {
+    closeProfileModalBtn.addEventListener('click', () => {
+        document.getElementById('profile-modal').classList.add('hidden');
+    });
+}
+
+if (profileTabBtn) {
+    profileTabBtn.addEventListener('click', (e) => { 
+        e.preventDefault(); 
+        showTab('profile'); 
+    });
+}
+
+if (securityTabBtn) {
+    securityTabBtn.addEventListener('click', (e) => { 
+        e.preventDefault(); 
+        showTab('security'); 
+    });
+}
+
+if (plansTabBtn) {
+    plansTabBtn.addEventListener('click', (e) => { 
+        e.preventDefault(); 
+        showTab('plans'); 
+    });
+}
+    
+    
+    
+    
+    
+    
+    
+    
+    if (profileButton) {
     profileButton.addEventListener('click', () => {
         // S'assure que les données de l'utilisateur sont bien chargées avant d'ouvrir
         if (!userRecord || !firebaseUser) {
