@@ -1206,6 +1206,7 @@ function pollDebriefStatus(recordId) {
     }
     updateSourcesTable();
     updateUsageLimit();
+    initializeMobileNav();
 }
     function updateSourcesTable() {
     const tableBody = document.getElementById('sources-table');
@@ -1907,36 +1908,40 @@ if (copyDebriefButton) {
 
 
 // --- LOGIQUE POUR LA NAVIGATION MOBILE ---
-
-    // Vérifie si on est sur un affichage mobile
-    if (window.innerWidth <= 1024) {
-        const navButtons = document.querySelectorAll('.mobile-nav-btn');
-        const panels = document.querySelectorAll('.main-grid > .panel');
-
-        // Fonction pour afficher un panneau spécifique
-        function showPanel(panelIndex) {
-            // Cacher tous les panneaux et désactiver tous les boutons
-            panels.forEach(p => p.classList.remove('mobile-active'));
-            navButtons.forEach(b => b.classList.remove('active'));
-
-            // Afficher le panneau sélectionné et activer le bouton correspondant
-            if (panels[panelIndex]) {
-                panels[panelIndex].classList.add('mobile-active');
-            }
-            if (navButtons[panelIndex]) {
-                navButtons[panelIndex].classList.add('active');
-            }
-        }
-
-        // Ajout des écouteurs d'événements
-        document.getElementById('mobile-nav-sources').addEventListener('click', () => showPanel(0));
-        document.getElementById('mobile-nav-chat').addEventListener('click', () => showPanel(1));
-        document.getElementById('mobile-nav-studio').addEventListener('click', () => showPanel(2));
-
-        // Afficher le panneau "Chat" par défaut au chargement (comme sur votre image)
-        showPanel(1); 
+function initializeMobileNav() {
+    // On ne lance cette logique que sur les écrans de type mobile
+    if (window.innerWidth > 1024) {
+        return; // Ne fait rien sur desktop
     }
-});
+
+    const navButtons = document.querySelectorAll('.mobile-nav-btn');
+    const panels = document.querySelectorAll('.main-grid > .panel');
+    let isInitialized = false; // Pour éviter d'ajouter les listeners plusieurs fois
+
+    // Fonction pour afficher un panneau spécifique
+    function showPanel(panelIndex) {
+        panels.forEach(p => p.classList.remove('mobile-active'));
+        navButtons.forEach(b => b.classList.remove('active'));
+
+        if (panels[panelIndex]) {
+            panels[panelIndex].classList.add('mobile-active');
+        }
+        if (navButtons[panelIndex]) {
+            navButtons[panelIndex].classList.add('active');
+        }
+    }
+
+    // On ajoute les écouteurs d'événements une seule fois
+    if (!isInitialized) {
+        document.getElementById('mobile-nav-sources')?.addEventListener('click', () => showPanel(0));
+        document.getElementById('mobile-nav-chat')?.addEventListener('click', () => showPanel(1));
+        document.getElementById('mobile-nav-studio')?.addEventListener('click', () => showPanel(2));
+        isInitialized = true;
+    }
+
+    // Afficher le panneau "Chat" par défaut au chargement
+    showPanel(1); 
+}
 
 // **Code à ajouter à ton fichier JavaScript**
 
