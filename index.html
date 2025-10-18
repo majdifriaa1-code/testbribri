@@ -1150,6 +1150,15 @@ function pollDebriefStatus(recordId) {
         handleLogout(); 
         return; 
     }
+
+
+       // --- AJOUT : Affiche les éléments de l'interface principale ---
+    document.getElementById('main-header').classList.remove('hidden');
+    // On affiche la nav mobile uniquement si on est sur un petit écran
+    if (window.innerWidth <= 1024) {
+        document.getElementById('mobile-nav').classList.remove('hidden');
+    }
+    // --- FIN DE L'AJOUT ---
     document.getElementById('auth-section').classList.add('hidden');
     document.getElementById('dashboard-section').classList.remove('hidden');
     
@@ -1301,6 +1310,9 @@ function pollDebriefStatus(recordId) {
             header.classList.add('hidden'); // <-- ON S'ASSURE QUE LE HEADER EST CACHÉ
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
+            // --- AJOUT : Cache les éléments de l'interface principale ---
+        document.getElementById('main-header').classList.add('hidden');
+        document.getElementById('mobile-nav').classList.add('hidden');
         }
         loader.classList.add('hidden');
     });
