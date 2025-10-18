@@ -1150,15 +1150,6 @@ function pollDebriefStatus(recordId) {
         handleLogout(); 
         return; 
     }
-
-
-       // --- AJOUT : Affiche les éléments de l'interface principale ---
-    document.getElementById('main-header').classList.remove('hidden');
-    // On affiche la nav mobile uniquement si on est sur un petit écran
-    if (window.innerWidth <= 1024) {
-        document.getElementById('mobile-nav').classList.remove('hidden');
-    }
-    // --- FIN DE L'AJOUT ---
     document.getElementById('auth-section').classList.add('hidden');
     document.getElementById('dashboard-section').classList.remove('hidden');
     
@@ -1294,10 +1285,12 @@ function pollDebriefStatus(recordId) {
 
    auth.onAuthStateChanged(async (user) => {
         const loader = document.getElementById('loading-indicator');
-        const header = document.getElementById('main-header'); // On récupère le header
+        const header = document.getElementById('main-header'); 
+       const mobileNav = document.getElementById('mobile-nav');// On récupère le header
 
         if (user) {
             header.classList.remove('hidden'); // <-- ON AFFICHE LE HEADER
+            mobileNav.classList.remove('hidden');
             firebaseUser = user;
             try {
                 await getUserDataByEmail(user.email);
@@ -1310,9 +1303,6 @@ function pollDebriefStatus(recordId) {
             header.classList.add('hidden'); // <-- ON S'ASSURE QUE LE HEADER EST CACHÉ
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
-            // --- AJOUT : Cache les éléments de l'interface principale ---
-        document.getElementById('main-header').classList.add('hidden');
-        document.getElementById('mobile-nav').classList.add('hidden');
         }
         loader.classList.add('hidden');
     });
