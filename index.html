@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1472,6 +1473,8 @@ const closeProfileModalBtn = document.getElementById('close-profile-modal');
 const profileTabBtn = document.getElementById('profile-tab-btn');
 const securityTabBtn = document.getElementById('security-tab-btn');
 const plansTabBtn = document.getElementById('plans-tab-btn');
+const startDebriefButton = document.getElementById('start-debrief-button');
+
     
 
     // --- Modale Principale "Add Sources" (Le Menu) ---
@@ -1572,6 +1575,12 @@ const plansTabBtn = document.getElementById('plans-tab-btn');
             settingsDropdown.classList.remove('active');
         }
     });
+    
+
+if (startDebriefButton && typeof startDebrief === 'function') {
+    startDebriefButton.addEventListener('click', startDebrief);
+}
+
 
 
     // --- Logique pour la navigation interne de la Modale Profil ---
