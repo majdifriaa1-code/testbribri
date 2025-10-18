@@ -1610,7 +1610,75 @@ if (plansTabBtn) {
     });
 }
     
-    
+// --- Logique pour les boutons d'action de la Modale Profil ---
+
+// Bouton "Enregistrer" du profil
+const saveProfileButton = document.getElementById('save-profile-button');
+if (saveProfileButton) {
+    saveProfileButton.addEventListener('click', async () => {
+        const newName = document.getElementById('profile-name').value.trim();
+        try {
+            await callN8n('updateProfile', { recordId: userRecord.id, fields: { Name: newName } });
+            showNotification('Succès', 'Profil mis à jour !', 'success');
+            document.getElementById('profile-modal-user-name').textContent = newName;
+            if (typeof window.updateUserAvatar === 'function') {
+                window.updateUserAvatar(newName);
+            }
+        } catch (e) {
+            showNotification('Erreur', e.message, 'error');
+        }
+    });
+}
+
+// Bouton "Mettre à jour" du mot de passe
+const updatePasswordButton = document.getElementById('update-password-button');
+if (updatePasswordButton) {
+    updatePasswordButton.addEventListener('click', async () => {
+        const oldPass = document.getElementById('security-old-password').value;
+        const newPass = document.getElementById('security-new-password').value;
+        if (newPass && newPass !== document.getElementById('security-confirm-password').value) {
+            showNotification('Erreur', 'Les nouveaux mots de passe ne correspondent pas.', 'error');
+            return;
+        }
+        try {
+            const cred = firebase.auth.EmailAuthProvider.credential(firebaseUser.email, oldPass);
+            await firebaseUser.reauthenticateWithCredential(cred);
+            await firebaseUser.updatePassword(newPass);
+            showNotification('Succès', 'Mot de passe mis à jour !', 'success');
+            ['security-old-password', 'security-new-password', 'security-confirm-password'].forEach(id => document.getElementById(id).value = '');
+        } catch (e) {
+            showNotification('Erreur', "La mise à jour a échoué. Vérifiez votre ancien mot de passe.", 'error');
+        }
+    });
+}
+
+// Bouton "Passer Premium"
+const upgradeButton = document.getElementById('plans-upgrade-button');
+if (upgradeButton) {
+    upgradeButton.addEventListener('click', async () => {
+        try {
+            const session = await callN8n('createCheckoutSession', { recordId: userRecord.id });
+            if (session.url) window.location.href = session.url;
+        } catch (e) {
+            showNotification("Erreur", "Impossible de créer la session de paiement.", 'error');
+        }
+    });
+}
+
+// Bouton "Annuler l'abonnement"
+const cancelButton = document.getElementById('plans-cancel-button');
+if (cancelButton) {
+    cancelButton.addEventListener('click', async () => {
+        if (await showNotification('Confirmation', "Êtes-vous sûr de vouloir annuler votre abonnement ?", 'confirm')) {
+            try {
+                await callN8n('cancelSubscription', { recordId: userRecord.id });
+                location.reload();
+            } catch (e) {
+                showNotification("Erreur", "Impossible d'annuler l'abonnement.", 'error');
+            }
+        }
+    });
+}    
     
     
     
