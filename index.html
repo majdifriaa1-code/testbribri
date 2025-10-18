@@ -289,21 +289,7 @@
        overflow-y: visible;
     }
     
-    /* La barre de navigation reste fixe en bas */
-    #mobile-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 70px;
-        background-color: var(--bg-secondary);
-        border-top: 1px solid var(--border-color);
-        justify-content: space-around;
-        align-items: center;
-        z-index: 20;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    }
+    
             /* On ajuste les boutons pour qu'ils ressemblent à des onglets */
     .mobile-nav-btn {
         flex-grow: 1; /* Pour qu'ils prennent toute la largeur disponible */
@@ -1463,7 +1449,6 @@ function updateUserAvatar(userName) {
 
 
 
-document.addEventListener('DOMContentLoaded', () => {
 
     // ===================================================================
     //  1. SÉLECTION DE TOUS LES ÉLÉMENTS DU DOM
