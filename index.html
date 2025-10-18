@@ -1301,6 +1301,7 @@ function pollDebriefStatus(recordId) {
             }
         } else {
             header.classList.add('hidden'); // <-- ON S'ASSURE QUE LE HEADER EST CACHÉ
+            mobileNav.classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
         }
