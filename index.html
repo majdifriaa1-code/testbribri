@@ -208,7 +208,7 @@
 }
 
         
-      /* --- AJOUTS POUR LA VERSION MOBILE --- */
+      /* --- VERSION MOBILE CORRIGÉE --- */
      @media (max-width: 1024px) {
 
     body {
@@ -276,13 +276,29 @@
         background-color: #e8f0fe;
     }
     
-    /* LE FIX PRINCIPAL : Cacher auth-section sur mobile quand connecté */
+    /* CORRECTION PRINCIPALE : Force auth-section à disparaître */
     #auth-section {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 100 !important;
         padding: 1rem;
+        background-color: var(--bg-primary);
     }
     
     #auth-section.hidden {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* S'assure que dashboard ne se montre que quand auth est caché */
+    #dashboard-section {
+        display: none;
+    }
+    
+    #dashboard-section:not(.hidden) {
+        display: block;
     }
     
     .modal-content {
