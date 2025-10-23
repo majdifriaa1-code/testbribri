@@ -615,13 +615,14 @@
                 
             </div>
             <div class="panel-content">
-               <div class="space-y-3"> <button class="studio-card flex-row justify-start text-left" disabled>
+               <div class="space-y-3 mb-6 pb-6 border-b border-gray-200">
+        <button class="studio-card" disabled>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0m12.728 12.728L5.636 5.636" /></svg>
             <span class="text-sm font-medium">Audio Overview</span>
         </button>
 
-        <div class="relative">
-            <button id="make-presentation-btn" class="studio-card flex-row justify-start text-left w-full">
+       <div class="relative">
+            <button id="make-presentation-btn" class="studio-card">
                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                  </svg>
@@ -635,6 +636,16 @@
 
     </div>
 
+<h3 class="font-display font-medium text-gray-800 mb-3">Présentations Sauvegardées</h3>
+    <div id="presentations-list" class="space-y-2 overflow-y-auto flex-grow">
+        </div>
+    <div id="presentations-placeholder" class="placeholder-center flex-grow hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+        <p class="font-medium text-sm text-gray-500">Aucune présentation sauvegardée.</p>
+    </div>
+
+
+                
 <div class="panel-content chat-container">
     
     <div id="chat-messages" class="p-4 space-y-4">
@@ -1284,69 +1295,73 @@
     }
 
     function showDashboard() {
-        if (!userRecord || !firebaseUser) { handleLogout(); return; }
-        document.getElementById('main-header').classList.remove('hidden');
-        if (window.innerWidth <= 1024) { document.getElementById('mobile-nav')?.classList.remove('hidden'); }
-        document.getElementById('auth-section').classList.add('hidden');
-        document.getElementById('dashboard-section').classList.remove('hidden');
-        if (typeof window.updateUserAvatar === 'function') {
-            window.updateUserAvatar(userRecord.fields.Name);
-        }
-        const savedFormat = userRecord.fields['reportFormat'] || 'default';
-        document.getElementById('debrief-format-selector').value = savedFormat;
-        const userStatus = userRecord.fields.Status || 'Free';
-        document.getElementById('user-status').textContent = userStatus;
-        const debriefsRemainingEl = document.getElementById('debriefs-remaining');
-        if (userStatus === 'Premium') {
-            debriefsRemainingEl.classList.add('hidden');
-        } else {
-            debriefsRemainingEl.classList.remove('hidden');
-            debriefsRemainingEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Débriefs`;
-        }
-        document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
-        const debriefStatus = userRecord.fields['Debrief Status'];
-        const loadingOverlay = document.getElementById('debrief-loading-overlay');
-        const blurTarget = document.getElementById('blur-target');
-        const debriefContent = document.getElementById('debrief-content');
-        const debriefPlaceholder = document.getElementById('debrief-placeholder');
-        const copyDebriefButton = document.getElementById('copy-debrief-button');
-        if (debriefStatus === 'En cours') {
-            blurTarget.classList.add('blur-sm');
-            loadingOverlay.classList.remove('hidden');
-            debriefContent.classList.add('hidden');
-            debriefPlaceholder.classList.add('hidden');
-            document.getElementById('start-debrief-button').disabled = true;
-            pollDebriefStatus(userRecord.id);
-        } else {
-            blurTarget.classList.remove('blur-sm');
-            loadingOverlay.classList.add('hidden');
-            const debriefHtml = userRecord.fields['Debrief HTML'];
-            if (debriefHtml && debriefHtml.trim() !== '') {
-                debriefContent.innerHTML = debriefHtml;
-                debriefContent.classList.remove('hidden');
-                debriefPlaceholder.classList.add('hidden');
-                if (copyDebriefButton) copyDebriefButton.classList.remove('hidden');
-            } else {
-                debriefContent.innerHTML = '';
-                debriefContent.classList.add('hidden');
-                debriefPlaceholder.classList.remove('hidden');
-                if (copyDebriefButton) copyDebriefButton.classList.add('hidden');
-            }
-        }
-        updateSourcesTable();
-        updateUsageLimit();
-        // Gère l'overlay premium pour le bouton de présentation
-const isPremiumUser = userStatus === 'Premium';
-const presentationBtn = document.getElementById('make-presentation-btn');
-const presentationOverlay = document.getElementById('presentation-premium-overlay');
+    if (!userRecord || !firebaseUser) { 
+        handleLogout(); 
+        return; 
+    }
+    document.getElementById('auth-section').classList.add('hidden');
+    document.getElementById('dashboard-section').classList.remove('hidden');
+    document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
 
-if (presentationBtn && presentationOverlay) {
-    presentationOverlay.classList.toggle('hidden', isPremiumUser);
-    presentationBtn.disabled = !isPremiumUser;
-    presentationBtn.style.cursor = isPremiumUser ? 'pointer' : 'not-allowed';
-}
+    const savedFormat = userRecord.fields['Report format'] || 'default';
+    document.getElementById('debrief-format-selector').value = savedFormat;
+    
+    const userStatus = userRecord.fields.Status || 'Free';
+    document.getElementById('user-status').textContent = userStatus;
+    const debriefsRemainingEl = document.getElementById('debriefs-remaining');
+    if (userStatus === 'Premium') {
+        debriefsRemainingEl.classList.add('hidden');
+    } else {
+        debriefsRemainingEl.classList.remove('hidden');
+        debriefsRemainingEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Débriefs`;
     }
 
+    document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
+    
+    const debriefStatus = userRecord.fields['Debrief Status'];
+    const loadingOverlay = document.getElementById('debrief-loading-overlay');
+    const contentContainer = document.getElementById('debrief-output-container');
+    const debriefContent = document.getElementById('debrief-content');
+    const debriefPlaceholder = document.getElementById('debrief-placeholder');
+
+    if (debriefStatus === 'En cours') {
+        contentContainer.classList.add('blur-sm');
+        loadingOverlay.classList.remove('hidden');
+        debriefContent.classList.add('hidden');
+        debriefPlaceholder.classList.add('hidden');
+        document.getElementById('start-debrief-button').disabled = true; 
+        pollDebriefStatus(userRecord.id); 
+    } else {
+        contentContainer.classList.remove('blur-sm');
+        loadingOverlay.classList.add('hidden');
+        const debriefHtml = userRecord.fields['Debrief HTML'];
+        if (debriefHtml && debriefHtml.trim() !== '') {
+            debriefContent.innerHTML = debriefHtml;
+            debriefContent.classList.remove('hidden');
+            debriefPlaceholder.classList.add('hidden');
+        } else {
+            debriefContent.innerHTML = '';
+            debriefContent.classList.add('hidden');
+            debriefPlaceholder.classList.remove('hidden');
+        }
+    }
+    updateSourcesTable();
+    updateUsageLimit();
+
+    // Gère l'overlay premium pour le bouton de présentation
+    const isPremiumUser = userStatus === 'Premium';
+    const presentationBtn = document.getElementById('make-presentation-btn');
+    const presentationOverlay = document.getElementById('presentation-premium-overlay');
+    
+    if (presentationBtn && presentationOverlay) {
+        presentationOverlay.classList.toggle('hidden', isPremiumUser);
+        presentationBtn.disabled = !isPremiumUser;
+        presentationBtn.style.cursor = isPremiumUser ? 'pointer' : 'not-allowed';
+    }
+
+    // Charge les présentations sauvegardées dans le Studio
+    loadPresentations();
+}
 // Fonction pour afficher/cacher l'overlay de chargement temporaire
 function showTempLoading(message) {
     document.getElementById('temp-loading-message').textContent = message;
@@ -1372,11 +1387,12 @@ async function generateAiPresentation() {
             const modal = document.getElementById('presentation-modal');
             const contentDiv = document.getElementById('presentation-content');
             
-            // Injecte le HTML dans un iframe pour isoler les styles de la présentation
-            // de ceux de votre application principale. C'est beaucoup plus robuste.
             contentDiv.innerHTML = `<iframe srcdoc="${result.html_output.replace(/"/g, "'")}" style="width:100%; height:100%; border:none;"></iframe>`;
             
-            modal.classList.remove('hidden'); // Affiche la modale
+            modal.classList.remove('hidden');
+            
+            // Rafraîchit la liste dans le panneau Studio
+            loadPresentations();
             
         } else {
             showNotification('Erreur', "La génération de la présentation a échoué ou n'a pas retourné de contenu.", 'error');
@@ -1385,11 +1401,85 @@ async function generateAiPresentation() {
     } catch (error) {
         showNotification('Erreur', `La génération a échoué: ${error.message}`, 'error');
     } finally {
-        hideTempLoading(); // Cache le message de chargement
+        hideTempLoading();
     }
 }
 
+// Variable globale pour stocker les présentations chargées
+let loadedPresentations = [];
 
+async function loadPresentations() {
+    if (!userRecord) return;
+    const listContainer = document.getElementById('presentations-list');
+    const placeholder = document.getElementById('presentations-placeholder');
+    listContainer.innerHTML = ''; // Vide la liste
+    placeholder.classList.add('hidden');
+
+    try {
+        const presentations = await callN8n('getPresentations', { recordId: userRecord.id });
+        
+        if (!presentations || presentations.length === 0) {
+            placeholder.classList.remove('hidden');
+            return;
+        }
+
+        loadedPresentations = presentations; // Stocke les données
+
+        presentations.forEach(pres => {
+            const presItem = document.createElement('div');
+            presItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 group';
+            
+            // Titre cliquable pour voir
+            const titleButton = document.createElement('button');
+            titleButton.className = 'text-sm font-medium text-left text-gray-700 hover:text-blue-600';
+            titleButton.textContent = pres.fields.Title || 'Présentation sans titre';
+            titleButton.onclick = () => viewPresentation(pres.id);
+            
+            // Bouton supprimer
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'btn-secondary text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity';
+            deleteButton.textContent = 'Supprimer';
+            deleteButton.onclick = () => deletePresentation(pres.id);
+
+            presItem.appendChild(titleButton);
+            presItem.appendChild(deleteButton);
+            listContainer.appendChild(presItem);
+        });
+
+    } catch (error) {
+        console.error('Erreur lors du chargement des présentations:', error);
+        placeholder.classList.remove('hidden');
+    }
+}
+
+function viewPresentation(presentationId) {
+    const presentation = loadedPresentations.find(p => p.id === presentationId);
+    if (!presentation || !presentation.fields.ContentHTML) {
+        showNotification('Erreur', 'Impossible de trouver le contenu de cette présentation.', 'error');
+        return;
+    }
+
+    const modal = document.getElementById('presentation-modal');
+    const contentDiv = document.getElementById('presentation-content');
+    
+    // Injecte le HTML dans un iframe pour isoler les styles
+    contentDiv.innerHTML = `<iframe srcdoc="${presentation.fields.ContentHTML.replace(/"/g, "'")}" style="width:100%; height:100%; border:none;"></iframe>`;
+    
+    modal.classList.remove('hidden');
+}
+
+async function deletePresentation(presentationId) {
+    const confirmed = await showNotification('Confirmation', 'Voulez-vous vraiment supprimer cette présentation ?', 'confirm');
+    if (!confirmed) return;
+
+    try {
+        await callN8n('deletePresentation', { presentationId: presentationId });
+        await loadPresentations(); // Rafraîchit la liste
+        showNotification('Succès', 'Présentation supprimée.', 'success');
+    } catch (error) {
+        showNotification('Erreur', `Impossible de supprimer : ${error.message}`, 'error');
+    }
+}
 
 
     
