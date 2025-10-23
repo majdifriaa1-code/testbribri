@@ -918,7 +918,7 @@
 </div>
 
 <script>
-    // ===================================================================
+   // ===================================================================
     //  1. CONFIGURATION ET VARIABLES GLOBALES
     // ===================================================================
     const firebaseConfig = { apiKey: "AIzaSyBxt3psNIY8yFbzmSUURXK_Ne5jnagbZTQ", authDomain: "brieova-f3288.firebaseapp.com", projectId: "brieova-f3288", storageBucket: "brieova-f3288.appspot.com", messagingSenderId: "931818128414", appId: "1:931818128414:web:8ee00d3f3bfd5fc9f21a0f" };
@@ -930,12 +930,15 @@
     const CHAT_WEBHOOK_URL = 'https://n8n.brieova.com/webhook/chat-assistant';
     let userRecord = null;
     let firebaseUser = null;
-    let loadedPresentations = [];
+    let loadedPresentations = []; // Stocke les présentations chargées
 
     // ===================================================================
     //  2. DÉFINITION DE TOUTES LES FONCTIONS
     // ===================================================================
 
+    /**
+     * Affiche une notification modale personnalisée.
+     */
     function showNotification(title, message, type = 'success') {
         return new Promise(resolve => {
             const modal = document.getElementById('generic-modal');
@@ -943,25 +946,37 @@
             const titleEl = document.getElementById('generic-modal-title');
             const messageEl = document.getElementById('generic-modal-message');
             const actionsEl = document.getElementById('generic-modal-actions');
+            
+            if (!modal || !iconContainer || !titleEl || !messageEl || !actionsEl) {
+                console.error("Éléments de la modale générique introuvables.");
+                alert(title + "\n\n" + message); // Fallback
+                resolve(false);
+                return;
+            }
+
             titleEl.textContent = title;
             messageEl.textContent = message;
             actionsEl.innerHTML = '';
             iconContainer.innerHTML = '';
+            
             const icons = {
                 success: `<svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`,
                 error: `<svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`,
                 confirm: `<svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
             };
             iconContainer.innerHTML = icons[type];
+
             if (type === 'confirm') {
                 const cancelButton = document.createElement('button');
                 cancelButton.textContent = 'Annuler';
                 cancelButton.className = 'w-full btn btn-secondary';
                 cancelButton.onclick = () => { modal.classList.add('hidden'); resolve(false); };
+                
                 const confirmButton = document.createElement('button');
                 confirmButton.textContent = 'Confirmer';
                 confirmButton.className = 'w-full btn btn-primary';
                 confirmButton.onclick = () => { modal.classList.add('hidden'); resolve(true); };
+                
                 actionsEl.appendChild(cancelButton);
                 actionsEl.appendChild(confirmButton);
             } else {
@@ -975,6 +990,9 @@
         });
     }
 
+    /**
+     * Appelle le webhook n8n principal avec une action et des données.
+     */
     async function callN8n(action, data = {}) {
         if (!auth.currentUser) throw new Error("Utilisateur non authentifié.");
         const idToken = await auth.currentUser.getIdToken(true);
@@ -987,28 +1005,42 @@
         return await response.json();
     }
 
+    /**
+     * Met à jour la variable globale 'userRecord' avec les données d'Airtable.
+     */
     function updateLocalUserRecord(recordFromN8n) {
         let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
         if (!p || typeof p !== 'object' || !p.id) return;
         userRecord = p.fields ? p : { id: p.id, fields: { ...p } };
     }
 
+    /**
+     * Récupère les données de l'utilisateur depuis Airtable via n8n.
+     */
     async function getUserDataByEmail(email) {
         const rawResult = await callN8n('findUser', { email });
         updateLocalUserRecord(rawResult);
         if (!userRecord) throw new Error("Utilisateur non trouvé.");
     }
 
+    /**
+     * Crée un nouvel utilisateur dans Airtable via n8n.
+     */
     async function createUserData(email, name) {
         await callN8n('createUser', { email, name });
     }
 
+    /**
+     * Ajoute un lien (Article ou YouTube) à l'utilisateur.
+     */
     async function addLink(fieldName, inputId) {
         const inputElement = document.getElementById(inputId);
         const newLinksRaw = inputElement.value.trim();
         if (!newLinksRaw) return;
+        
         const newLinks = newLinksRaw.split(',').map(link => link.trim()).filter(Boolean);
         const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+
         for (const link of newLinks) {
             const isYoutubeLink = youtubeRegex.test(link);
             if (fieldName === 'YouTube Links') {
@@ -1023,8 +1055,10 @@
                 }
             }
         }
+        
         const existingLinks = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
         const allLinks = [...new Set([...existingLinks, ...newLinks])].join(',');
+        
         try {
             updateLocalUserRecord(await callN8n('addLink', { recordId: userRecord.id, fieldName, allLinks }));
             inputElement.value = '';
@@ -1034,8 +1068,12 @@
         }
     }
 
-    async function saveUserPersona() {
+    /**
+     * Sauvegarde le profil IA de l'utilisateur.
+     */
+    async function saveUserPersona(button) {
         if (!userRecord) return;
+        if(button) button.disabled = true;
         const personaText = document.getElementById('user-persona-input').value.trim();
         try {
             const updatedRecord = await callN8n('updateUserPersona', {
@@ -1046,9 +1084,14 @@
             showNotification('Profil Enregistré', 'Votre profil pour l\'IA a été mis à jour.', 'success');
         } catch (error) {
             showNotification('Erreur', "Erreur lors de la sauvegarde du profil : " + error.message, 'error');
+        } finally {
+            if(button) button.disabled = false;
         }
     }
 
+    /**
+     * Sauvegarde le format de rapport sélectionné.
+     */
     async function saveReportFormat() {
         if (!userRecord) return;
         const selectedFormat = document.getElementById('debrief-format-selector').value;
@@ -1060,6 +1103,9 @@
         }
     }
 
+    /**
+     * Ajoute un podcast à l'utilisateur.
+     */
     async function addPodcast() {
         const newLink = document.getElementById('podcast-link-input').value.trim();
         const newTitle = document.getElementById('podcast-title-input').value.trim();
@@ -1075,9 +1121,7 @@
         let podcasts = [];
         try {
             podcasts = JSON.parse(userRecord.fields['Podcast RSS Links'] || '[]');
-        } catch (e) {
-            console.error("Could not parse podcast JSON", e);
-        }
+        } catch (e) { console.error("Could not parse podcast JSON", e); }
         podcasts.push({ link: newLink, title: newTitle });
         try {
             updateLocalUserRecord(await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: JSON.stringify(podcasts) }));
@@ -1089,6 +1133,9 @@
         }
     }
 
+    /**
+     * Vide une catégorie de liens.
+     */
     async function clearLinks(fieldName) {
         if (await showNotification('Confirmation', 'Vider tous les liens de cette catégorie ?', 'confirm')) {
             try {
@@ -1098,6 +1145,9 @@
         }
     }
 
+    /**
+     * Vide la liste des podcasts.
+     */
     async function clearPodcast() {
         if (await showNotification('Confirmation', 'Vider tous les podcasts ?', 'confirm')) {
             try {
@@ -1107,6 +1157,9 @@
         }
     }
 
+    /**
+     * Déclenche le processus de débrief.
+     */
     async function startDebrief() {
         if (!userRecord || !userRecord.fields) return;
         const personaText = userRecord.fields['User Persona (AI)'] || '';
@@ -1114,19 +1167,22 @@
             showNotification("Profil manquant", "Veuillez décrire votre profil avant de lancer un débrief.", 'error');
             return;
         }
-        const hasLinks = userRecord.fields['Article RSS Links'] || userRecord.fields['YouTube Links'] || (userRecord.fields['Podcast RSS Links'] && userRecord.fields['Podcast RSS Links'] !== '[]') || userRecord.fields['PdfFiles'];
+        const hasLinks = userRecord.fields['Article RSS Links'] || userRecord.fields['YouTube Links'] || (userRecord.fields['Podcast RSS Links'] && userRecord.fields['Podcast RSS Links'] !== '[]');
         if (!hasLinks) {
-            showNotification("Sources manquantes", "Vous devez ajouter au moins une source avant de lancer le débrief.", 'error');
+            showNotification("Sources manquantes", "Vous devez ajouter au moins un lien avant de lancer le débrief.", 'error');
             return;
         }
+
         const debriefButton = document.getElementById('start-debrief-button');
         const loadingOverlay = document.getElementById('debrief-loading-overlay');
-        const blurTarget = document.getElementById('blur-target');
+        const blurTarget = document.getElementById('blur-target'); 
+        
         debriefButton.disabled = true;
-        blurTarget.classList.add('blur-sm');
-        loadingOverlay.classList.remove('hidden');
+        blurTarget.classList.add('blur-sm'); 
+        loadingOverlay.classList.remove('hidden'); 
+
         try {
-            await callN8n('startDebrief', {
+            await callN8n('startDebrief', { 
                 recordId: userRecord.id,
                 reportFormat: document.getElementById('debrief-format-selector').value
             });
@@ -1139,9 +1195,13 @@
         }
     }
 
+    /**
+     * Vérifie le statut du débrief à intervalles réguliers.
+     */
     function pollDebriefStatus(recordId) {
         let attempts = 0;
-        const maxAttempts = 24;
+        const maxAttempts = 24; // 24 tentatives * 5 secondes = 2 minutes
+        
         const intervalId = setInterval(async () => {
             if (attempts >= maxAttempts) {
                 clearInterval(intervalId);
@@ -1155,7 +1215,7 @@
                 const response = await callN8n('checkDebriefStatus', { recordId: recordId });
                 if (response.status === 'complete') {
                     clearInterval(intervalId);
-                    location.reload();
+                    location.reload(); 
                 }
             } catch (error) {
                 clearInterval(intervalId);
@@ -1165,9 +1225,12 @@
                 updateUsageLimit();
             }
             attempts++;
-        }, 5000);
+        }, 5000); 
     }
 
+    /**
+     * Affiche l'onglet de profil (dans la modale de profil).
+     */
     function showTab(tabName) {
         document.querySelectorAll('.tab-content-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.profile-nav-item').forEach(i => i.classList.remove('active'));
@@ -1175,18 +1238,89 @@
         document.getElementById(`${tabName}-tab-btn`)?.classList.add('active');
     }
 
+    /**
+     * Rafraîchit l'affichage principal du dashboard.
+     */
+    function showDashboard() {
+        if (!userRecord || !firebaseUser) { 
+            handleLogout(); 
+            return; 
+        }
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+        document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
+
+        // Restaure la sélection du format de rapport
+        const savedFormat = userRecord.fields['Report format'] || 'default';
+        document.getElementById('debrief-format-selector').value = savedFormat;
+        
+        const userStatus = userRecord.fields.Status || 'Free';
+        document.getElementById('user-status').textContent = userStatus;
+        const debriefsRemainingEl = document.getElementById('debriefs-remaining');
+        if (userStatus === 'Premium') {
+            debriefsRemainingEl.classList.add('hidden');
+        } else {
+            debriefsRemainingEl.classList.remove('hidden');
+            debriefsRemainingEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Débriefs`;
+        }
+
+        document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
+        
+        const debriefStatus = userRecord.fields['Debrief Status'];
+        const loadingOverlay = document.getElementById('debrief-loading-overlay');
+        const blurTarget = document.getElementById('blur-target');
+        const debriefContent = document.getElementById('debrief-content');
+        const debriefPlaceholder = document.getElementById('debrief-placeholder');
+
+        if (debriefStatus === 'En cours') {
+            blurTarget.classList.add('blur-sm');
+            loadingOverlay.classList.remove('hidden');
+            debriefContent.classList.add('hidden');
+            debriefPlaceholder.classList.add('hidden');
+            document.getElementById('start-debrief-button').disabled = true; 
+            pollDebriefStatus(userRecord.id); 
+        } else {
+            blurTarget.classList.remove('blur-sm');
+            loadingOverlay.classList.add('hidden');
+            const debriefHtml = userRecord.fields['Debrief HTML'];
+            if (debriefHtml && debriefHtml.trim() !== '') {
+                debriefContent.innerHTML = debriefHtml;
+                debriefContent.classList.remove('hidden');
+                debriefPlaceholder.classList.add('hidden');
+            } else {
+                debriefContent.innerHTML = '';
+                debriefContent.classList.add('hidden');
+                debriefPlaceholder.classList.remove('hidden');
+            }
+        }
+        updateSourcesTable();
+        updateUsageLimit();
+
+        // Gère l'overlay premium pour le bouton de présentation
+        const isPremiumUser = userStatus === 'Premium';
+        const presentationBtn = document.getElementById('make-presentation-btn');
+        const presentationOverlay = document.getElementById('presentation-premium-overlay');
+        
+        if (presentationBtn && presentationOverlay) {
+            presentationOverlay.classList.toggle('hidden', isPremiumUser);
+            presentationBtn.disabled = !isPremiumUser;
+            presentationBtn.style.cursor = isPremiumUser ? 'pointer' : 'not-allowed';
+        }
+
+        // Charge les présentations sauvegardées dans le Studio
+        loadPresentations();
+    }
+
+    /**
+     * Met à jour la table des sources.
+     */
     function updateSourcesTable() {
         const tableBody = document.getElementById('sources-table');
         const placeholder = document.getElementById('sources-placeholder');
         if (!tableBody || !placeholder || !userRecord) return;
         tableBody.innerHTML = '';
         let hasContent = false;
-        const fields = [
-            { n: 'Article RSS Links', t: 'Articles / RSS' },
-            { n: 'YouTube Links', t: 'Vidéos YouTube' },
-            { n: 'Podcast RSS Links', t: 'Podcasts' },
-            { n: 'PdfFiles', t: 'Fichiers PDF' }
-        ];
+        const fields = [ { n: 'Article RSS Links', t: 'Articles / RSS' }, { n: 'YouTube Links', t: 'Vidéos YouTube' }, { n: 'Podcast RSS Links', t: 'Podcasts' }];
         fields.forEach(f => {
             let contentExists = false, cardContent = '', clearAction = '';
             const fieldData = userRecord.fields[f.n];
@@ -1197,12 +1331,6 @@
                     contentExists = true;
                     cardContent = p.map(i => `<div class="text-xs truncate text-gray-500" title="${i.link}">${i.title || i.link}</div>`).join('');
                     clearAction = `clearPodcast()`;
-                }
-            } else if (f.n === 'PdfFiles') {
-                if (Array.isArray(fieldData) && fieldData.length > 0) {
-                    contentExists = true;
-                    cardContent = fieldData.map(file => `<div class="text-xs truncate text-gray-500" title="${file.url}">${file.filename}</div>`).join('');
-                    clearAction = `clearLinks('PdfFiles')`;
                 }
             } else {
                 const links = fieldData ? String(fieldData).split(',').filter(Boolean) : [];
@@ -1223,12 +1351,22 @@
         placeholder.classList.toggle('hidden', hasContent);
     }
 
+    /**
+     * Met à jour le texte et l'état du bouton "Lancer le Débrief".
+     */
     function updateUsageLimit() {
         const usageEl = document.getElementById('usage-limit');
         const btn = document.getElementById('start-debrief-button');
         if (!usageEl || !btn || !userRecord) return;
         const remaining = parseInt(userRecord.fields['Debriefs Restants']) || 0;
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1.157a4.002 4.002 0 00-3.13 3.131V10a1 1 0 102 0v-2.712A2.002 2.002 0 0110 5.288 2.002 2.002 0 0112.712 7.5h2.89A6.979 6.979 0 0010.156 3H11zM4.132 9.01A7.002 7.002 0 0010 16.845a7.002 7.002 0 005.868-7.836l-2.89.717A2.002 2.002 0 0110 11.288 2.002 2.002 0 017.288 9.5H4.132z" /></svg>`;
+        
+        // Ne pas réactiver le bouton si un débrief est en cours
+        if (userRecord.fields['Debrief Status'] === 'En cours') {
+            btn.disabled = true;
+            return;
+        }
+        
         if (userRecord.fields.Status === 'Free' || !userRecord.fields.Status) {
             usageEl.textContent = `Offre Gratuite : Il vous reste ${remaining} débrief(s).`;
             btn.disabled = remaining <= 0;
@@ -1240,274 +1378,139 @@
         }
     }
 
+    /**
+     * Gère la déconnexion de l'utilisateur.
+     */
     async function handleLogout() {
         try { await auth.signOut(); location.reload(); } catch (e) { console.error(e); }
     }
 
-    async function handlePdfUpload() {
-        const fileInput = document.getElementById('pdf-file-input');
-        const file = fileInput.files[0];
-        if (!file) { showNotification('Aucun fichier', 'Veuillez sélectionner un fichier.', 'error'); return; }
-        if (file.type !== 'application/pdf') { showNotification('Type de fichier incorrect', 'Seuls les fichiers PDF sont autorisés.', 'error'); fileInput.value = ''; return; }
-        const maxSize = 50 * 1024 * 1024;
-        if (file.size > maxSize) { showNotification('Fichier trop volumineux', 'Le fichier ne doit pas dépasser 50 Mo.', 'error'); return; }
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-            try {
-                await callN8n('addPdfFile', { recordId: userRecord.id, fileName: file.name, fileData: reader.result });
-                showNotification('Succès', 'Votre fichier PDF a été ajouté comme source.', 'success');
-                fileInput.value = '';
-                document.getElementById('add-source-modal').classList.add('hidden');
-                showDashboard();
-            } catch (e) {
-                showNotification('Erreur', `L'envoi du fichier a échoué : ${e.message}`, 'error');
+    /**
+     * Affiche ou cache l'overlay de chargement temporaire.
+     */
+    function showTempLoading(message) {
+        document.getElementById('temp-loading-message').textContent = message;
+        document.getElementById('temp-loading-overlay').classList.remove('hidden');
+    }
+    function hideTempLoading() {
+        document.getElementById('temp-loading-overlay').classList.add('hidden');
+    }
+
+    /**
+     * Gère la génération de la présentation IA.
+     */
+    async function generateAiPresentation() {
+        if (!userRecord) return;
+        if (userRecord.fields.Status !== 'Premium') {
+            showNotification('Fonctionnalité Premium', 'Passez à Premium pour générer des présentations AI.', 'error');
+            return;
+        }
+        showTempLoading("Génération de la présentation AI en cours...");
+        try {
+            const result = await callN8n('generatePresentation', { recordId: userRecord.id });
+            if (result && result.html_output) {
+                const modal = document.getElementById('presentation-modal');
+                const contentDiv = document.getElementById('presentation-content');
+                contentDiv.innerHTML = `<iframe srcdoc="${result.html_output.replace(/"/g, "'")}" style="width:100%; height:100%; border:none;"></iframe>`;
+                modal.classList.remove('hidden');
+                loadPresentations();
+            } else {
+                showNotification('Erreur', "La génération de la présentation a échoué ou n'a pas retourné de contenu.", 'error');
             }
-        };
-        reader.onerror = (error) => { showNotification('Erreur de lecture', `Impossible de lire le fichier : ${error}`, 'error'); };
-    }
-
-    function createSignupModalHTML() {
-        return `<div class="modal-overlay"><div class="modal-content max-w-md"><button id="close-signup-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button><h2 class="font-display text-2xl mb-6 text-center">Créer votre compte</h2><div class="space-y-4 text-left"><div><label for="signup-name" class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label><input type="text" id="signup-name" placeholder="John Doe" class="input-field"></div><div><label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="signup-email" placeholder="nom@exemple.com" class="input-field"></div><div><label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label><input type="password" id="signup-password" placeholder="••••••••" class="input-field"></div><p id="signup-error" class="text-sm text-red-500 hidden"></p><button id="signup-button" class="w-full btn btn-primary py-3 mt-4">S'inscrire</button></div></div></div>`;
-    }
-
-    function createForgotPasswordModalHTML() {
-        return `<div class="modal-overlay"><div class="modal-content max-w-md"><button id="close-forgot-password-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button><h2 class="font-display text-2xl mb-6 text-center">Réinitialiser le mot de passe</h2><p class="text-center text-gray-500 mb-6">Entrez votre email pour recevoir un lien de réinitialisation.</p><div class="space-y-4 text-left"><div><label for="reset-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="reset-email" placeholder="nom@exemple.com" class="input-field"></div><p id="reset-error" class="text-sm text-red-500 hidden"></p><button id="reset-password-button" class="w-full btn btn-primary py-3 mt-4">Envoyer le lien</button></div></div></div>`;
-    }
-
-    async function handleSignup() {
-        const name = document.getElementById('signup-name').value.trim();
-        const email = document.getElementById('signup-email').value.trim();
-        const password = document.getElementById('signup-password').value;
-        const errorEl = document.getElementById('signup-error');
-        errorEl.classList.add('hidden');
-        if (!name || !email || !password) {
-            errorEl.textContent = "Tous les champs sont obligatoires.";
-            errorEl.classList.remove('hidden');
-            return;
+        } catch (error) {
+            showNotification('Erreur', `La génération a échoué: ${error.message}`, 'error');
+        } finally {
+            hideTempLoading();
         }
+    }
+
+    /**
+     * Charge et affiche la liste des présentations sauvegardées.
+     */
+    async function loadPresentations() {
+        if (!userRecord) return;
+        const listContainer = document.getElementById('presentations-list');
+        const placeholder = document.getElementById('presentations-placeholder');
+        listContainer.innerHTML = ''; 
+        placeholder.classList.add('hidden');
+
         try {
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            await userCredential.user.updateProfile({ displayName: name });
-            await createUserData(email, name);
-            document.getElementById('signup-modal').classList.add('hidden');
-            await showNotification('Compte créé !', 'Bienvenue sur BRIOVA ! Vous allez être redirigé.', 'success');
-            location.reload();
-        } catch (e) {
-            if (e.code === 'auth/email-already-in-use') { errorEl.textContent = "Cette adresse email est déjà utilisée."; }
-            else if (e.code === 'auth/weak-password') { errorEl.textContent = "Le mot de passe doit contenir au moins 6 caractères."; }
-            else { errorEl.textContent = "Une erreur est survenue. Veuillez réessayer."; }
-            errorEl.classList.remove('hidden');
-        }
-    }
+            const presentations = await callN8n('getPresentations', { recordId: userRecord.id });
+            if (!presentations || presentations.length === 0) {
+                placeholder.classList.remove('hidden');
+                return;
+            }
+            loadedPresentations = presentations; 
 
-    async function handlePasswordReset() {
-        const email = document.getElementById('reset-email').value.trim();
-        const errorEl = document.getElementById('reset-error');
-        errorEl.classList.add('hidden');
-        if (!email) {
-            errorEl.textContent = "Veuillez entrer votre adresse email.";
-            errorEl.classList.remove('hidden');
-            return;
-        }
-        try {
-            await auth.sendPasswordResetEmail(email);
-            document.getElementById('forgot-password-modal').classList.add('hidden');
-            showNotification('Email envoyé', 'Vérifiez votre boîte de réception pour le lien de réinitialisation.', 'success');
-        } catch (e) {
-            errorEl.textContent = "Aucun compte n'est associé à cet email.";
-            errorEl.classList.remove('hidden');
-        }
-    }
-
-    function showDashboard() {
-    if (!userRecord || !firebaseUser) { 
-        handleLogout(); 
-        return; 
-    }
-    document.getElementById('auth-section').classList.add('hidden');
-    document.getElementById('dashboard-section').classList.remove('hidden');
-    document.getElementById('user-display-name').textContent = userRecord.fields.Name || firebaseUser.email;
-
-    const savedFormat = userRecord.fields['Report format'] || 'default';
-    document.getElementById('debrief-format-selector').value = savedFormat;
-    
-    const userStatus = userRecord.fields.Status || 'Free';
-    document.getElementById('user-status').textContent = userStatus;
-    const debriefsRemainingEl = document.getElementById('debriefs-remaining');
-    if (userStatus === 'Premium') {
-        debriefsRemainingEl.classList.add('hidden');
-    } else {
-        debriefsRemainingEl.classList.remove('hidden');
-        debriefsRemainingEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Débriefs`;
-    }
-
-    document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
-    
-    const debriefStatus = userRecord.fields['Debrief Status'];
-    const loadingOverlay = document.getElementById('debrief-loading-overlay');
-    const contentContainer = document.getElementById('debrief-output-container');
-    const debriefContent = document.getElementById('debrief-content');
-    const debriefPlaceholder = document.getElementById('debrief-placeholder');
-
-    if (debriefStatus === 'En cours') {
-        contentContainer.classList.add('blur-sm');
-        loadingOverlay.classList.remove('hidden');
-        debriefContent.classList.add('hidden');
-        debriefPlaceholder.classList.add('hidden');
-        document.getElementById('start-debrief-button').disabled = true; 
-        pollDebriefStatus(userRecord.id); 
-    } else {
-        contentContainer.classList.remove('blur-sm');
-        loadingOverlay.classList.add('hidden');
-        const debriefHtml = userRecord.fields['Debrief HTML'];
-        if (debriefHtml && debriefHtml.trim() !== '') {
-            debriefContent.innerHTML = debriefHtml;
-            debriefContent.classList.remove('hidden');
-            debriefPlaceholder.classList.add('hidden');
-        } else {
-            debriefContent.innerHTML = '';
-            debriefContent.classList.add('hidden');
-            debriefPlaceholder.classList.remove('hidden');
-        }
-    }
-    updateSourcesTable();
-    updateUsageLimit();
-
-    // Gère l'overlay premium pour le bouton de présentation
-    const isPremiumUser = userStatus === 'Premium';
-    const presentationBtn = document.getElementById('make-presentation-btn');
-    const presentationOverlay = document.getElementById('presentation-premium-overlay');
-    
-    if (presentationBtn && presentationOverlay) {
-        presentationOverlay.classList.toggle('hidden', isPremiumUser);
-        presentationBtn.disabled = !isPremiumUser;
-        presentationBtn.style.cursor = isPremiumUser ? 'pointer' : 'not-allowed';
-    }
-
-    // Charge les présentations sauvegardées dans le Studio
-    loadPresentations();
-}
-
-// Fonction pour afficher/cacher l'overlay de chargement temporaire
-function showTempLoading(message) {
-    document.getElementById('temp-loading-message').textContent = message;
-    document.getElementById('temp-loading-overlay').classList.remove('hidden');
-}
-function hideTempLoading() {
-    document.getElementById('temp-loading-overlay').classList.add('hidden');
-}
-
-async function generateAiPresentation() {
-    if (!userRecord) return;
-    if (userRecord.fields.Status !== 'Premium') {
-        showNotification('Fonctionnalité Premium', 'Passez à Premium pour générer des présentations AI.', 'error');
-        return;
-    }
-
-    showTempLoading("Génération de la présentation AI en cours...");
-
-    try {
-        const result = await callN8n('generatePresentation', { recordId: userRecord.id });
-
-        if (result && result.html_output) {
-            const modal = document.getElementById('presentation-modal');
-            const contentDiv = document.getElementById('presentation-content');
-            
-            contentDiv.innerHTML = `<iframe srcdoc="${result.html_output.replace(/"/g, "'")}" style="width:100%; height:100%; border:none;"></iframe>`;
-            
-            modal.classList.remove('hidden');
-            
-            // Rafraîchit la liste dans le panneau Studio
-            loadPresentations();
-            
-        } else {
-            showNotification('Erreur', "La génération de la présentation a échoué ou n'a pas retourné de contenu.", 'error');
-        }
-
-    } catch (error) {
-        showNotification('Erreur', `La génération a échoué: ${error.message}`, 'error');
-    } finally {
-        hideTempLoading();
-    }
-}
-
-
-async function loadPresentations() {
-    if (!userRecord) return;
-    const listContainer = document.getElementById('presentations-list');
-    const placeholder = document.getElementById('presentations-placeholder');
-    listContainer.innerHTML = ''; // Vide la liste
-    placeholder.classList.add('hidden');
-
-    try {
-        const presentations = await callN8n('getPresentations', { recordId: userRecord.id });
-        
-        if (!presentations || presentations.length === 0) {
+            presentations.forEach(pres => {
+                const presItem = document.createElement('div');
+                presItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 group';
+                const titleButton = document.createElement('button');
+                titleButton.className = 'text-sm font-medium text-left text-gray-700 hover:text-blue-600';
+                titleButton.textContent = pres.fields.Title || 'Présentation sans titre';
+                titleButton.onclick = () => viewPresentation(pres.id);
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'btn-secondary text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity';
+                deleteButton.textContent = 'Supprimer';
+                deleteButton.onclick = () => deletePresentation(pres.id);
+                presItem.appendChild(titleButton);
+                presItem.appendChild(deleteButton);
+                listContainer.appendChild(presItem);
+            });
+        } catch (error) {
+            console.error('Erreur lors du chargement des présentations:', error);
             placeholder.classList.remove('hidden');
+        }
+    }
+
+    /**
+     * Affiche une présentation spécifique dans la modale.
+     */
+    function viewPresentation(presentationId) {
+        const presentation = loadedPresentations.find(p => p.id === presentationId);
+        if (!presentation || !presentation.fields.ContentHTML) {
+            showNotification('Erreur', 'Impossible de trouver le contenu de cette présentation.', 'error');
             return;
         }
+        const modal = document.getElementById('presentation-modal');
+        const contentDiv = document.getElementById('presentation-content');
+        contentDiv.innerHTML = `<iframe srcdoc="${presentation.fields.ContentHTML.replace(/"/g, "'")}" style="width:100%; height:100%; border:none;"></iframe>`;
+        modal.classList.remove('hidden');
+    }
 
-        loadedPresentations = presentations; // Stocke les données
+    /**
+     * Supprime une présentation de la base de données.
+     */
+    async function deletePresentation(presentationId) {
+        const confirmed = await showNotification('Confirmation', 'Voulez-vous vraiment supprimer cette présentation ?', 'confirm');
+        if (!confirmed) return;
+        try {
+            await callN8n('deletePresentation', { presentationId: presentationId });
+            await loadPresentations(); 
+            showNotification('Succès', 'Présentation supprimée.', 'success');
+        } catch (error) {
+            showNotification('Erreur', `Impossible de supprimer : ${error.message}`, 'error');
+        }
+    }
 
-        presentations.forEach(pres => {
-            const presItem = document.createElement('div');
-            presItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 group';
-            
-            // Titre cliquable pour voir
-            const titleButton = document.createElement('button');
-            titleButton.className = 'text-sm font-medium text-left text-gray-700 hover:text-blue-600';
-            titleButton.textContent = pres.fields.Title || 'Présentation sans titre';
-            titleButton.onclick = () => viewPresentation(pres.id);
-            
-            // Bouton supprimer
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'btn-secondary text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity';
-            deleteButton.textContent = 'Supprimer';
-            deleteButton.onclick = () => deletePresentation(pres.id);
-
-            presItem.appendChild(titleButton);
-            presItem.appendChild(deleteButton);
-            listContainer.appendChild(presItem);
+    /**
+     * Gère la navigation mobile.
+     */
+    function showMobilePanel(panelIdToShow) {
+        document.querySelectorAll('.main-grid > .panel').forEach(panel => {
+            panel.classList.remove('active');
         });
-
-    } catch (error) {
-        console.error('Erreur lors du chargement des présentations:', error);
-        placeholder.classList.remove('hidden');
-    }
-}
-
-function viewPresentation(presentationId) {
-    const presentation = loadedPresentations.find(p => p.id === presentationId);
-    if (!presentation || !presentation.fields.ContentHTML) {
-        showNotification('Erreur', 'Impossible de trouver le contenu de cette présentation.', 'error');
-        return;
+        document.getElementById(panelIdToShow).classList.add('active');
+        document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        // Trouve le bouton correspondant à l'ID du panneau
+        const matchingButton = document.querySelector(`.mobile-tab-btn[onclick="showMobilePanel('${panelIdToShow}')"]`);
+        if (matchingButton) {
+            matchingButton.classList.add('active');
+        }
     }
 
-    const modal = document.getElementById('presentation-modal');
-    const contentDiv = document.getElementById('presentation-content');
-    
-    // Injecte le HTML dans un iframe pour isoler les styles
-    contentDiv.innerHTML = `<iframe srcdoc="${presentation.fields.ContentHTML.replace(/"/g, "'")}" style="width:100%; height:100%; border:none;"></iframe>`;
-    
-    modal.classList.remove('hidden');
-}
-
-async function deletePresentation(presentationId) {
-    const confirmed = await showNotification('Confirmation', 'Voulez-vous vraiment supprimer cette présentation ?', 'confirm');
-    if (!confirmed) return;
-
-    try {
-        await callN8n('deletePresentation', { presentationId: presentationId });
-        await loadPresentations(); // Rafraîchit la liste
-        showNotification('Succès', 'Présentation supprimée.', 'success');
-    } catch (error) {
-        showNotification('Erreur', `Impossible de supprimer : ${error.message}`, 'error');
-    }
-}
-
-
-    
     // ===================================================================
     //  3. GESTION DE L'AUTHENTIFICATION (POINT D'ENTRÉE)
     // ===================================================================
@@ -1520,11 +1523,9 @@ async function deletePresentation(presentationId) {
                 showDashboard();
             } catch (e) {
                 console.error(e);
-                showNotification("Erreur Critique", "Impossible de charger vos données.", "error");
+                showNotification("Erreur Critique", "Impossible de charger vos données. Veuillez actualiser ou contacter le support.", "error");
             }
         } else {
-            document.getElementById('main-header').classList.add('hidden');
-            document.getElementById('mobile-nav').classList.add('hidden');
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
         }
@@ -1535,104 +1536,8 @@ async function deletePresentation(presentationId) {
     //  4. TOUS LES ÉCOUTEURS D'ÉVÉNEMENTS
     // ===================================================================
     document.addEventListener('DOMContentLoaded', () => {
-
-        // --- SÉLECTION DES ÉLÉMENTS ---
-        const loginButton = document.getElementById('login-button');
-        const showSignupBtn = document.getElementById('show-signup-modal-button');
-        const showForgotPasswordBtn = document.getElementById('show-forgot-password-modal');
-        const settingsButton = document.getElementById('settings-button');
-        const settingsDropdown = document.getElementById('settings-dropdown');
-        const profileButton = document.getElementById('profile-button');
-        const logoutButton = document.getElementById('logout-button');
-        const closeProfileModalBtn = document.getElementById('close-profile-modal');
-        const profileTabBtn = document.getElementById('profile-tab-btn');
-        const securityTabBtn = document.getElementById('security-tab-btn');
-        const plansTabBtn = document.getElementById('plans-tab-btn');
-        const saveProfileButton = document.getElementById('save-profile-button');
-        const updatePasswordButton = document.getElementById('update-password-button');
-        const upgradeButton = document.getElementById('plans-upgrade-button');
-        const cancelButton = document.getElementById('plans-cancel-button');
-        const startDebriefButton = document.getElementById('start-debrief-button');
-        const copyDebriefButton = document.getElementById('copy-debrief-button');
-        const showMainModalBtn = document.getElementById('show-add-source-modal');
-        const mainModal = document.getElementById('add-source-modal');
-        const closeModalBtn = document.getElementById('close-add-source-modal');
-        const pdfUploadArea = document.getElementById('pdf-upload-area');
-        const pdfFileInput = document.getElementById('pdf-file-input');
-        const uploadPremiumOverlay = document.getElementById('upload-premium-overlay');
-        const pasteTextPremiumOverlay = document.getElementById('paste-text-premium-overlay');
-        const websiteModal = document.getElementById('website-modal');
-        const youtubeModal = document.getElementById('youtube-modal');
-        const podcastModal = document.getElementById('podcast-modal');
-        const textModal = document.getElementById('text-modal');
-        const websiteLauncherBtn = document.getElementById('website-launcher-btn');
-        const youtubeLauncherBtn = document.getElementById('youtube-launcher-btn');
-        const podcastLauncherBtn = document.getElementById('podcast-launcher-btn');
-        const textLauncherBtn = document.getElementById('text-launcher-btn');
-        const addArticleLinkBtn = document.getElementById('add-article-link-btn');
-        const addYoutubeLinkBtn = document.getElementById('add-youtube-link-btn');
-        const addPodcastBtn = document.getElementById('add-podcast-btn');
-        const chatForm = document.getElementById('chat-form');
-        const chatInput = document.getElementById('chat-input');
-        const chatMessages = document.getElementById('chat-messages');
-        const makePresentationBtn = document.getElementById('make-presentation-btn');
-        const presentationModal = document.getElementById('presentation-modal');
-        const closePresentationModalBtn = document.getElementById('close-presentation-modal');
-        const downloadPresentationBtn = document.getElementById('download-presentation-btn');
-
-        // --- FONCTIONS UTILES LOCALES AU DOM ---
-        function updateUserAvatar(userName) {
-            const avatarDiv = document.getElementById('profile-avatar-initial');
-            let initial = '?';
-            if (userName && userName.trim().length > 0) {
-                initial = userName.trim().charAt(0).toUpperCase();
-            }
-            if (avatarDiv) {
-                avatarDiv.textContent = initial;
-            }
-        }
-        window.updateUserAvatar = updateUserAvatar;
-
-        const openSubModal = (modal) => {
-            if (mainModal) mainModal.classList.add('hidden');
-            if (modal) modal.classList.remove('hidden');
-        };
-
-        function addMessage(text, sender) {
-            const emptyState = document.getElementById('chat-empty-state');
-            if (emptyState) {
-                emptyState.style.display = 'none';
-                if(chatMessages) chatMessages.classList.remove('items-center', 'justify-center', 'h-full');
-            }
-            const row = document.createElement('div');
-            row.className = `message-row ${sender}`;
-            const bubble = document.createElement('div');
-            bubble.className = `chat-bubble ${sender}`;
-            bubble.textContent = text;
-            row.appendChild(bubble);
-            if(chatMessages) chatMessages.appendChild(row);
-            row.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            return bubble;
-        }
-
-        // --- INITIALISATION MOBILE ---
-        if (window.innerWidth <= 1024) {
-            const navButtons = document.querySelectorAll('.mobile-nav-btn');
-            const panels = document.querySelectorAll('.main-grid > .panel');
-            const showPanel = (panelIndex) => {
-                panels.forEach(p => p.classList.remove('mobile-active'));
-                navButtons.forEach(b => b.classList.remove('active'));
-                if (panels[panelIndex]) panels[panelIndex].classList.add('mobile-active');
-                if (navButtons[panelIndex]) navButtons[panelIndex].classList.add('active');
-            };
-            document.getElementById('mobile-nav-sources')?.addEventListener('click', () => showPanel(0));
-            document.getElementById('mobile-nav-chat')?.addEventListener('click', () => showPanel(1));
-            document.getElementById('mobile-nav-studio')?.addEventListener('click', () => showPanel(2));
-            showPanel(1); 
-        }
-
-        // --- ASSIGNATION DES ÉCOUTEURS D'ÉVÉNEMENTS ---
-        if(loginButton) loginButton.addEventListener('click', async () => {
+        // --- Authentification ---
+        document.getElementById('login-button').addEventListener('click', async () => {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
             const errorEl = document.getElementById('auth-error');
@@ -1645,60 +1550,103 @@ async function deletePresentation(presentationId) {
                 errorEl.classList.remove('hidden');
             }
         });
-        
-        if(showSignupBtn) showSignupBtn.addEventListener('click', () => {
-            const modalContainer = document.getElementById('signup-modal');
-            modalContainer.innerHTML = createSignupModalHTML();
-            modalContainer.classList.remove('hidden');
-            document.getElementById('close-signup-modal').addEventListener('click', () => modalContainer.classList.add('hidden'));
-            document.getElementById('signup-button').addEventListener('click', handleSignup);
+        document.getElementById('show-signup-modal-button').addEventListener('click', () => {
+             document.getElementById('signup-modal').classList.remove('hidden');
+        });
+        document.getElementById('show-forgot-password-modal').addEventListener('click', () => {
+            document.getElementById('forgot-password-modal').classList.remove('hidden');
+        });
+        document.getElementById('signup-modal-cancel').addEventListener('click', () => document.getElementById('signup-modal').classList.add('hidden'));
+        document.getElementById('forgot-password-cancel').addEventListener('click', () => document.getElementById('forgot-password-modal').classList.add('hidden'));
+
+        document.getElementById('signup-modal-submit').addEventListener('click', async () => {
+             // Logique de création de compte
+            const email = document.getElementById('signup-modal-email').value.trim();
+            const name = document.getElementById('signup-modal-name').value.trim();
+            const password = document.getElementById('signup-modal-password').value;
+            const passwordConfirm = document.getElementById('signup-modal-password-confirm').value;
+            const errorElement = document.getElementById('signup-modal-error');
+            errorElement.classList.add('hidden');
+
+            if (password !== passwordConfirm) {
+                errorElement.textContent = "Les mots de passe ne correspondent pas.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            if (password.length < 6) {
+                errorElement.textContent = "Le mot de passe doit faire au moins 6 caractères.";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                await auth.createUserWithEmailAndPassword(email, password);
+                await createUserData(email, name);
+                document.getElementById('signup-modal').classList.add('hidden');
+                location.reload();
+            } catch (error) {
+                if (error.code === 'auth/email-already-in-use') {
+                    errorElement.textContent = "Un compte avec cet email existe déjà.";
+                } else {
+                    errorElement.textContent = "Erreur : " + error.message;
+                }
+                errorElement.classList.remove('hidden');
+            }
         });
 
-        if(showForgotPasswordBtn) showForgotPasswordBtn.addEventListener('click', () => {
-            const modalContainer = document.getElementById('forgot-password-modal');
-            modalContainer.innerHTML = createForgotPasswordModalHTML();
-            modalContainer.classList.remove('hidden');
-            document.getElementById('close-forgot-password-modal').addEventListener('click', () => modalContainer.classList.add('hidden'));
-            document.getElementById('reset-password-button').addEventListener('click', handlePasswordReset);
+        document.getElementById('forgot-password-submit').addEventListener('click', async () => {
+            // Logique de mot de passe oublié
+            const email = document.getElementById('forgot-password-email').value;
+            const successElement = document.getElementById('forgot-password-success');
+            const errorElement = document.getElementById('forgot-password-error');
+            successElement.classList.add('hidden');
+            errorElement.classList.add('hidden');
+            
+            try {
+                await auth.sendPasswordResetEmail(email);
+                successElement.textContent = 'Email envoyé ! Vérifiez votre boîte de réception.';
+                successElement.classList.remove('hidden');
+            } catch (error) {
+                errorElement.textContent = "Erreur : " + error.message;
+                errorElement.classList.remove('hidden');
+            }
         });
-        
-        if (settingsButton && settingsDropdown) settingsButton.addEventListener('click', (event) => { event.stopPropagation(); settingsDropdown.classList.toggle('active'); });
-        if (logoutButton && typeof handleLogout === 'function') logoutButton.addEventListener('click', handleLogout);
-        window.addEventListener('click', () => { if (settingsDropdown && settingsDropdown.classList.contains('active')) { settingsDropdown.classList.remove('active'); } });
-        
-        if (profileButton) {
-            profileButton.addEventListener('click', () => {
-                if (!userRecord || !firebaseUser) { console.error("User data not loaded yet."); return; }
-                document.getElementById('profile-name').value = userRecord.fields.Name || '';
-                document.getElementById('profile-email').value = firebaseUser.email;
-                document.getElementById('profile-modal-user-name').textContent = userRecord.fields.Name || firebaseUser.email;
-                const status = userRecord.fields.Status || 'Free';
-                document.getElementById('plan-status-display').textContent = status;
-                document.getElementById('plans-upgrade-section').classList.toggle('hidden', status === 'Premium');
-                document.getElementById('plans-cancel-section').classList.toggle('hidden', status !== 'Premium');
-                document.getElementById('profile-modal').classList.remove('hidden');
-                if (typeof showTab === 'function') { showTab('profile'); }
-            });
-        }
-        if (closeProfileModalBtn) closeProfileModalBtn.addEventListener('click', () => document.getElementById('profile-modal').classList.add('hidden'));
-        if (profileTabBtn) profileTabBtn.addEventListener('click', (e) => { e.preventDefault(); showTab('profile'); });
-        if (securityTabBtn) securityTabBtn.addEventListener('click', (e) => { e.preventDefault(); showTab('security'); });
-        if (plansTabBtn) plansTabBtn.addEventListener('click', (e) => { e.preventDefault(); showTab('plans'); });
-        
-        if (saveProfileButton) saveProfileButton.addEventListener('click', async () => {
+
+        // --- Panel Utilisateur & Profil ---
+        document.getElementById('open-profile-modal').addEventListener('click', () => {
+            if (!userRecord || !firebaseUser) return;
+            document.getElementById('profile-name').value = userRecord.fields.Name || '';
+            document.getElementById('profile-email').value = firebaseUser.email;
+            document.getElementById('profile-modal-user-name').textContent = userRecord.fields.Name || firebaseUser.email;
+            const status = userRecord.fields.Status || 'Free';
+            document.getElementById('plan-status-display').textContent = status;
+            document.getElementById('plans-upgrade-section').classList.toggle('hidden', status === 'Premium');
+            document.getElementById('plans-cancel-section').classList.toggle('hidden', status !== 'Premium');
+            document.getElementById('profile-modal').classList.remove('hidden');
+            showTab('profile');
+        });
+        document.getElementById('close-profile-modal').addEventListener('click', () => document.getElementById('profile-modal').classList.add('hidden'));
+        document.getElementById('profile-tab-btn').addEventListener('click', (e) => { e.preventDefault(); showTab('profile'); });
+        document.getElementById('security-tab-btn').addEventListener('click', (e) => { e.preventDefault(); showTab('security'); });
+        document.getElementById('plans-tab-btn').addEventListener('click', (e) => { e.preventDefault(); showTab('plans'); });
+
+        document.getElementById('save-profile-button').addEventListener('click', async () => {
             const newName = document.getElementById('profile-name').value.trim();
             try {
                 await callN8n('updateProfile', { recordId: userRecord.id, fields: { Name: newName } });
                 showNotification('Succès', 'Profil mis à jour !', 'success');
                 document.getElementById('profile-modal-user-name').textContent = newName;
-                if (typeof window.updateUserAvatar === 'function') window.updateUserAvatar(newName);
+                document.getElementById('user-display-name').textContent = newName;
             } catch (e) { showNotification('Erreur', e.message, 'error'); }
         });
-        
-        if (updatePasswordButton) updatePasswordButton.addEventListener('click', async () => {
+
+        document.getElementById('update-password-button').addEventListener('click', async () => {
             const oldPass = document.getElementById('security-old-password').value;
             const newPass = document.getElementById('security-new-password').value;
-            if (newPass && newPass !== document.getElementById('security-confirm-password').value) { showNotification('Erreur', 'Les nouveaux mots de passe ne correspondent pas.', 'error'); return; }
+            if (newPass && newPass !== document.getElementById('security-confirm-password').value) {
+                showNotification('Erreur', 'Les nouveaux mots de passe ne correspondent pas.', 'error');
+                return;
+            }
             try {
                 const cred = firebase.auth.EmailAuthProvider.credential(firebaseUser.email, oldPass);
                 await firebaseUser.reauthenticateWithCredential(cred);
@@ -1707,131 +1655,46 @@ async function deletePresentation(presentationId) {
                 ['security-old-password', 'security-new-password', 'security-confirm-password'].forEach(id => document.getElementById(id).value = '');
             } catch (e) { showNotification('Erreur', "La mise à jour a échoué. Vérifiez votre ancien mot de passe.", 'error'); }
         });
-        
-        if (upgradeButton) upgradeButton.addEventListener('click', async () => {
+
+        document.getElementById('plans-upgrade-button').addEventListener('click', async () => {
             try {
                 const session = await callN8n('createCheckoutSession', { recordId: userRecord.id });
                 if (session.url) window.location.href = session.url;
             } catch (e) { showNotification("Erreur", "Impossible de créer la session de paiement.", 'error'); }
         });
-        
-        if (cancelButton) cancelButton.addEventListener('click', async () => {
+
+        document.getElementById('plans-cancel-button').addEventListener('click', async () => {
             if (await showNotification('Confirmation', "Êtes-vous sûr de vouloir annuler votre abonnement ?", 'confirm')) {
                 try { await callN8n('cancelSubscription', { recordId: userRecord.id }); location.reload(); }
                 catch (e) { showNotification("Erreur", "Impossible d'annuler l'abonnement.", 'error'); }
             }
         });
         
-        if(startDebriefButton && typeof startDebrief === 'function') startDebriefButton.addEventListener('click', startDebrief);
-        
-        if(copyDebriefButton) copyDebriefButton.addEventListener('click', () => {
-            const debriefContent = document.getElementById('debrief-content');
-            const copyIcon = document.getElementById('copy-icon');
-            const copySuccessIcon = document.getElementById('copy-success-icon');
-            if (!debriefContent) return;
-            const textToCopy = debriefContent.innerText;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                if (copyIcon) copyIcon.classList.add('hidden');
-                if (copySuccessIcon) copySuccessIcon.classList.remove('hidden');
-                setTimeout(() => {
-                    if (copyIcon) copyIcon.classList.remove('hidden');
-                    if (copySuccessIcon) copySuccessIcon.classList.add('hidden');
-                }, 2000);
-            }).catch(err => {
-                console.error('Erreur lors de la copie : ', err);
-                showNotification('Erreur', 'La copie a échoué.', 'error');
-            });
+        document.getElementById('logout-button').addEventListener('click', handleLogout);
+
+        // --- Modale "Ajouter Sources" ---
+        document.getElementById('show-add-source-modal').addEventListener('click', () => {
+            document.getElementById('add-source-modal').classList.remove('hidden');
+        });
+        document.getElementById('close-add-source-modal').addEventListener('click', () => {
+            document.getElementById('add-source-modal').classList.add('hidden');
         });
 
-        if (makePresentationBtn) {
-    makePresentationBtn.addEventListener('click', generateAiPresentation);
-}
-
-if (closePresentationModalBtn && presentationModal) {
-    closePresentationModalBtn.addEventListener('click', () => {
-        presentationModal.classList.add('hidden');
-        // Vider le contenu pour libérer la mémoire
-        document.getElementById('presentation-content').innerHTML = '';
-    });
-}
-
-if (downloadPresentationBtn) {
-    downloadPresentationBtn.addEventListener('click', () => {
-        alert('Le téléchargement sera bientôt disponible !');
-        // La logique de téléchargement PDF sera ajoutée ici plus tard
-    });
-}
-
-
-
-        
-        if (showMainModalBtn && mainModal) {
-            showMainModalBtn.addEventListener('click', () => {
-                const isPremium = userRecord && userRecord.fields.Status === 'Premium';
-                if (uploadPremiumOverlay && pdfUploadArea) {
-                    uploadPremiumOverlay.classList.toggle('hidden', isPremium);
-                    pdfUploadArea.style.cursor = isPremium ? 'pointer' : 'not-allowed';
-                    pdfFileInput.disabled = !isPremium;
-                }
-                if (pasteTextPremiumOverlay && textLauncherBtn) {
-                    pasteTextPremiumOverlay.classList.toggle('hidden', isPremium);
-                    textLauncherBtn.disabled = !isPremium;
-                    textLauncherBtn.style.opacity = isPremium ? '1' : '0.5';
-                    textLauncherBtn.style.cursor = isPremium ? 'pointer' : 'not-allowed';
-                }
-                mainModal.classList.remove('hidden');
-            });
-        }
-        if (closeModalBtn && mainModal) closeModalBtn.addEventListener('click', () => mainModal.classList.add('hidden'));
-        
-        document.querySelectorAll('.premium-overlay').forEach(overlay => {
-            overlay.addEventListener('click', () => {
-                if (mainModal) mainModal.classList.add('hidden');
-                if (profileButton) profileButton.click(); // Utilise le nouveau bouton profil
-                setTimeout(() => document.getElementById('plans-tab-btn')?.click(), 50);
-            });
+        // --- Modale "Présentation" ---
+        document.getElementById('make-presentation-btn').addEventListener('click', generateAiPresentation);
+        document.getElementById('close-presentation-modal').addEventListener('click', () => {
+            document.getElementById('presentation-modal').classList.add('hidden');
+            document.getElementById('presentation-content').innerHTML = ''; // Vide l'iframe
+        });
+        document.getElementById('download-presentation-btn').addEventListener('click', () => {
+            alert('Le téléchargement sera bientôt disponible !');
         });
 
-        if (websiteLauncherBtn) websiteLauncherBtn.addEventListener('click', () => openSubModal(websiteModal));
-        if (youtubeLauncherBtn) youtubeLauncherBtn.addEventListener('click', () => openSubModal(youtubeModal));
-        if (podcastLauncherBtn) podcastLauncherBtn.addEventListener('click', () => openSubModal(podcastModal));
-        if (textLauncherBtn) textLauncherBtn.addEventListener('click', () => { if (!textLauncherBtn.disabled) { openSubModal(textModal); } });
-        
-        document.querySelectorAll('.btn-close-sub-modal').forEach(btn => btn.addEventListener('click', () => btn.closest('.modal-overlay')?.classList.add('hidden')));
-        
-        if (addArticleLinkBtn) addArticleLinkBtn.addEventListener('click', () => { addLink('Article RSS Links', 'article-link-input'); if (websiteModal) websiteModal.classList.add('hidden'); });
-        if (addYoutubeLinkBtn) addYoutubeLinkBtn.addEventListener('click', () => { addLink('YouTube Links', 'youtube-link-input'); if (youtubeModal) youtubeModal.classList.add('hidden'); });
-        if (addPodcastBtn) addPodcastBtn.addEventListener('click', () => { addPodcast(); if (podcastModal) podcastModal.classList.add('hidden'); });
-        
-        if (pdfUploadArea && pdfFileInput) {
-            pdfUploadArea.addEventListener('click', () => { if (!pdfFileInput.disabled) { pdfFileInput.click(); } });
-            pdfFileInput.addEventListener('change', () => { if (typeof handlePdfUpload === 'function') handlePdfUpload(); if (mainModal) mainModal.classList.add('hidden'); });
-        }
+        // --- Bouton "Lancer le Débrief" ---
+        document.getElementById('start-debrief-button').addEventListener('click', startDebrief);
 
-        if (chatForm) {
-            chatForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const userMessage = chatInput.value.trim();
-                if (!userMessage) return;
-                addMessage(userMessage, 'user');
-                chatInput.value = '';
-                chatInput.focus();
-                const typingBubble = addMessage('...', 'ai');
-                try {
-                    const response = await fetch(CHAT_WEBHOOK_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: userMessage })
-                    });
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    const data = await response.json();
-                    typingBubble.textContent = data.answer;
-                } catch (error) {
-                    typingBubble.textContent = 'Désolé, une erreur est survenue.';
-                    console.error('Chat error:', error);
-                }
-            });
-        }
+        // --- Bouton "Valider Profil" ---
+        // (Il est déjà connecté avec onclick="" dans le HTML, c'est OK)
     });
 </script>
 
