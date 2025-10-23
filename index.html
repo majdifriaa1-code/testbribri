@@ -1009,8 +1009,8 @@
 
             presentations.forEach(pres => {
                 const presId = pres.id; // ID de l'enregistrement Airtable
-                const title = pres.fields.Title || 'Présentation sans titre';
-                const htmlContent = pres.fields.ContentHTML; // Le HTML de la présentation
+                const title = pres.Title || 'Présentation sans titre';
+                const htmlContent = pres.ContentHTML; // Le HTML de la présentation
 
                 const itemEl = document.createElement('div');
                 itemEl.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-center';
