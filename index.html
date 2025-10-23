@@ -860,6 +860,29 @@
     <button id="upgrade-button" class="hidden"></button>
     <button id="cancel-premium-button" class="hidden"></button>
 
+<div id="presentation-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 90vw; height: 90vh; display: flex; flex-direction: column;">
+            
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-xl font-semibold text-gray-800">Votre Présentation IA</h2>
+                <div>
+                    <button id="download-presentation-btn" class="btn btn-primary text-sm mr-2">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        Download Presentation
+                    </button>
+                    <button id="close-presentation-modal" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
+                </div>
+            </div>
+            
+            <div id="presentation-content" class="flex-grow overflow-auto border border-gray-200 rounded-lg bg-gray-50">
+                </div>
+            
+        </div>
+    </div>
+
+
+    
+
 <script>
     // ===================================================================
     //  1. CONFIGURATION ET VARIABLES GLOBALES
@@ -1345,42 +1368,18 @@ async function generateAiPresentation() {
     showTempLoading("Génération de la présentation AI en cours...");
 
     try {
-        // Appelle le workflow n8n (adaptez l'action si besoin)
         const result = await callN8n('generatePresentation', { recordId: userRecord.id });
 
         if (result && result.html_output) {
-            // Ouvrir une nouvelle fenêtre/onglet
-            const newWindow = window.open('', '_blank');
-            if (newWindow) {
-                newWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html lang="fr">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Présentation Générée</title>
-                        <style> /* Styles de base pour le bouton */
-                            body { margin: 0; padding: 0; }
-                            .download-btn-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
-                            .download-btn {
-                                padding: 10px 20px; background-color: #1a73e8; color: white; border: none;
-                                border-radius: 20px; font-family: 'Google Sans', sans-serif; font-size: 14px;
-                                cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: background-color 0.2s;
-                            }
-                            .download-btn:hover { background-color: #185abc; }
-                        </style>
-                    </head>
-                    <body>
-                        ${result.html_output}
-                        <div class="download-btn-container">
-                            <button class="download-btn" onclick="alert('Téléchargement bientôt disponible !')">Download Presentation</button>
-                        </div>
-                    </body>
-                    </html>
-                `);
-                newWindow.document.close();
-            } else {
-                showNotification('Erreur', "Impossible d'ouvrir une nouvelle fenêtre. Vérifiez les paramètres de votre navigateur.", 'error');
-            }
+            const modal = document.getElementById('presentation-modal');
+            const contentDiv = document.getElementById('presentation-content');
+            
+            // Injecte le HTML dans un iframe pour isoler les styles de la présentation
+            // de ceux de votre application principale. C'est beaucoup plus robuste.
+            contentDiv.innerHTML = `<iframe srcdoc="${result.html_output.replace(/"/g, "'")}" style="width:100%; height:100%; border:none;"></iframe>`;
+            
+            modal.classList.remove('hidden'); // Affiche la modale
+            
         } else {
             showNotification('Erreur', "La génération de la présentation a échoué ou n'a pas retourné de contenu.", 'error');
         }
@@ -1391,8 +1390,6 @@ async function generateAiPresentation() {
         hideTempLoading(); // Cache le message de chargement
     }
 }
-
-
 
 
 
@@ -1465,6 +1462,9 @@ async function generateAiPresentation() {
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
         const makePresentationBtn = document.getElementById('make-presentation-btn');
+        const presentationModal = document.getElementById('presentation-modal');
+        const closePresentationModalBtn = document.getElementById('close-presentation-modal');
+        const downloadPresentationBtn = document.getElementById('download-presentation-btn');
 
         // --- FONCTIONS UTILES LOCALES AU DOM ---
         function updateUserAvatar(userName) {
@@ -1632,6 +1632,25 @@ async function generateAiPresentation() {
         if (makePresentationBtn) {
     makePresentationBtn.addEventListener('click', generateAiPresentation);
 }
+
+if (closePresentationModalBtn && presentationModal) {
+    closePresentationModalBtn.addEventListener('click', () => {
+        presentationModal.classList.add('hidden');
+        // Vider le contenu pour libérer la mémoire
+        document.getElementById('presentation-content').innerHTML = '';
+    });
+}
+
+if (downloadPresentationBtn) {
+    downloadPresentationBtn.addEventListener('click', () => {
+        alert('Le téléchargement sera bientôt disponible !');
+        // La logique de téléchargement PDF sera ajoutée ici plus tard
+    });
+}
+
+
+
+        
         
         if (showMainModalBtn && mainModal) {
             showMainModalBtn.addEventListener('click', () => {
