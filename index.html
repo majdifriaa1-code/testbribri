@@ -1069,9 +1069,25 @@ let presentationIframe = null; // Référence vers l'élément iframe
                 listContainer.appendChild(itemEl);
             });
 
-        } catch (error) {
+      } catch (error) {
             console.error('Erreur lors du chargement des présentations:', error);
-            listContainer.innerHTML = `<div class="text-center text-red-500 text-xs">Erreur de chargement: ${error.message}</div>`;
+            // Cache le message "Chargement..." s'il était affiché
+            listContainer.innerHTML = '';
+            // Affiche le placeholder standard "Aucune présentation sauvegardée."
+            if (placeholder) {
+                 placeholder.classList.remove('hidden');
+                 // Optionnel : Ajouter un message d'erreur subtil si l'erreur n'est PAS juste "pas de JSON"
+                 if (!error.message.includes('Unexpected end of JSON input')) {
+                      // Ajoute un petit message d'erreur sous le placeholder si ce n'est pas l'erreur attendue
+                      const errorMsg = document.createElement('div');
+                      errorMsg.className = 'text-center text-red-500 text-xs mt-1';
+                      errorMsg.textContent = `(Erreur technique: ${error.message})`;
+                      placeholder.appendChild(errorMsg); // Ajoute le message d'erreur sous le texte du placeholder
+                 }
+            } else {
+                // Fallback si le placeholder n'existe pas
+                 listContainer.innerHTML = `<div class="text-center text-gray-500 text-sm">Aucune présentation à afficher pour le moment.</div>`;
+            }
         }
     }
 
