@@ -858,7 +858,19 @@
             
             <div class="flex justify-between items-center mb-4 flex-shrink-0">
                 <h2 class="text-xl font-semibold text-gray-800">Votre Présentation IA</h2>
-                <div>
+                <div class="flex items-center gap-2"> {/* Wrapper pour aligner les boutons */}
+                    {/* Boutons de Zoom Ajoutés */}
+                    <button id="zoom-out-btn" title="Zoom arrière" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m-3-3h6" />
+                        </svg>
+                    </button>
+                    <button id="zoom-in-btn" title="Zoom avant" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" /> {* Correction: Inversion + et - pour zoom avant *}
+                        </svg>
+                    </button>
+                     {/* Fin des Boutons de Zoom */}
                     <button id="download-presentation-btn" class="btn btn-primary text-sm mr-2">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                         Download Presentation
@@ -889,6 +901,11 @@
     const CHAT_WEBHOOK_URL = 'https://n8n.brieova.com/webhook/chat-assistant';
     let userRecord = null;
     let firebaseUser = null;
+    let currentScale = 1.0; // Zoom initial (100%)
+const zoomStep = 0.1;   // Quantité de zoom ajoutée/retirée à chaque clic
+const minScale = 0.5;   // Zoom minimum (50%)
+const maxScale = 3.0;   // Zoom maximum (300%)
+let presentationIframe = null; // Référence vers l'élément iframe
 
     // ===================================================================
     //  2. DÉFINITION DE TOUTES LES FONCTIONS
@@ -948,6 +965,14 @@
 
         // Injecte le HTML dans un iframe pour isoler les styles [cite: 293-294]
         contentDiv.innerHTML = `<iframe srcdoc="${htmlContent.replace(/"/g, "'")}" style="width:100%; height:100%; border:none;"></iframe>`;
+        // --- AJOUT IMPORTANT ---
+    // Récupère la référence de l'iframe qui vient d'être créé
+    presentationIframe = contentDiv.querySelector('iframe');
+    // Réinitialise le zoom à 1.0 (100%) à chaque fois qu'on ouvre la modale
+    currentScale = 1.0;
+    // Applique le zoom initial (pour s'assurer qu'il est bien à 1.0)
+    updateZoom();
+    // --- FIN AJOUT ---
         
         modal.classList.remove('hidden'); // Affiche la modale
     }
@@ -1507,8 +1532,51 @@ async function generateAiPresentation() {
         }
     }
 
+function updateZoom() {
+    // Si on n'a pas encore la référence à l'iframe, essaie de la trouver
+    if (!presentationIframe) {
+        const contentDiv = document.getElementById('presentation-content');
+        if (contentDiv) {
+            presentationIframe = contentDiv.querySelector('iframe');
+        }
+    }
 
+    // Si on a trouvé l'iframe, applique le scale
+    if (presentationIframe) {
+        presentationIframe.style.transform = `scale(${currentScale})`;
+        // Optionnel : Affiche le zoom actuel dans la console pour déboguer
+        // console.log("Zoom appliqué:", currentScale);
+    } else {
+        // Avertit si l'iframe n'est pas trouvable (ne devrait pas arriver avec la modification de showPresentationModal)
+        console.warn("Impossible de trouver l'iframe pour appliquer le zoom.");
+    }
+}
 
+    // Fonction pour zoomer en avant (+)
+function zoomIn() {
+    // Vérifie si on n'a pas atteint le maximum
+    if (currentScale < maxScale) {
+        // Augmente le scale, utilise toFixed pour éviter les erreurs de calcul avec les décimales
+        currentScale = parseFloat((currentScale + zoomStep).toFixed(2));
+        // S'assure qu'on ne dépasse pas le maximum
+        if (currentScale > maxScale) currentScale = maxScale;
+        // Applique le nouveau zoom
+        updateZoom();
+    }
+}
+
+// Fonction pour zoomer en arrière (-)
+function zoomOut() {
+    // Vérifie si on n'a pas atteint le minimum
+    if (currentScale > minScale) {
+        // Diminue le scale
+        currentScale = parseFloat((currentScale - zoomStep).toFixed(2));
+         // S'assure qu'on ne descend pas sous le minimum
+        if (currentScale < minScale) currentScale = minScale;
+        // Applique le nouveau zoom
+        updateZoom();
+    }
+}
     
     // ===================================================================
     //  3. GESTION DE L'AUTHENTIFICATION (POINT D'ENTRÉE)
@@ -1581,6 +1649,10 @@ async function generateAiPresentation() {
         const presentationModal = document.getElementById('presentation-modal');
         const closePresentationModalBtn = document.getElementById('close-presentation-modal');
         const downloadPresentationBtn = document.getElementById('download-presentation-btn');
+        // --- Ajout des écouteurs pour le Zoom ---
+        const zoomInButton = document.getElementById('zoom-in-btn');
+        const zoomOutButton = document.getElementById('zoom-out-btn');
+        const closePresentationModalBtn = document.getElementById('close-presentation-modal');
 
         // --- FONCTIONS UTILES LOCALES AU DOM ---
         function updateUserAvatar(userName) {
@@ -1764,7 +1836,21 @@ if (downloadPresentationBtn) {
     });
 }
 
+if (zoomInButton) {
+        zoomInButton.addEventListener('click', zoomIn);
+    }
+    if (zoomOutButton) {
+        zoomOutButton.addEventListener('click', zoomOut);
+    }
 
+    // Optionnel mais recommandé : Nettoyer la référence à l'iframe à la fermeture
+    if (closePresentationModalBtn) {
+         closePresentationModalBtn.addEventListener('click', () => {
+             presentationIframe = null; // Oublie l'iframe pour la prochaine ouverture
+             // Le scale sera réinitialisé par showPresentationModal
+         });
+     }
+    // --- Fin ajout Zoom ---
 
         
         
