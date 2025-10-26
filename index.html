@@ -639,7 +639,7 @@
 </div>
 <div id="debriefs-list-container" class="space-y-2 max-h-48 overflow-y-auto pr-2 mb-4">
     </div>
-<div id="debriefs-list-placeholder" class="placeholder-center py-2 hidden"> {/* py-2 au lieu de py-4 pour moins d'espace */}
+<div id="debriefs-list-placeholder" class="placeholder-center py-2 hidden"> 
     <p class="text-sm">Aucun report sauvegardé.</p>
 </div>
 
@@ -1655,8 +1655,8 @@ async function loadSavedDebriefs() {
         debriefs.forEach(deb => {
             const debriefId = deb.id;
             // Utilise le champ Title ou génère un titre par défaut
-            const title = deb.fields.Title || `Report du ${new Date(deb.createdTime).toLocaleDateString()}`;
-            const htmlContent = deb.fields.DebriefHTML;
+           const title = deb.Title || `Report du ${new Date(deb.createdTime).toLocaleDateString()}`;
+                const htmlContent = deb.DebriefHTML;
 
             const itemEl = document.createElement('div');
             itemEl.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-center';
