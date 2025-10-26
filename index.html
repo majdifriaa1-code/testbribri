@@ -632,6 +632,21 @@
 <div id="presentations-list-placeholder" class="placeholder-center py-4 hidden">
     <p class="text-sm">Aucune présentation sauvegardée.</p>
 </div>
+
+<hr class="my-4 border-gray-200">
+<div class="px-1">
+    <h3 class="font-display font-medium text-gray-800 mb-3">Reports Overview</h3>
+</div>
+<div id="debriefs-list-container" class="space-y-2 max-h-48 overflow-y-auto pr-2 mb-4">
+    </div>
+<div id="debriefs-list-placeholder" class="placeholder-center py-2 hidden"> {/* py-2 au lieu de py-4 pour moins d'espace */}
+    <p class="text-sm">Aucun report sauvegardé.</p>
+</div>
+
+                
+<div class="panel-content chat-container">
+
+                
 <div class="panel-content chat-container">
     
     <div id="chat-messages" class="p-4 space-y-4">
@@ -885,7 +900,24 @@
         </div>
     </div>
 
-
+<div id="debrief-view-modal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width: 80vw; height: 85vh; display: flex; flex-direction: column;">
+        <div class="flex justify-between items-center mb-4 flex-shrink-0">
+            <h2 id="debrief-view-title" class="text-xl font-semibold text-gray-800 truncate pr-4">Report Overview</h2>
+            <div class="flex items-center gap-2">
+                <button id="copy-report-content-btn" title="Copier le texte" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    {/* On pourrait ajouter une icône de succès ici aussi */}
+                </button>
+                <button id="close-debrief-view-modal" class="ml-2 text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
+            </div>
+        </div>
+        {/* Conteneur pour afficher le HTML du débrief */}
+        <div id="debrief-view-content" class="flex-grow overflow-auto border border-gray-200 rounded-lg bg-white p-4 prose prose-sm max-w-none">
+            {/* Le contenu HTML sera injecté ici */}
+        </div>
+    </div>
+</div>
     
 
 <script>
@@ -1504,6 +1536,7 @@ if (presentationBtn && presentationOverlay) {
     presentationBtn.style.cursor = isPremiumUser ? 'pointer' : 'not-allowed';
 }
 loadSavedPresentations();
+loadSavedDebriefs();
     
     }
 
@@ -1593,6 +1626,169 @@ function zoomOut() {
         updateZoom();
     }
 }
+
+/**
+ * Charge et affiche la liste des débriefs sauvegardés.
+ */
+async function loadSavedDebriefs() {
+    const listContainer = document.getElementById('debriefs-list-container');
+    const placeholder = document.getElementById('debriefs-list-placeholder');
+    if (!listContainer || !placeholder) return;
+
+    listContainer.innerHTML = '<div class="text-center text-gray-400 text-sm py-2">Chargement des reports...</div>';
+    placeholder.classList.add('hidden');
+
+    try {
+        const debriefs = await callN8n('getDebriefs', { recordId: userRecord.id });
+
+        listContainer.innerHTML = ''; // Efface "Chargement..."
+
+        if (!debriefs || debriefs.length === 0) {
+            placeholder.classList.remove('hidden'); // Affiche "Aucun report..."
+            return;
+        }
+
+        // Trie par date de création (le plus récent en premier)
+        // Assurez-vous que le champ s'appelle bien 'CreatedAt' ou adaptez
+        debriefs.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+
+        debriefs.forEach(deb => {
+            const debriefId = deb.id;
+            // Utilise le champ Title ou génère un titre par défaut
+            const title = deb.fields.Title || `Report du ${new Date(deb.createdTime).toLocaleDateString()}`;
+            const htmlContent = deb.fields.DebriefHTML;
+
+            const itemEl = document.createElement('div');
+            itemEl.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-center';
+
+            const titleEl = document.createElement('span');
+            titleEl.className = 'font-medium text-sm text-gray-800 truncate cursor-pointer hover:text-blue-600';
+            titleEl.textContent = title;
+            titleEl.title = title; // Pour voir le titre complet au survol
+
+            // ACTION DE CLIC : Ouvre la modale du débrief
+            titleEl.onclick = () => {
+                if (htmlContent) {
+                    showDebriefModal(title, htmlContent); // On n'a pas besoin de l'ID ici
+                } else {
+                    showNotification('Erreur', 'Contenu du report introuvable.', 'error');
+                }
+            };
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'text-xs text-gray-500 hover:text-red-600 ml-2 flex-shrink-0';
+            deleteBtn.textContent = 'Supprimer';
+
+            // ACTION DE SUPPRESSION
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation(); // Empêche l'ouverture de la modale
+                handleDeleteDebrief(deleteBtn, debriefId);
+            };
+
+            itemEl.appendChild(titleEl);
+            itemEl.appendChild(deleteBtn);
+            listContainer.appendChild(itemEl);
+        });
+
+    } catch (error) {
+        console.error('Erreur lors du chargement des reports:', error);
+        listContainer.innerHTML = ''; // Efface "Chargement..."
+        if (placeholder) {
+             placeholder.classList.remove('hidden'); // Affiche "Aucun report..."
+             // Optionnel: Ajouter message d'erreur technique
+             if (!error.message.includes('Unexpected end of JSON input')) {
+                  const errorMsg = document.createElement('div');
+                  errorMsg.className = 'text-center text-red-500 text-xs mt-1';
+                  errorMsg.textContent = `(Erreur: ${error.message})`;
+                  placeholder.appendChild(errorMsg);
+             }
+        } else {
+             listContainer.innerHTML = `<div class="text-center text-gray-500 text-sm py-2">Erreur chargement reports.</div>`;
+        }
+    }
+}
+
+/**
+ * Affiche la modale avec le contenu du débrief sélectionné.
+ */
+function showDebriefModal(title, htmlContent) {
+    const modal = document.getElementById('debrief-view-modal');
+    const titleEl = document.getElementById('debrief-view-title');
+    const contentEl = document.getElementById('debrief-view-content');
+    const copyBtn = document.getElementById('copy-report-content-btn');
+
+    if (!modal || !titleEl || !contentEl || !copyBtn) {
+        console.error("Éléments de la modale de débrief introuvables.");
+        return;
+    }
+
+    titleEl.textContent = title;
+    // Injecte directement le HTML. Les classes 'prose' devraient aider au formatage.
+    contentEl.innerHTML = htmlContent;
+
+    // Configure le bouton Copier pour CETTE modale
+    copyBtn.onclick = () => copyDebriefContent(contentEl, copyBtn); // Passe le conteneur et le bouton
+
+    modal.classList.remove('hidden');
+}
+
+/**
+ * Gère la suppression d'un débrief sauvegardé.
+ */
+async function handleDeleteDebrief(button, debriefId) {
+    if (!debriefId) return;
+
+    const confirmed = await showNotification('Confirmer la suppression', 'Voulez-vous vraiment supprimer ce report ?', 'confirm');
+    if (!confirmed) return;
+
+    button.disabled = true;
+    button.textContent = '...';
+
+    try {
+        await callN8n('deleteDebrief', {
+            recordId: userRecord.id, // L'ID de l'utilisateur est toujours nécessaire pour l'auth
+            debriefId: debriefId      // L'ID spécifique du débrief à supprimer
+        });
+
+        await loadSavedDebriefs(); // Recharge la liste
+        showNotification('Succès', 'Report supprimé.', 'success');
+    } catch (error) {
+        showNotification('Erreur', `La suppression a échoué: ${error.message}`, 'error');
+        button.disabled = false;
+        button.textContent = 'Supprimer';
+    }
+}
+
+/**
+ * Copie le texte brut du contenu du débrief affiché.
+ */
+function copyDebriefContent(contentElement, buttonElement) {
+    if (!contentElement || !navigator.clipboard) {
+        showNotification('Erreur', 'Impossible de copier le contenu.', 'error');
+        return;
+    }
+    // Utilise .innerText pour obtenir le texte visible, sans les balises HTML
+    const textToCopy = contentElement.innerText;
+    const originalIcon = buttonElement.innerHTML; // Sauvegarde l'icône originale
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        // Affiche l'icône de succès (à adapter si vous avez une icône spécifique)
+         buttonElement.innerHTML = `<svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+         // Restaure l'icône originale après 2 secondes
+         setTimeout(() => { buttonElement.innerHTML = originalIcon; }, 2000);
+
+        // Optionnel: showNotification('Copié!', 'Le contenu du report a été copié.', 'success');
+    }).catch(err => {
+        console.error('Erreur lors de la copie du report : ', err);
+        showNotification('Erreur', 'La copie a échoué.', 'error');
+    });
+}
+
+
+
+
+
+
     
     // ===================================================================
     //  3. GESTION DE L'AUTHENTIFICATION (POINT D'ENTRÉE)
@@ -1668,6 +1864,8 @@ function zoomOut() {
         // --- Ajout des écouteurs pour le Zoom ---
         const zoomInButton = document.getElementById('zoom-in-btn');
         const zoomOutButton = document.getElementById('zoom-out-btn');
+        const closeDebriefModalBtn = document.getElementById('close-debrief-view-modal');
+        const debriefModal = document.getElementById('debrief-view-modal');
        
 
         // --- FONCTIONS UTILES LOCALES AU DOM ---
@@ -1867,7 +2065,13 @@ if (zoomInButton) {
          });
      }
     // --- Fin ajout Zoom ---
-
+if (closeDebriefModalBtn && debriefModal) {
+        closeDebriefModalBtn.addEventListener('click', () => {
+            debriefModal.classList.add('hidden');
+            // Optionnel : vider le contenu pour libérer mémoire
+            // document.getElementById('debrief-view-content').innerHTML = '';
+        });
+    }
         
         
         if (showMainModalBtn && mainModal) {
