@@ -929,8 +929,8 @@
     const auth = firebase.auth();
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch((error) => console.error("Erreur persistance :", error));
 
-    const USER_ACTIONS_WEBHOOK_URL = 'https://n8n.brieova.com/webhook/user-actions';
-    const CHAT_WEBHOOK_URL = 'https://n8n.brieova.com/webhook/chat-assistant';
+    const USER_ACTIONS_WEBHOOK_URL = 'https://workbrieo.brieova.com/webhook/user-actions';
+    const CHAT_WEBHOOK_URL = 'https://workbrieo.brieova.com/webhook/chat-assistant';
     let userRecord = null;
     let firebaseUser = null;
     let currentScale = 1.0; // Zoom initial (100%)
