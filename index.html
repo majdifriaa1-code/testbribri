@@ -1406,6 +1406,24 @@ let presentationIframe = null; // Référence vers l'élément iframe
         if (file.size > maxSize) { showNotification('Fichier trop volumineux', 'Le fichier ne doit pas dépasser 50 Mo.', 'error'); return; }
         const reader = new FileReader();
         reader.readAsDataURL(file);
+
+const reader = new FileReader();
+
+        // --- AJOUT : Gestionnaire de progression ---
+        reader.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const percentage = Math.round((event.loaded / event.total) * 100);
+                // Affiche le pourcentage (vous pouvez le mettre où vous voulez)
+                // Par exemple, dans votre indicateur de chargement temporaire
+                showTempLoading(`Préparation: ${percentage}%`);
+                // Ou mettez à jour un élément dédié dans la modale d'ajout
+                // const progressElement = document.getElementById('upload-progress-indicator');
+                // if (progressElement) progressElement.textContent = `Préparation: ${percentage}%`;
+                console.log(`Lecture fichier: ${percentage}%`); // Pour débogage
+            }
+        };
+
+        
         reader.onload = async () => {
            try {
     // 1. Capturez la réponse de N8N (qui est maintenant l'enregistrement utilisateur mis à jour)
