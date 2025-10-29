@@ -1519,63 +1519,91 @@ let presentationIframe = null; // Référence vers l'élément iframe
         return `<div class="modal-overlay"><div class="modal-content max-w-md"><button id="close-forgot-password-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button><h2 class="font-display text-2xl mb-6 text-center">Réinitialiser le mot de passe</h2><p class="text-center text-gray-500 mb-6">Entrez votre email pour recevoir un lien de réinitialisation.</p><div class="space-y-4 text-left"><div><label for="reset-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="reset-email" placeholder="nom@exemple.com" class="input-field"></div><p id="reset-error" class="text-sm text-red-500 hidden"></p><button id="reset-password-button" class="w-full btn btn-primary py-3 mt-4">Envoyer le lien</button></div></div></div>`;
     }
 
- async function handleSignup(modalElement) { // <-- AJOUT 1 : Accepter la modale en paramètre
-    const name = document.getElementById('signup-name').value.trim();
-    const email = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-password').value; 
-    const errorEl = document.getElementById('signup-error');
-    errorEl.classList.add('hidden');
+ async function handleSignup(modalElement) {
+        const name = document.getElementById('signup-name').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const errorEl = document.getElementById('signup-error');
+        const signupButton = document.getElementById('signup-button'); // On récupère le bouton
+        errorEl.classList.add('hidden');
 
-    if (!name || !email || !password) {
-        errorEl.textContent = "Tous les champs sont obligatoires.";
-        errorEl.classList.remove('hidden'); 
-        return;
-    }
+        if (!name || !email || !password) {
+            errorEl.textContent = "Tous les champs sont obligatoires.";
+            errorEl.classList.remove('hidden');
+            return;
+        }
 
-    try {
-        // 1. Créer le compte Firebase
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        await userCredential.user.updateProfile({ displayName: name }); 
+        // --- DÉBUT DE LA SOLUTION ROBUSTE ---
 
-        // 2. Tenter de créer l'utilisateur dans Airtable via n8n
+        // 1. Désactiver le bouton pour éviter les double-clics
+        signupButton.disabled = true;
+        signupButton.textContent = 'Création en cours...';
+
+        let userCredential; // On déclare la variable ici
+
         try {
-            await createUserData(email, name);
-            // Si ça marche, on affiche un message de succès
-            // AJOUT 2 : Attendre que l'utilisateur clique "OK"
-            await showNotification('Compte créé !', 'Bienvenue sur BRIOVA ! Votre profil a été enregistré.', 'success'); 
-        
-        } catch (backendError) {
-            // ⚠️ Ici, on capture l'erreur du backend.
-            console.error("Erreur lors de la création de l'utilisateur dans Airtable:", backendError);
-            // AJOUT 3 : Attendre aussi pour la notification d'avertissement
-            await showNotification(
-                'Compte créé avec succès !',
-                'Votre compte a été créé, mais nous avons rencontré un problème technique pour finaliser votre profil. Veuillez rafraîchir la page ou contacter le support.',
-                'warning'
-            ); 
+            // 2. Créer le compte Firebase
+            userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            await userCredential.user.updateProfile({ displayName: name });
+            
+        } catch (firebaseError) {
+            // 4a. Gérer les erreurs de Firebase (email existe déjà, mdp faible)
+            if (firebaseError.code === 'auth/email-already-in-use') {
+                errorEl.textContent = "Cette adresse email est déjà utilisée.";
+            } else if (firebaseError.code === 'auth/weak-password') {
+                errorEl.textContent = "Le mot de passe doit contenir au moins 6 caractères.";
+            } else {
+                console.error("Erreur Firebase Signup:", firebaseError);
+                errorEl.textContent = "Une erreur est survenue. Veuillez réessayer.";
+            }
+            errorEl.classList.remove('hidden');
+            
+            // Réactiver le bouton en cas d'erreur
+            signupButton.disabled = false;
+            signupButton.textContent = "S'inscrire";
+            return; // On arrête tout
         }
 
-        // 3. Fermer la modale ET ENSUITE recharger la page
-        
-        // CORRECTION 4 : Utiliser le paramètre pour retirer la modale
-        if (modalElement) {
-            document.body.removeChild(modalElement);
+        try {
+            // 3. Créer l'utilisateur dans Airtable (votre backend)
+            await createUserData(email, name);
+
+            // 4. (CORRECTION) Récupérer les données utilisateur MANUELLEMENT
+            // onAuthStateChanged est trop lent. On le fait nous-mêmes.
+            await getUserDataByEmail(email); 
+            // 'userRecord' est maintenant rempli.
+            
+            // 5. (CORRECTION) Afficher le dashboard MANUELLEMENT
+            // Pas besoin de recharger, on a tout ce qu'il faut.
+            showDashboard();
+
+            // 6. (CORRECTION) Fermer la modale AVANT d'afficher la notification
+            if (modalElement) {
+                document.body.removeChild(modalElement);
+            }
+
+            // 7. Afficher la notification de bienvenue
+            // (Pas besoin de 'await' car on ne recharge plus la page)
+            showNotification('Compte créé !', 'Bienvenue sur BRIOVA !', 'success');
+            
+            // location.reload(); // ON NE RECHARGE PLUS LA PAGE
+
+        } catch (backendError) {
+            // 4b. Gérer l'erreur la plus grave : Airtable échoue
+            console.error("Erreur critique: Le compte Firebase est créé, mais Airtable a échoué.", backendError);
+            
+            // On supprime le compte Firebase qui vient d'être créé pour que l'utilisateur puisse réessayer
+            if (userCredential) {
+                await userCredential.user.delete();
+            }
+            
+            errorEl.textContent = "Erreur de serveur. Impossible de finaliser l'inscription. Veuillez réessayer.";
+            errorEl.classList.remove('hidden');
+            signupButton.disabled = false; // Réactiver le bouton
+            signupButton.textContent = "S'inscrire";
         }
-        
-        location.reload(); 
-    
-    } catch (firebaseError) {
-        // 4. Gérer les erreurs spécifiques de Firebase
-        if (firebaseError.code === 'auth/email-already-in-use') {
-            errorEl.textContent = "Cette adresse email est déjà utilisée."; 
-        } else if (firebaseError.code === 'auth/weak-password') {
-            errorEl.textContent = "Le mot de passe doit contenir au moins 6 caractères."; 
-        } else {
-            errorEl.textContent = "Une erreur est survenue. Veuillez réessayer.";
-        }
-        errorEl.classList.remove('hidden');
+        // --- FIN DE LA SOLUTION ---
     }
-}
     
     async function handlePasswordReset() {
     const email = document.getElementById('reset-email').value.trim();
