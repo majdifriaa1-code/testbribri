@@ -1506,31 +1506,31 @@ let presentationIframe = null; // Référence vers l'élément iframe
 
     if (!name || !email || !password) {
         errorEl.textContent = "Tous les champs sont obligatoires.";
-        errorEl.classList.remove('hidden'); [cite_start]// [cite: 312]
+        errorEl.classList.remove('hidden'); 
         return;
     }
 
     try {
         // 1. Créer le compte Firebase
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        await userCredential.user.updateProfile({ displayName: name }); [cite_start]// [cite: 313]
+        await userCredential.user.updateProfile({ displayName: name }); 
 
         // 2. Tenter de créer l'utilisateur dans Airtable via n8n
         try {
             await createUserData(email, name);
             // Si ça marche, on affiche un message de succès
             // AJOUT 2 : Attendre que l'utilisateur clique "OK"
-            await showNotification('Compte créé !', 'Bienvenue sur BRIOVA ! Votre profil a été enregistré.', 'success'); [cite_start]// [cite: 314]
+            await showNotification('Compte créé !', 'Bienvenue sur BRIOVA ! Votre profil a été enregistré.', 'success'); 
         
         } catch (backendError) {
             // ⚠️ Ici, on capture l'erreur du backend.
-            console.error("Erreur lors de la création de l'utilisateur dans Airtable:", backendError); [cite_start]// [cite: 316]
+            console.error("Erreur lors de la création de l'utilisateur dans Airtable:", backendError);
             // AJOUT 3 : Attendre aussi pour la notification d'avertissement
             await showNotification(
                 'Compte créé avec succès !',
                 'Votre compte a été créé, mais nous avons rencontré un problème technique pour finaliser votre profil. Veuillez rafraîchir la page ou contacter le support.',
                 'warning'
-            ); [cite_start]// [cite: 317-318]
+            ); 
         }
 
         // 3. Fermer la modale ET ENSUITE recharger la page
@@ -1540,16 +1540,16 @@ let presentationIframe = null; // Référence vers l'élément iframe
             document.body.removeChild(modalElement);
         }
         
-        location.reload(); [cite_start]// Cette ligne ne s'exécute qu'après le "await" [cite: 321]
+        location.reload(); 
     
     } catch (firebaseError) {
         // 4. Gérer les erreurs spécifiques de Firebase
         if (firebaseError.code === 'auth/email-already-in-use') {
-            errorEl.textContent = "Cette adresse email est déjà utilisée."; [cite_start]// [cite: 322]
+            errorEl.textContent = "Cette adresse email est déjà utilisée."; 
         } else if (firebaseError.code === 'auth/weak-password') {
-            errorEl.textContent = "Le mot de passe doit contenir au moins 6 caractères."; [cite_start]// [cite: 323]
+            errorEl.textContent = "Le mot de passe doit contenir au moins 6 caractères."; 
         } else {
-            errorEl.textContent = "Une erreur est survenue. Veuillez réessayer."; [cite_start]// [cite: 324]
+            errorEl.textContent = "Une erreur est survenue. Veuillez réessayer.";
         }
         errorEl.classList.remove('hidden');
     }
