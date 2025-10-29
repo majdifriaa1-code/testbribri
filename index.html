@@ -1128,7 +1128,7 @@ let presentationIframe = null; // Référence vers l'élément iframe
 
 
     
-    async function callN8n(action, data = {}) {
+   async function callN8n(action, data = {}) {
         if (!auth.currentUser) throw new Error("Utilisateur non authentifié.");
         const idToken = await auth.currentUser.getIdToken(true);
         const response = await fetch(USER_ACTIONS_WEBHOOK_URL, {
@@ -1136,8 +1136,30 @@ let presentationIframe = null; // Référence vers l'élément iframe
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
             body: JSON.stringify({ action, ...data })
         });
-        if (!response.ok) throw new Error(`Le serveur a refusé la requête : ${response.status}`);
-        return await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`Le serveur a refusé la requête : ${response.status}`);
+        }
+
+        // --- DÉBUT DE LA CORRECTION ---
+        // Lire la réponse en tant que texte d'abord
+        const responseText = await response.text();
+
+        if (responseText === "") {
+            // Si le backend renvoie une réponse vide, on retourne null.
+            // Cela évite l'erreur "unexpected end of JSON input".
+            return null;
+        }
+
+        try {
+            // Si le texte n'est pas vide, on essaie de le parser
+            return JSON.parse(responseText);
+        } catch (e) {
+            // Si ce n'est pas du JSON valide, on lance une erreur claire
+            console.error("Réponse N8N invalide (pas du JSON) :", responseText);
+            throw new Error("Le serveur a renvoyé une réponse invalide.");
+        }
+        // --- FIN DE LA CORRECTION ---
     }
 
     function updateLocalUserRecord(recordFromN8n) {
@@ -1896,24 +1918,65 @@ function copyDebriefContent(contentElement, buttonElement) {
     // ===================================================================
     //  3. GESTION DE L'AUTHENTIFICATION (POINT D'ENTRÉE)
     // ===================================================================
-    auth.onAuthStateChanged(async (user) => {
+   auth.onAuthStateChanged(async (user) => {
         const loader = document.getElementById('loading-indicator');
         if (user) {
             firebaseUser = user;
             try {
-                await getUserDataByEmail(user.email);
-                showDashboard();
+                // --- DÉBUT DE LA CORRECTION : Logique de réessai ---
+                let attempts = 0;
+                const maxAttempts = 5; // Tenter 5 fois
+                
+                while (attempts < maxAttempts) {
+                    try {
+                        // Tente de récupérer les données
+                        await getUserDataByEmail(user.email); // 
+                        
+                        // Si getUserDataByEmail réussit, 'userRecord' sera défini
+                        if (userRecord) {
+                            showDashboard(); // 
+                            loader.classList.add('hidden'); // [cite: 407]
+                            return; // Succès, on sort de la fonction
+                        }
+                    } catch (e) {
+                        // On ne capture QUE l'erreur "Utilisateur non trouvé"
+                        if (e.message === "Utilisateur non trouvé.") {
+                             console.warn(`Tentative ${attempts+1}: Utilisateur non trouvé. Réessai dans 2s...`);
+                        } else {
+                            // Si c'est une autre erreur (réseau, etc.), on la lance
+                            throw e; 
+                        }
+                    }
+                    
+                    // Si on est ici, c'est que userRecord est null ou "non trouvé"
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                         // Attend 2 secondes avant de ré-essayer
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                
+                // Si on sort de la boucle sans succès
+                console.error("Échec de la récupération des données après 5 tentatives.");
+                throw new Error("Les données utilisateur n'ont pas pu être créées ou trouvées.");
+                
+                // --- FIN DE LA CORRECTION ---
+
             } catch (e) {
-                console.error(e);
-                showNotification("Erreur Critique", "Impossible de charger vos données.", "error");
+                console.error(e); // 
+                // Affiche l'erreur critique SEULEMENT si la boucle échoue
+                showNotification("Erreur Critique", "Impossible de charger vos données. " + e.message, "error"); // 
+                loader.classList.add('hidden'); // Cacher le loader en cas d'échec final
             }
         } else {
-            document.getElementById('main-header').classList.add('hidden');
-            document.getElementById('mobile-nav').classList.add('hidden');
-            document.getElementById('auth-section').classList.remove('hidden');
-            document.getElementById('dashboard-section').classList.add('hidden');
+            // Logique de déconnexion (inchangée)
+            document.getElementById('main-header').classList.add('hidden'); // [cite: 406]
+            document.getElementById('mobile-nav').classList.add('hidden'); // [cite: 406]
+            document.getElementById('auth-section').classList.remove('hidden'); // [cite: 406]
+            document.getElementById('dashboard-section').classList.add('hidden'); // [cite: 406]
+            loader.classList.add('hidden'); // [cite: 407]
         }
-        loader.classList.add('hidden');
+        // Note: Le loader est caché dans les branches if/else pour gérer le succès
     });
 
     // ===================================================================
