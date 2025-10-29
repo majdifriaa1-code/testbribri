@@ -1407,15 +1407,23 @@ let presentationIframe = null; // Référence vers l'élément iframe
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
-            try {
-                await callN8n('addPdfFile', { recordId: userRecord.id, fileName: file.name, fileData: reader.result });
-                showNotification('Succès', 'Votre fichier PDF a été ajouté comme source.', 'success');
-                fileInput.value = '';
-                document.getElementById('add-source-modal').classList.add('hidden');
-                showDashboard();
-            } catch (e) {
-                showNotification('Erreur', `L'envoi du fichier a échoué : ${e.message}`, 'error');
-            }
+           try {
+    // 1. Capturez la réponse de N8N (qui est maintenant l'enregistrement utilisateur mis à jour)
+    const updatedRecord = await callN8n('addPdfFile', { recordId: userRecord.id, fileName: file.name, fileData: reader.result });
+
+    // 2. Mettez à jour la variable globale 'userRecord'
+    updateLocalUserRecord(updatedRecord); // [cite: 471]
+
+    showNotification('Succès', 'Votre fichier PDF a été ajouté comme source.', 'success');
+    fileInput.value = '';
+    document.getElementById('add-source-modal').classList.add('hidden');
+
+    // 3. Appelez showDashboard() (qui utilisera le 'userRecord' mis à jour)
+    showDashboard(); // [cite: 566]
+
+} catch (e) {
+    showNotification('Erreur', `L'envoi du fichier a échoué : ${e.message}`, 'error');
+}
         };
         reader.onerror = (error) => { showNotification('Erreur de lecture', `Impossible de lire le fichier : ${error}`, 'error'); };
     }
