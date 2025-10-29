@@ -1554,23 +1554,25 @@ let presentationIframe = null; // Référence vers l'élément iframe
     }
 }
     async function handlePasswordReset() {
-        const email = document.getElementById('reset-email').value.trim();
-        const errorEl = document.getElementById('reset-error');
-        errorEl.classList.add('hidden');
-        if (!email) {
-            errorEl.textContent = "Veuillez entrer votre adresse email.";
-            errorEl.classList.remove('hidden');
-            return;
-        }
-        try {
-            await auth.sendPasswordResetEmail(email);
-            document.getElementById('forgot-password-modal').classList.add('hidden');
-            showNotification('Email envoyé', 'Vérifiez votre boîte de réception pour le lien de réinitialisation.', 'success');
-        } catch (e) {
-            errorEl.textContent = "Aucun compte n'est associé à cet email.";
-            errorEl.classList.remove('hidden');
-        }
+    const email = document.getElementById('reset-email').value.trim();
+    const errorEl = document.getElementById('reset-error');
+    errorEl.classList.add('hidden');
+    if (!email) {
+        errorEl.textContent = "Veuillez entrer votre adresse email.";
+        errorEl.classList.remove('hidden');
+        return;
     }
+    try {
+        await auth.sendPasswordResetEmail(email);
+        document.getElementById('forgot-password-modal').classList.add('hidden');
+        showNotification('Email envoyé', 'Vérifiez votre boîte de réception pour le lien de réinitialisation.', 'success');
+    } catch (e) {
+        // ❌ Ne pas afficher "Aucun compte n'est associé à cet email."
+        // Car c'est une information sensible
+        errorEl.textContent = "Un email de réinitialisation a été envoyé si ce compte existe.";
+        errorEl.classList.remove('hidden');
+    }
+}
 
     function showDashboard() {
         if (!userRecord || !firebaseUser) { handleLogout(); return; }
