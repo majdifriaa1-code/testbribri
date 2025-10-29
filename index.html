@@ -1515,37 +1515,30 @@ let presentationIframe = null; // Référence vers l'élément iframe
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         await userCredential.user.updateProfile({ displayName: name });
 
-        // 2. Tenter de créer l'utilisateur dans Airtable via n8n
+        // 2. Tenter de créer l'utilisateur dans Airtable
         try {
             await createUserData(email, name);
-            // Si ça marche, on affiche un message de succès
-            showNotification('Compte créé !', 'Bienvenue sur BRIOVA ! Votre profil a été enregistré.', 'success');
         } catch (backendError) {
-            // ⚠️ Ici, on capture l'erreur du backend.
-            console.error("Erreur lors de la création de l'utilisateur dans Airtable:", backendError);
-
-            // Afficher un message plus précis ET moins alarmant
-            showNotification(
-                'Compte créé avec succès !',
-                'Votre compte a été créé, mais nous avons rencontré un problème technique pour finaliser votre profil. Veuillez rafraîchir la page ou contacter le support.',
-                'warning'
-            );
+            console.error("Erreur backend (Airtable/n8n) :", backendError);
+            // On ne bloque pas l'inscription, mais on en informe l'utilisateur dans la console
+            // Le message à l'utilisateur reste positif (voir ci-dessous)
         }
 
-        // 3. Fermer la modale et recharger la page
-        // On ferme la modale en utilisant la méthode correcte
+        // 3. Fermer la modale
         const signupModal = document.getElementById('signup-modal');
-        if (signupModal) {
-            signupModal.classList.add('hidden');
-        }
-        // Recharger la page pour que l'utilisateur soit connecté et que le dashboard s'affiche
+        if (signupModal) signupModal.classList.add('hidden');
+
+        // 4. Afficher une notification de succès ET attendre la confirmation
+        await showNotification('Compte créé !', 'Bienvenue sur BRIOVA !', 'success');
+
+        // 5. Recharger la page après confirmation
         location.reload();
 
-    } catch (firebaseError) {
-        // 4. Gérer les erreurs spécifiques de Firebase
-        if (firebaseError.code === 'auth/email-already-in-use') {
+    } catch (e) {
+        // Gestion des erreurs Firebase
+        if (e.code === 'auth/email-already-in-use') {
             errorEl.textContent = "Cette adresse email est déjà utilisée.";
-        } else if (firebaseError.code === 'auth/weak-password') {
+        } else if (e.code === 'auth/weak-password') {
             errorEl.textContent = "Le mot de passe doit contenir au moins 6 caractères.";
         } else {
             errorEl.textContent = "Une erreur est survenue. Veuillez réessayer.";
@@ -1553,6 +1546,7 @@ let presentationIframe = null; // Référence vers l'élément iframe
         errorEl.classList.remove('hidden');
     }
 }
+    
     async function handlePasswordReset() {
     const email = document.getElementById('reset-email').value.trim();
     const errorEl = document.getElementById('reset-error');
