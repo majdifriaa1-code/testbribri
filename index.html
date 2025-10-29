@@ -2004,23 +2004,30 @@ function copyDebriefContent(contentElement, buttonElement) {
         });
         
         if(showSignupBtn) showSignupBtn.addEventListener('click', () => {
-           const tempDiv = document.createElement('div');
-tempDiv.innerHTML = createSignupModalHTML();
-const modalElement = tempDiv.firstElementChild; // C'est le .modal-overlay
+    const modalHTML = createSignupModalHTML();
+    const temp = document.createElement('div');
+    temp.innerHTML = modalHTML.trim();
+    const modal = temp.firstElementChild;
+    document.body.appendChild(modal);
 
-// Ajoute directement au body
-document.body.appendChild(modalElement);
-            document.getElementById('close-signup-modal').addEventListener('click', () => modalContainer.classList.add('hidden'));
-            document.getElementById('signup-button').addEventListener('click', handleSignup);
-        });
+    document.getElementById('close-signup-modal').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+    document.getElementById('signup-button').addEventListener('click', handleSignup);
+});
 
-        if(showForgotPasswordBtn) showForgotPasswordBtn.addEventListener('click', () => {
-            const modalContainer = document.getElementById('forgot-password-modal');
-            modalContainer.innerHTML = createForgotPasswordModalHTML();
-            modalContainer.classList.remove('hidden');
-            document.getElementById('close-forgot-password-modal').addEventListener('click', () => modalContainer.classList.add('hidden'));
-            document.getElementById('reset-password-button').addEventListener('click', handlePasswordReset);
-        });
+if(showForgotPasswordBtn) showForgotPasswordBtn.addEventListener('click', () => {
+    const modalHTML = createForgotPasswordModalHTML();
+    const temp = document.createElement('div');
+    temp.innerHTML = modalHTML.trim();
+    const modal = temp.firstElementChild; // ← Bien "firstElementChild", pas "firstElementElement"
+    document.body.appendChild(modal);
+
+    document.getElementById('close-forgot-password-modal').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+    document.getElementById('reset-password-button').addEventListener('click', handlePasswordReset);
+});
         
         if (settingsButton && settingsDropdown) settingsButton.addEventListener('click', (event) => { event.stopPropagation(); settingsDropdown.classList.toggle('active'); });
         if (logoutButton && typeof handleLogout === 'function') logoutButton.addEventListener('click', handleLogout);
