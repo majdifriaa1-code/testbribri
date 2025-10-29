@@ -1497,31 +1497,58 @@ let presentationIframe = null; // Référence vers l'élément iframe
         return `<div class="modal-overlay"><div class="modal-content max-w-md"><button id="close-forgot-password-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button><h2 class="font-display text-2xl mb-6 text-center">Réinitialiser le mot de passe</h2><p class="text-center text-gray-500 mb-6">Entrez votre email pour recevoir un lien de réinitialisation.</p><div class="space-y-4 text-left"><div><label for="reset-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="reset-email" placeholder="nom@exemple.com" class="input-field"></div><p id="reset-error" class="text-sm text-red-500 hidden"></p><button id="reset-password-button" class="w-full btn btn-primary py-3 mt-4">Envoyer le lien</button></div></div></div>`;
     }
 
-    async function handleSignup() {
-        const name = document.getElementById('signup-name').value.trim();
-        const email = document.getElementById('signup-email').value.trim();
-        const password = document.getElementById('signup-password').value;
-        const errorEl = document.getElementById('signup-error');
-        errorEl.classList.add('hidden');
-        if (!name || !email || !password) {
-            errorEl.textContent = "Tous les champs sont obligatoires.";
-            errorEl.classList.remove('hidden');
-            return;
-        }
-        try {
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            await userCredential.user.updateProfile({ displayName: name });
-            await createUserData(email, name);
-            document.getElementById('signup-modal').classList.add('hidden');
-            await showNotification('Compte créé !', 'Bienvenue sur BRIOVA ! Vous allez être redirigé.', 'success');
-            location.reload();
-        } catch (e) {
-            if (e.code === 'auth/email-already-in-use') { errorEl.textContent = "Cette adresse email est déjà utilisée."; }
-            else if (e.code === 'auth/weak-password') { errorEl.textContent = "Le mot de passe doit contenir au moins 6 caractères."; }
-            else { errorEl.textContent = "Une erreur est survenue. Veuillez réessayer."; }
-            errorEl.classList.remove('hidden');
-        }
+   async function handleSignup() {
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const errorEl = document.getElementById('signup-error');
+    errorEl.classList.add('hidden');
+
+    if (!name || !email || !password) {
+        errorEl.textContent = "Tous les champs sont obligatoires.";
+        errorEl.classList.remove('hidden');
+        return;
     }
+
+    try {
+        // 1. Créer le compte Firebase
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        await userCredential.user.updateProfile({ displayName: name });
+
+        // 2. Essayer de créer l'utilisateur dans Airtable via n8n
+        try {
+            await createUserData(email, name);
+        } catch (backendError) {
+            // ⚠️ Ici, on capture l'erreur du backend.
+            // On ne bloque PAS l'inscription, mais on en informe l'utilisateur.
+            console.error("Erreur lors de la création de l'utilisateur dans Airtable:", backendError);
+
+            // Afficher un message plus précis
+            errorEl.textContent = "Votre compte a été créé avec succès, mais nous avons rencontré un problème technique pour finaliser votre profil. Veuillez rafraîchir la page ou contacter le support.";
+            errorEl.classList.remove('hidden');
+
+            // IMPORTANT : Ne pas throw ici, car l'utilisateur est déjà inscrit dans Firebase.
+            // On laisse la session active et on affiche le dashboard.
+            // La fonction showDashboard() sera appelée juste après.
+        }
+
+        // 3. Fermer la modale et afficher le dashboard
+        document.getElementById('signup-modal').classList.add('hidden');
+        await showNotification('Compte créé !', 'Bienvenue sur BRIOVA ! Vous allez être redirigé.', 'success');
+        location.reload(); // Force le rechargement pour charger les données utilisateur
+
+    } catch (firebaseError) {
+        // 4. Gérer les erreurs spécifiques de Firebase
+        if (firebaseError.code === 'auth/email-already-in-use') {
+            errorEl.textContent = "Cette adresse email est déjà utilisée.";
+        } else if (firebaseError.code === 'auth/weak-password') {
+            errorEl.textContent = "Le mot de passe doit contenir au moins 6 caractères.";
+        } else {
+            errorEl.textContent = "Une erreur est survenue. Veuillez réessayer.";
+        }
+        errorEl.classList.remove('hidden');
+    }
+}
 
     async function handlePasswordReset() {
         const email = document.getElementById('reset-email').value.trim();
