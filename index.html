@@ -1443,7 +1443,7 @@ let presentationIframe = null; // Référence vers l'élément iframe
             console.log("LOG 1: Début de l'envoi vers N8N..."); // <-- LOG 1
 
             // Appelle N8N et attend la réponse (l'enregistrement mis à jour)
-            const updatedAirtableRecord = await callN8N('addPdfFile', {
+            const updatedAirtableRecord = await callN8n('addPdfFile', {
                 recordId: userRecord.id,
                 fileName: file.name,
                 fileData: reader.result // Le contenu en Base64
