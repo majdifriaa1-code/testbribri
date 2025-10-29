@@ -1397,54 +1397,97 @@ let presentationIframe = null; // Référence vers l'élément iframe
         try { await auth.signOut(); location.reload(); } catch (e) { console.error(e); }
     }
 
-    async function handlePdfUpload() {
-        const fileInput = document.getElementById('pdf-file-input');
-        const file = fileInput.files[0];
-        if (!file) { showNotification('Aucun fichier', 'Veuillez sélectionner un fichier.', 'error'); return; }
-        if (file.type !== 'application/pdf') { showNotification('Type de fichier incorrect', 'Seuls les fichiers PDF sont autorisés.', 'error'); fileInput.value = ''; return; }
-        const maxSize = 50 * 1024 * 1024;
-        if (file.size > maxSize) { showNotification('Fichier trop volumineux', 'Le fichier ne doit pas dépasser 50 Mo.', 'error'); return; }
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-
-
-
-        // --- AJOUT : Gestionnaire de progression ---
-        reader.onprogress = (event) => {
-            if (event.lengthComputable) {
-                const percentage = Math.round((event.loaded / event.total) * 100);
-                // Affiche le pourcentage (vous pouvez le mettre où vous voulez)
-                // Par exemple, dans votre indicateur de chargement temporaire
-                showTempLoading(`Préparation: ${percentage}%`);
-                // Ou mettez à jour un élément dédié dans la modale d'ajout
-                // const progressElement = document.getElementById('upload-progress-indicator');
-                // if (progressElement) progressElement.textContent = `Préparation: ${percentage}%`;
-                console.log(`Lecture fichier: ${percentage}%`); // Pour débogage
-            }
-        };
-
-        
-        reader.onload = async () => {
-           try {
-    // 1. Capturez la réponse de N8N (qui est maintenant l'enregistrement utilisateur mis à jour)
-    const updatedRecord = await callN8n('addPdfFile', { recordId: userRecord.id, fileName: file.name, fileData: reader.result });
-
-    // 2. Mettez à jour la variable globale 'userRecord'
-    updateLocalUserRecord(updatedRecord); // [cite: 471]
-
-    showNotification('Succès', 'Votre fichier PDF a été ajouté comme source.', 'success');
-    fileInput.value = '';
-    document.getElementById('add-source-modal').classList.add('hidden');
-
-    // 3. Appelez showDashboard() (qui utilisera le 'userRecord' mis à jour)
-    showDashboard(); // [cite: 566]
-
-} catch (e) {
-    showNotification('Erreur', `L'envoi du fichier a échoué : ${e.message}`, 'error');
-}
-        };
-        reader.onerror = (error) => { showNotification('Erreur de lecture', `Impossible de lire le fichier : ${error}`, 'error'); };
+  async function handlePdfUpload() {
+    const fileInput = document.getElementById('pdf-file-input');
+    const file = fileInput.files[0];
+    if (!file) {
+        showNotification('Aucun fichier', 'Veuillez sélectionner un fichier.', 'error');
+        return;
     }
+    if (file.type !== 'application/pdf') {
+        showNotification('Type de fichier incorrect', 'Seuls les fichiers PDF sont autorisés.', 'error');
+        fileInput.value = ''; // Réinitialise si le type est mauvais
+        return;
+    }
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+        showNotification('Fichier trop volumineux', 'Le fichier ne doit pas dépasser 50 Mo.', 'error');
+        fileInput.value = ''; // Réinitialise si la taille est trop grande
+        return;
+    }
+
+    const reader = new FileReader();
+
+    // --- Gestionnaire de progression (pendant la lecture locale) ---
+    reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+            const percentage = Math.round((event.loaded / event.total) * 100);
+            showTempLoading(`Préparation: ${percentage}%`);
+            // console.log(`Lecture fichier: ${percentage}%`); // Décommentez pour débogage détaillé
+        }
+    };
+
+    // --- Gestionnaire d'erreur de lecture ---
+    reader.onerror = (error) => {
+        hideTempLoading(); // Cache l'indicateur s'il y a une erreur de lecture
+        showNotification('Erreur de lecture', `Impossible de lire le fichier : ${error}`, 'error');
+        console.error("FileReader Error:", error);
+        fileInput.value = ''; // Réinitialise aussi ici
+    };
+
+    // --- Gestionnaire de fin de lecture ET envoi ---
+    reader.onload = async () => {
+        try {
+            // Indique le début de l'envoi réseau
+            showTempLoading("Ajout du PDF en cours...");
+            console.log("LOG 1: Début de l'envoi vers N8N..."); // <-- LOG 1
+
+            // Appelle N8N et attend la réponse (l'enregistrement mis à jour)
+            const updatedAirtableRecord = await callN8N('addPdfFile', {
+                recordId: userRecord.id,
+                fileName: file.name,
+                fileData: reader.result // Le contenu en Base64
+            });
+            console.log("LOG 2: Réponse N8N reçue:", updatedAirtableRecord); // <-- LOG 2 (affiche la réponse)
+            console.log("LOG 2.1: Avant updateLocalUserRecord."); // <-- LOG 2.1
+
+            // Met à jour l'enregistrement local avec la réponse de N8N
+            updateLocalUserRecord(updatedAirtableRecord);
+            console.log("LOG 3: Après updateLocalUserRecord. Avant updateSourcesTable."); // <-- LOG 3
+
+            // Rafraîchit UNIQUEMENT la table des sources dans l'UI
+            updateSourcesTable();
+            console.log("LOG 4: Après updateSourcesTable. Avant hideTempLoading."); // <-- LOG 4
+
+            // Cache l'indicateur de chargement après succès
+            hideTempLoading();
+            console.log("LOG 5: Après hideTempLoading."); // <-- LOG 5
+
+            // Affiche la notification de succès
+            showNotification('Succès', 'Votre fichier PDF a été ajouté comme source.', 'success');
+
+            // Réinitialise le champ input file APRÈS succès complet
+            fileInput.value = '';
+
+            // Ferme la modale d'ajout après succès
+            const addSourceModal = document.getElementById('add-source-modal');
+            if (addSourceModal) addSourceModal.classList.add('hidden');
+
+
+        } catch (e) {
+            console.error("LOG ERREUR: Erreur dans reader.onload (probablement pendant callN8N ou màj UI):", e); // <-- LOG ERREUR
+            // S'assure de cacher l'indicateur même en cas d'erreur
+            hideTempLoading();
+            // Affiche une notification d'erreur à l'utilisateur
+            showNotification('Erreur', `L'envoi du fichier a échoué : ${e.message}`, 'error');
+            // Réinitialise le champ input file en cas d'erreur aussi
+            fileInput.value = '';
+        }
+    };
+
+    // Démarre la lecture du fichier en Base64
+    reader.readAsDataURL(file);
+}
 
     function createSignupModalHTML() {
         return `<div class="modal-overlay"><div class="modal-content max-w-md"><button id="close-signup-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button><h2 class="font-display text-2xl mb-6 text-center">Créer votre compte</h2><div class="space-y-4 text-left"><div><label for="signup-name" class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label><input type="text" id="signup-name" placeholder="John Doe" class="input-field"></div><div><label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="signup-email" placeholder="nom@exemple.com" class="input-field"></div><div><label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label><input type="password" id="signup-password" placeholder="••••••••" class="input-field"></div><p id="signup-error" class="text-sm text-red-500 hidden"></p><button id="signup-button" class="w-full btn btn-primary py-3 mt-4">S'inscrire</button></div></div></div>`;
