@@ -1607,7 +1607,7 @@ let presentationIframe = null; // Référence vers l'élément iframe
         try {
             await callN8n('startDebrief', {
                 recordId: userRecord.id,
-                reportFormat: document.getElementById('debrief-format-selector').value
+                reportFormat: document.getElementById('debrief-format-selector').value,
                 sendEmail: sendEmail
             });
             pollDebriefStatus(userRecord.id);
