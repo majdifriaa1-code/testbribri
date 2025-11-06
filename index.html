@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BRIOVA Dashboard</title>
+    <title>BRIEOVA Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -741,7 +741,7 @@
             <svg class="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </button>
         <div id="settings-dropdown" class="dropdown-menu">
-            <a href="#dailyreport" class="dropdown-item">Daily AI report</a>
+            <a href="majdifriaa1-code.github.io/testbribri/dailyreport" class="dropdown-item">Daily AI report</a>
             <a href="#" class="dropdown-item">Send feedback</a>
             <a href="#" class="dropdown-item">Discord</a>
             <a href="#" class="dropdown-item">Output Language</a>
@@ -798,7 +798,7 @@
     <div id="auth-section" class="flex items-center justify-center min-h-screen hidden">
         <div class="auth-card">
             <div class="text-center mb-8"><img src="https://cdn.prod.website-files.com/68b9f8920957ffd144ee6dd0/68d2e687122a4d05e0c8b291_Logo%20site%20web%20horiz.png" alt="Brieova Logo" class="h-10 mx-auto"></div>
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-2 font-display">Bienvenue sur BRIOVA</h2>
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-2 font-display">Bienvenue sur BRIEOVA</h2>
             <p class="text-center text-gray-500 mb-8">Connectez-vous pour continuer</p>
             <div class="space-y-4">
                 <div><label for="auth-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="auth-email" placeholder="nom@exemple.com" class="input-field"></div>
@@ -879,18 +879,9 @@
                     <p class="mt-4 font-medium text-gray-800 bg-white/80 px-4 py-2 rounded-lg shadow-md">Création du débrief en cours...</p>
                 </div>
             </div>
-          <div class="p-4 border-t border-gray-200 flex-shrink-0">
-                
-                <div class="flex items-center gap-4 mb-2">
-                    <button id="start-debrief-button" class="w-full btn btn-primary py-3"></button>
-                    
-                    <label for="send-email-checkbox" class="flex items-center gap-2 text-sm text-gray-700 whitespace-nowrap cursor-pointer">
-                        <input type="checkbox" id="send-email-checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <span>+ Sent by Email ?</span>
-                    </label>
-                </div>
-                
-                <p id="usage-limit" class="text-gray-500 text-xs text-center"></p>
+            <div class="p-4 border-t border-gray-200 flex-shrink-0">
+                 <button id="start-debrief-button" class="w-full btn btn-primary py-3"></button>
+                <p id="usage-limit" class="text-gray-500 text-xs text-center mt-2"></p>
             </div>
         </div>
 
@@ -975,70 +966,7 @@
     </div>
 
     </div>
-    <div id="daily-report-section" class="hidden p-4 lg:p-8" style="padding-top: 80px;flex-grow: 1; overflow-y: auto;">
-        <div class="max-w-3xl mx-auto">
-            
-            <div class="flex items-center mb-6">
-                <a href="#" id="daily-report-back-btn" class="p-2 rounded-full hover:bg-gray-200 mr-2">
-                    <svg class="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                </a>
-                <h1 class="font-display text-2xl lg:text-3xl font-bold text-gray-800">
-                    Daily AI Report
-                </h1>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <h2 class="font-display font-medium text-lg">Paramètres</h2>
-                </div>
-                <div class="panel-content space-y-6 p-6">
-                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div>
-                            <label for="daily-report-toggle" class="font-medium text-gray-800">Activer le rapport quotidien</label>
-                            <p class="text-sm text-gray-500 mt-1">Recevez un débrief de vos sources, chaque jour par e-mail.</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="daily-report-toggle" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
-                        </label>
-                    </div>
-
-                    <div>
-                        <label for="daily-report-time" class="block text-sm font-medium text-gray-700 mb-1">Heure d'envoi (approx.)</label>
-                        <select id="daily-report-time" class="input-field">
-                            <option value="07:00">07:00</option>
-                            <option value="08:00">08:00</option>
-                            <option value="09:00">09:00</option>
-                            <option value="18:00">18:00</option>
-                        </select>
-                        <p class="text-xs text-gray-500 mt-1">Fuseau horaire : Europe/Paris (automatique)</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel mt-6">
-                <div class="panel-header">
-                    <h2 class="font-display font-medium text-lg">Sources (Flux RSS)</h2>
-                </div>
-                <div class="panel-content space-y-4 p-6">
-                    <div>
-                        <label for="daily-report-rss" class="block text-sm font-medium text-gray-700 mb-1">Flux RSS</label>
-                        <textarea id="daily-report-rss" rows="8" class="input-field text-sm" placeholder="Collez vos liens de flux RSS, un par ligne...&#10;https://exemple.com/feed.xml&#10;https://unautre.com/rss"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end">
-                <button id="save-daily-report-btn" class="btn btn-primary py-3 px-6 text-base">
-                    Enregistrer les modifications
-                </button>
-            </div>
-        </div>
-    </div>
-
-      
+    
    <div id="add-source-modal" class="modal-overlay hidden">
     <div class="modal-content-lg">
         <div class="flex justify-between items-center mb-6">
@@ -1343,83 +1271,6 @@ let presentationIframe = null; // Référence vers l'élément iframe
         });
     }
 
-function handleHashChange() {
-        const hash = window.location.hash;
-        const mainDashboard = document.getElementById('dashboard-section');
-        const dailyReportView = document.getElementById('daily-report-section');
-
-        if (hash === '#dailyreport') {
-            mainDashboard.classList.add('hidden');
-            dailyReportView.classList.remove('hidden');
-            // Charger les données pour cette page
-            loadDailyReportSettings();
-        } else {
-            // Affichage par défaut (dashboard principal)
-            mainDashboard.classList.remove('hidden');
-            dailyReportView.classList.add('hidden');
-        }
-    }
-
-    /**
-     * Charge les paramètres du rapport quotidien depuis N8N
-     */
-    async function loadDailyReportSettings() {
-        if (!userRecord) return;
-        
-        try {
-            // 'getDailyReportSettings' renvoie les paramètres existants ou en crée de nouveaux
-            const settings = await callN8n('getDailyReportSettings', { recordId: userRecord.id });
-            
-            if (settings && settings.fields) {
-                document.getElementById('daily-report-toggle').checked = settings.fields.IsEnabled || false;
-                document.getElementById('daily-report-time').value = settings.fields.ScheduleTime || '08:00';
-                document.getElementById('daily-report-rss').value = settings.fields.ArticleRSSLinks || '';
-            }
-        } catch (e) {
-            console.error("Erreur chargement paramètres rapport quotidien:", e);
-            showNotification('Erreur', "Impossible de charger vos paramètres.", 'error');
-        }
-    }
-
-    /**
-     * Sauvegarde les paramètres du rapport quotidien via N8N
-     */
-    async function saveDailyReportSettings() {
-        if (!userRecord) return;
-
-        const button = document.getElementById('save-daily-report-btn');
-        const originalText = button.textContent;
-        button.disabled = true;
-        button.textContent = 'Sauvegarde...';
-
-        try {
-            const settings = {
-                IsEnabled: document.getElementById('daily-report-toggle').checked,
-                ScheduleTime: document.getElementById('daily-report-time').value,
-                ArticleRSSLinks: document.getElementById('daily-report-rss').value
-            };
-
-            await callN8n('updateDailyReportSettings', { 
-                recordId: userRecord.id, 
-                settings: settings 
-            });
-
-            showNotification('Succès', 'Paramètres mis à jour !', 'success');
-        } catch (e) {
-            console.error("Erreur sauvegarde paramètres:", e);
-            showNotification('Erreur', "La sauvegarde a échoué.", 'error');
-        } finally {
-            button.disabled = false;
-            button.textContent = originalText;
-        }
-    }
-
-
-
-
-
-
-  
 /**
      * Affiche la modale de présentation avec le contenu HTML donné.
      * (Refactorisation du code existant dans generateAiPresentation)
@@ -1732,12 +1583,6 @@ function handleHashChange() {
             showNotification("Sources manquantes", "Vous devez ajouter au moins une source avant de lancer le débrief.", 'error');
             return;
         }
-      // --- DÉBUT DE LA MODIFICATION ---
-        
-        // 1. Récupérer la valeur de la case à cocher
-        const sendEmail = document.getElementById('send-email-checkbox').checked;
-        
-        // --- FIN DE LA MODIFICATION ---
         const debriefButton = document.getElementById('start-debrief-button');
         const loadingOverlay = document.getElementById('debrief-loading-overlay');
         const blurTarget = document.getElementById('blur-target');
@@ -1747,8 +1592,7 @@ function handleHashChange() {
         try {
             await callN8n('startDebrief', {
                 recordId: userRecord.id,
-                reportFormat: document.getElementById('debrief-format-selector').value,
-                sendEmail: sendEmail
+                reportFormat: document.getElementById('debrief-format-selector').value
             });
             pollDebriefStatus(userRecord.id);
         } catch (error) {
@@ -2029,7 +1873,7 @@ function handleHashChange() {
 
             // 7. Afficher la notification de bienvenue
             // (Pas besoin de 'await' car on ne recharge plus la page)
-            showNotification('Compte créé !', 'Bienvenue sur BRIOVA !', 'success');
+            showNotification('Compte créé !', 'Bienvenue sur BRIEOVA !', 'success');
             
             // location.reload(); // ON NE RECHARGE PLUS LA PAGE
 
@@ -2076,7 +1920,7 @@ function handleHashChange() {
         document.getElementById('main-header').classList.remove('hidden');
         if (window.innerWidth <= 1024) { document.getElementById('mobile-nav')?.classList.remove('hidden'); }
         document.getElementById('auth-section').classList.add('hidden');
-       
+        document.getElementById('dashboard-section').classList.remove('hidden');
         if (typeof window.updateUserAvatar === 'function') {
             window.updateUserAvatar(userRecord.fields.Name);
         }
@@ -2135,7 +1979,6 @@ if (presentationBtn && presentationOverlay) {
 }
 loadSavedPresentations();
 loadSavedDebriefs();
-
     
     }
 
@@ -2387,6 +2230,7 @@ function copyDebriefContent(contentElement, buttonElement) {
 
 
 
+
     
     // ===================================================================
     //  3. GESTION DE L'AUTHENTIFICATION (POINT D'ENTRÉE)
@@ -2408,7 +2252,6 @@ function copyDebriefContent(contentElement, buttonElement) {
                         // Si getUserDataByEmail réussit, 'userRecord' sera défini
                         if (userRecord) {
                             showDashboard(); // 
-                            handleHashChange();
                             loader.classList.add('hidden'); // [cite: 407]
                             return; // Succès, on sort de la fonction
                         }
@@ -2722,27 +2565,7 @@ if (closeDebriefModalBtn && debriefModal) {
             // document.getElementById('debrief-view-content').innerHTML = '';
         });
     }
-      
-        // Gère les clics sur les liens # (comme le bouton retour et le menu)
-        window.addEventListener('hashchange', handleHashChange);
         
-        // Gère le bouton retour de la nouvelle page
-        const backBtn = document.getElementById('daily-report-back-btn');
-        if (backBtn) {
-            backBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.location.hash = '#'; // Retourne au dashboard principal
-            });
-        }
-        
-        // Gère le bouton de sauvegarde
-        const saveBtn = document.getElementById('save-daily-report-btn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', saveDailyReportSettings);
-        }
-
-        // --- FIN DES AJOUTS ---
-      
         
         if (showMainModalBtn && mainModal) {
             showMainModalBtn.addEventListener('click', () => {
