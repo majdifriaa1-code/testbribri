@@ -1343,6 +1343,83 @@ let presentationIframe = null; // Référence vers l'élément iframe
         });
     }
 
+function handleHashChange() {
+        const hash = window.location.hash;
+        const mainDashboard = document.getElementById('dashboard-section');
+        const dailyReportView = document.getElementById('daily-report-section');
+
+        if (hash === '#dailyreport') {
+            mainDashboard.classList.add('hidden');
+            dailyReportView.classList.remove('hidden');
+            // Charger les données pour cette page
+            loadDailyReportSettings();
+        } else {
+            // Affichage par défaut (dashboard principal)
+            mainDashboard.classList.remove('hidden');
+            dailyReportView.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Charge les paramètres du rapport quotidien depuis N8N
+     */
+    async function loadDailyReportSettings() {
+        if (!userRecord) return;
+        
+        try {
+            // 'getDailyReportSettings' renvoie les paramètres existants ou en crée de nouveaux
+            const settings = await callN8n('getDailyReportSettings', { recordId: userRecord.id });
+            
+            if (settings && settings.fields) {
+                document.getElementById('daily-report-toggle').checked = settings.fields.IsEnabled || false;
+                document.getElementById('daily-report-time').value = settings.fields.ScheduleTime || '08:00';
+                document.getElementById('daily-report-rss').value = settings.fields.ArticleRSSLinks || '';
+            }
+        } catch (e) {
+            console.error("Erreur chargement paramètres rapport quotidien:", e);
+            showNotification('Erreur', "Impossible de charger vos paramètres.", 'error');
+        }
+    }
+
+    /**
+     * Sauvegarde les paramètres du rapport quotidien via N8N
+     */
+    async function saveDailyReportSettings() {
+        if (!userRecord) return;
+
+        const button = document.getElementById('save-daily-report-btn');
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Sauvegarde...';
+
+        try {
+            const settings = {
+                IsEnabled: document.getElementById('daily-report-toggle').checked,
+                ScheduleTime: document.getElementById('daily-report-time').value,
+                ArticleRSSLinks: document.getElementById('daily-report-rss').value
+            };
+
+            await callN8n('updateDailyReportSettings', { 
+                recordId: userRecord.id, 
+                settings: settings 
+            });
+
+            showNotification('Succès', 'Paramètres mis à jour !', 'success');
+        } catch (e) {
+            console.error("Erreur sauvegarde paramètres:", e);
+            showNotification('Erreur', "La sauvegarde a échoué.", 'error');
+        } finally {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+
+
+
+
+
+
+  
 /**
      * Affiche la modale de présentation avec le contenu HTML donné.
      * (Refactorisation du code existant dans generateAiPresentation)
@@ -2058,6 +2135,7 @@ if (presentationBtn && presentationOverlay) {
 }
 loadSavedPresentations();
 loadSavedDebriefs();
+handleHashChange();
     
     }
 
@@ -2306,76 +2384,6 @@ function copyDebriefContent(contentElement, buttonElement) {
 }
 
 
-function handleHashChange() {
-        const hash = window.location.hash;
-        const mainDashboard = document.getElementById('dashboard-section');
-        const dailyReportView = document.getElementById('daily-report-section');
-
-        if (hash === '#dailyreport') {
-            mainDashboard.classList.add('hidden');
-            dailyReportView.classList.remove('hidden');
-            // Charger les données pour cette page
-            loadDailyReportSettings();
-        } else {
-            // Affichage par défaut (dashboard principal)
-            mainDashboard.classList.remove('hidden');
-            dailyReportView.classList.add('hidden');
-        }
-    }
-
-    /**
-     * Charge les paramètres du rapport quotidien depuis N8N
-     */
-    async function loadDailyReportSettings() {
-        if (!userRecord) return;
-        
-        try {
-            // 'getDailyReportSettings' renvoie les paramètres existants ou en crée de nouveaux
-            const settings = await callN8n('getDailyReportSettings', { recordId: userRecord.id });
-            
-            if (settings && settings.fields) {
-                document.getElementById('daily-report-toggle').checked = settings.fields.IsEnabled || false;
-                document.getElementById('daily-report-time').value = settings.fields.ScheduleTime || '08:00';
-                document.getElementById('daily-report-rss').value = settings.fields.ArticleRSSLinks || '';
-            }
-        } catch (e) {
-            console.error("Erreur chargement paramètres rapport quotidien:", e);
-            showNotification('Erreur', "Impossible de charger vos paramètres.", 'error');
-        }
-    }
-
-    /**
-     * Sauvegarde les paramètres du rapport quotidien via N8N
-     */
-    async function saveDailyReportSettings() {
-        if (!userRecord) return;
-
-        const button = document.getElementById('save-daily-report-btn');
-        const originalText = button.textContent;
-        button.disabled = true;
-        button.textContent = 'Sauvegarde...';
-
-        try {
-            const settings = {
-                IsEnabled: document.getElementById('daily-report-toggle').checked,
-                ScheduleTime: document.getElementById('daily-report-time').value,
-                ArticleRSSLinks: document.getElementById('daily-report-rss').value
-            };
-
-            await callN8n('updateDailyReportSettings', { 
-                recordId: userRecord.id, 
-                settings: settings 
-            });
-
-            showNotification('Succès', 'Paramètres mis à jour !', 'success');
-        } catch (e) {
-            console.error("Erreur sauvegarde paramètres:", e);
-            showNotification('Erreur', "La sauvegarde a échoué.", 'error');
-        } finally {
-            button.disabled = false;
-            button.textContent = originalText;
-        }
-    }
 
 
 
@@ -2399,7 +2407,7 @@ function handleHashChange() {
                         
                         // Si getUserDataByEmail réussit, 'userRecord' sera défini
                         if (userRecord) {
-                            handleHashChange(); // 
+                            showDashboard(); // 
                             loader.classList.add('hidden'); // [cite: 407]
                             return; // Succès, on sort de la fonction
                         }
