@@ -732,7 +732,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
                 // Les noms de champs d'Airtable sont sensibles à la casse
                 document.getElementById('enable-daily-report').checked = settings.IsEnabled || false;
                 document.getElementById('trigger-time-select').value = settings.TriggerTime || '07:00';
-                document.getElementById('rss-links-input').value = settings.RSS_Links || '';
+                document.getElementById('rss-links-input').value = settings.ArticleRSSLinks || '';
             }
         } catch (error) {
             console.error("Erreur lors du chargement des réglages:", error);
@@ -991,3 +991,4 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
 </body>
 
 </html>
+
