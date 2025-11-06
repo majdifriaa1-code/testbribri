@@ -2135,7 +2135,7 @@ if (presentationBtn && presentationOverlay) {
 }
 loadSavedPresentations();
 loadSavedDebriefs();
-handleHashChange();
+
     
     }
 
@@ -2408,6 +2408,7 @@ function copyDebriefContent(contentElement, buttonElement) {
                         // Si getUserDataByEmail réussit, 'userRecord' sera défini
                         if (userRecord) {
                             showDashboard(); // 
+                            handleHashChange();
                             loader.classList.add('hidden'); // [cite: 407]
                             return; // Succès, on sort de la fonction
                         }
