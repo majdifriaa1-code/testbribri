@@ -2076,7 +2076,7 @@ function handleHashChange() {
         document.getElementById('main-header').classList.remove('hidden');
         if (window.innerWidth <= 1024) { document.getElementById('mobile-nav')?.classList.remove('hidden'); }
         document.getElementById('auth-section').classList.add('hidden');
-        document.getElementById('dashboard-section').classList.remove('hidden');
+       
         if (typeof window.updateUserAvatar === 'function') {
             window.updateUserAvatar(userRecord.fields.Name);
         }
