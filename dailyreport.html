@@ -170,7 +170,35 @@
             transition: all 0.3s;
             border-radius: 0 12px 12px 0;
             border-left: 3px solid transparent;
+
+.profile-nav-item:hover {
+            background-color: #f1f3f4;
         }
+        
+        .profile-nav-item.active {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1), transparent);
+            color: var(--accent-primary);
+            border-left-color: var(--accent-primary);
+        }
+        
+        .profile-nav-item svg {
+            margin-right: 1rem;
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        
+        .tab-content-section {
+            display: none;
+        }
+        
+        .tab-content-section.active {
+            display: block;
+        }
+
+
+          
+        }
+
         /* ... [TOUT LE RESTE DU CSS DE... */
         .gradient-text { /* Style original */
             background: var(--primary-gradient);
@@ -519,6 +547,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
 
 <div id="profile-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-4xl w-full flex p-0" style="min-height: 500px;">
+    
          <div class="w-1/4 bg-gray-50 border-r border-gray-200 py-6">
              <div class="px-6 mb-6">
                 <h3 class="text-lg font-bold text-gray-800" id="profile-modal-user-name"></h3>
@@ -536,15 +565,74 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
                  </a>
             </nav>
         </div>
+        
         <div class="flex-1 overflow-y-auto relative p-6 text-left">
             <button id="close-profile-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-3xl font-light">&times;</button>
             
             <div id="profile-content-section" class="tab-content-section">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">Informations du Profil</h3>
+                <div class="space-y-4 max-w-md">
+                    <div>
+                        <label for="profile-name" class="block text-sm font-medium text-gray-700">Nom</label>
+                        <input type="text" id="profile-name" class="input-field mt-1">
+                    </div>
+                    <div>
+                        <label for="profile-email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="profile-email" class="input-field mt-1 bg-gray-100 cursor-not-allowed" readonly>
+                    </div>
+                    <button id="save-profile-button" class="btn btn-primary mt-4">Enregistrer</button>
                 </div>
+            </div>
+            
             <div id="security-content-section" class="tab-content-section">
+                 <h3 class="text-xl font-bold text-gray-800 mb-6">Sécurité du Compte</h3>
+                 <div class="space-y-4 max-w-md">
+                    <div>
+                        <label for="security-old-password" class="block text-sm font-medium text-gray-700">Ancien Mot de Passe</label>
+                        <input type="password" id="security-old-password" class="input-field mt-1">
+                    </div>
+                    <div>
+                         <label for="security-new-password" class="block text-sm font-medium text-gray-700">Nouveau Mot de Passe</label>
+                         <input type="password" id="security-new-password" class="input-field mt-1">
+                    </div>
+                    <div>
+                        <label for="security-confirm-password" class="block text-sm font-medium text-gray-700">Confirmer Nouveau Mot de Passe</label>
+                        <input type="password" id="security-confirm-password" class="input-field mt-1">
+                    </div>
+                    <button id="update-password-button" class="btn btn-primary mt-4">Mettre à jour</button>
                  </div>
+            </div>
+            
             <div id="plans-content-section" class="tab-content-section">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">Gérer votre Abonnement</h3>
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-6 max-w-lg">
+                     <h4 class="text-lg font-semibold text-gray-800 mb-2">Plan Actuel</h4>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800" id="plan-status-display">Free</span>
                 </div>
+                
+                <div id="plans-upgrade-section" class="mb-6 max-w-lg hidden">
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+                         <div class="flex items-center justify-between mb-4">
+                             <div>
+                                <h4 class="text-lg font-bold text-gray-800">Passer au Premium</h4>
+                                <p class="text-gray-600 mt-1">Débloquez des fonctionnalités avancées.</p>
+                             </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-900">$9<span class="text-base font-normal text-gray-500">/mois</span></div>
+                            </div>
+                        </div>
+                        <button id="plans-upgrade-button" class="w-full btn btn-primary">Passer Premium</button>
+                    </div>
+                </div>
+                
+                <div id="plans-cancel-section" class="mb-6 max-w-lg hidden">
+                     <div class="bg-red-50 p-6 rounded-xl border border-red-200">
+                         <h4 class="text-lg font-bold text-gray-800">Annuler votre abonnement</h4>
+                         <p class="text-gray-600 mt-1 mb-4">Votre abonnement est actif. Vous pouvez l'annuler à tout moment.</p>
+                         <button id="plans-cancel-button" class="w-full btn btn-danger">Annuler l'abonnement</button>
+                    </div>
+                </div>
+            </div>
          </div>
     </div>
 </div>
@@ -1120,4 +1208,5 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
 </body>
 
 </html>
+
 
