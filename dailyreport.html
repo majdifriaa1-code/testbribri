@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily AI Report - BRIEOVA</title> <script src="https://cdn.tailwindcss.com"></script>
+    <title>Daily AI Report - BRIEOVA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,11 +56,7 @@
             letter-spacing: -0.02em;
         }
         
-        /* ... 
-          COLLEZ TOUTES LES LIGNES DE STYLE DE VOTRE FICHIER ORIGINAL ICI (lignes 40 à 480) 
-          ...
-        */
-        .main-grid { /* Style original */
+        .main-grid { 
             display: grid;
             grid-template-columns: 300px 1fr 450px;
             flex-grow: 1;
@@ -67,7 +64,8 @@
             padding: 12px;
             min-height: 0;
         }
-        .panel { /* Style original */
+        
+        .panel {
             background: linear-gradient(to bottom, #ffffff, #fafbfc);
             border-radius: 20px;
             border: 1px solid var(--border-color);
@@ -77,11 +75,13 @@
             overflow: hidden;
             transition: all 0.3s ease;
         }
-        .panel:hover { /* Style original */
+        
+        .panel:hover {
             box-shadow: var(--shadow-lg);
             transform: translateY(-2px);
         }
-        .panel-header { /* Style original */
+        
+        .panel-header {
             padding: 1.25rem;
             display: flex;
             align-items: center;
@@ -90,13 +90,35 @@
             flex-shrink: 0;
             background: linear-gradient(to right, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
         }
-        .panel-content { /* Style original */
+        
+        .panel-content {
             position: relative;
             padding: 1rem;
             overflow-y: auto;
             flex-grow: 1;
         }
-        .btn { /* Style original */
+        
+        /* Scrollbar moderne */
+        .panel-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .panel-content::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+        
+        .panel-content::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+        
+        .panel-content::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+        
+        /* BOUTONS MODERNES avec gradients */
+        .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -111,12 +133,74 @@
             position: relative;
             overflow: hidden;
         }
-        .btn-primary { /* Style original */
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .btn:hover:not(:disabled)::before {
+            opacity: 1;
+        }
+        
+        .btn:disabled {
+            background-color: #ccc !important;
+            color: #888 !important;
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none !important;
+        }
+        
+        .btn-primary {
             background: var(--primary-gradient);
             color: white;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
-        .modal-overlay { /* Style original */
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #e8eaed;
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+        
+        .placeholder-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: var(--text-placeholder);
+            padding: 2rem;
+        }
+        
+        .modal-overlay {
             position: fixed;
             inset: 0;
             background-color: rgba(0,0,0,0.6);
@@ -127,7 +211,13 @@
             backdrop-filter: blur(8px);
             animation: fadeIn 0.3s ease;
         }
-        .modal-content { /* Style original */
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
             background-color: var(--bg-secondary);
             padding: 2rem;
             border-radius: 24px;
@@ -136,7 +226,19 @@
             box-shadow: var(--shadow-xl);
             animation: slideUp 0.3s ease;
         }
-        .input-field { /* Style original */
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .input-field {
             border: 2px solid var(--border-color);
             border-radius: 12px;
             padding: 0.875rem 1rem;
@@ -146,12 +248,14 @@
             transition: all 0.3s ease;
             font-family: inherit;
         }
-        .input-field:focus { /* Style original */
+        
+        .input-field:focus {
             outline: none;
             border-color: var(--accent-primary);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        .auth-card { /* Style original */
+        
+        .auth-card {
             background-color: var(--bg-secondary);
             padding: 3rem 2.5rem;
             border-radius: 24px;
@@ -160,8 +264,9 @@
             max-width: 420px;
             box-shadow: var(--shadow-xl);
         }
-        .profile-nav-item { /* Style original */
-             display: flex;
+        
+        .profile-nav-item {
+            display: flex;
             align-items: center;
             padding: 0.75rem 1rem;
             font-weight: 500;
@@ -171,14 +276,455 @@
             border-radius: 0 12px 12px 0;
             border-left: 3px solid transparent;
         }
-        /* ... [TOUT LE RESTE DU CSS DE... */
-        .gradient-text { /* Style original */
+        
+        .profile-nav-item:hover {
+            background-color: #f1f3f4;
+        }
+        
+        .profile-nav-item.active {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1), transparent);
+            color: var(--accent-primary);
+            border-left-color: var(--accent-primary);
+        }
+        
+        .profile-nav-item svg {
+            margin-right: 1rem;
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        
+        .tab-content-section {
+            display: none;
+        }
+        
+        .tab-content-section.active {
+            display: block;
+        }
+        
+        .studio-item {
+            background-color: transparent;
+            border-radius: 12px;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            font-size: 1rem;
+        }
+        
+        .pill-select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: #ffffff;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.875rem;
+            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 9999px;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23667eea' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .pill-select:hover {
+            border-color: var(--primary-dark);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .studio-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .studio-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .studio-card:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .studio-card:not(:disabled):hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            background: white;
+        }
+        
+        .studio-card span {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        #chat-messages {
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db #f8f9fa;
+        }
+        
+        .message-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .message-row.user {
+            justify-content: flex-end;
+        }
+        
+        .message-row.ai {
+            justify-content: flex-start;
+        }
+        
+        .chat-bubble {
+            padding: 0.875rem 1.25rem;
+            border-radius: 18px;
+            max-width: 80%;
+            line-height: 1.5;
+            font-size: 0.9375rem;
+            word-wrap: break-word;
+        }
+        
+        .chat-bubble.user {
+            background: var(--primary-gradient);
+            color: white;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .chat-bubble.ai {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-bottom-left-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .panel-content.chat-container {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .chat-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 24px;
+            background-color: white;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s;
+        }
+        
+        .chat-input-wrapper:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .premium-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(249, 250, 251, 0.95);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .premium-overlay:hover {
+            background-color: rgba(255, 255, 255, 0.98);
+        }
+        
+        .source-grid .premium-overlay {
+            border-radius: 12px;
+        }
+        
+        .upgrade-button {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .upgrade-button:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 1024px) {
+            body {
+                overflow-y: auto;
+            }
+            
+            #main-header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 20;
+            }
+            
+            #mobile-nav {
+                display: flex;
+                justify-content: space-around;
+                background-color: var(--bg-secondary);
+                position: fixed;
+                top: 57px;
+                left: 0;
+                right: 0;
+                z-index: 19;
+                border-bottom: 1px solid var(--border-color);
+                box-shadow: var(--shadow-md);
+            }
+            
+            .main-grid {
+                display: block;
+                padding-top: 125px;
+                padding-bottom: 24px;
+            }
+            
+            .main-grid > .panel {
+                display: none;
+                height: auto;
+            }
+            
+            .main-grid > .panel.mobile-active {
+                display: flex;
+            }
+            
+            .panel-content {
+                overflow-y: visible;
+            }
+            
+            .mobile-nav-btn {
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                font-size: 0.75rem;
+                color: var(--text-secondary);
+                background: none;
+                border: none;
+                padding: 0.75rem 0;
+                border-radius: 0;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            
+            .mobile-nav-btn.active {
+                color: var(--accent-primary);
+                background: linear-gradient(to bottom, rgba(102, 126, 234, 0.1), transparent);
+            }
+            
+            #auth-section {
+                position: fixed !important;
+                inset: 0 !important;
+                z-index: 100 !important;
+                padding: 1rem;
+                background-color: var(--bg-primary);
+            }
+            
+            #auth-section.hidden {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+            
+            #dashboard-section {
+                display: none;
+            }
+            
+            #dashboard-section:not(.hidden) {
+                display: block;
+            }
+            
+            .modal-content {
+                max-width: 90vw;
+            }
+            
+            #profile-modal .modal-content {
+                flex-direction: column;
+                min-height: auto;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            
+            #profile-modal .modal-content > div:first-child {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 1rem;
+            }
+            
+            #profile-modal .modal-content > div:last-child {
+                width: 100%;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            #mobile-nav {
+                display: none;
+            }
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            z-index: 50;
+            min-width: 200px;
+            background-color: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+            pointer-events: none;
+        }
+        
+        .dropdown-menu.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        
+        .dropdown-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--bg-tertiary);
+        }
+        
+        .modal-content-lg {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        #close-add-source-modal {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-tertiary);
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: linear-gradient(to bottom, rgba(102, 126, 234, 0.05), transparent);
+        }
+        
+        .upload-icon-wrapper {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 50%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        
+        .source-grid-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            background-color: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .source-grid-item:hover {
+            background-color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .modal-content-sm {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Gradient text effect */
+        .gradient-text {
             background: var(--primary-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-
+    
 
         /* NOUVEAUX STYLES UNIQUES POUR CETTE PAGE */
         .page-wrapper {
@@ -281,7 +827,7 @@
 stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </button>
         <div id="settings-dropdown" class="dropdown-menu">
-           <a href="/dailyreport" class="dropdown-item">Daily AI report</a>
+            <a href="https://dashboard.brieova.com/dailyreport" class="dropdown-item">Daily AI report</a>
             
             <a href="#" class="dropdown-item">Send feedback</a>
             <a href="#" class="dropdown-item">Discord</a>
@@ -365,7 +911,21 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
                         <option value="07:00" selected>07:00 UTC (Recommandé)</option>
                         <option value="08:00">08:00 UTC</option>
                         <option value="09:00">09:00 UTC</option>
-                        </select>
+                        <option value="10:00">10:00 UTC</option>
+                        <option value="11:00">11:00 UTC</option>
+                        <option value="12:00">12:00 UTC</option>
+                        <option value="13:00">13:00 UTC</option>
+                        <option value="14:00">14:00 UTC</option>
+                        <option value="15:00">15:00 UTC</option>
+                        <option value="16:00">16:00 UTC</option>
+                        <option value="17:00">17:00 UTC</option>
+                        <option value="18:00">18:00 UTC</option>
+                        <option value="19:00">19:00 UTC</option>
+                        <option value="20:00">20:00 UTC</option>
+                        <option value="21:00">21:00 UTC</option>
+                        <option value="22:00">22:00 UTC</option>
+                        <option value="23:00">23:00 UTC</option>
+                    </select>
                 </div>
 
                 <div>
@@ -384,9 +944,6 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
         </div>
     </div>
 </div>
-
-<div id="add-source-modal" class="modal-overlay hidden">
-    </div>
 
 <div id="profile-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-4xl w-full flex p-0" style="min-height: 500px;">
@@ -411,11 +968,65 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
             <button id="close-profile-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-3xl font-light">&times;</button>
             
             <div id="profile-content-section" class="tab-content-section">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">Informations du Profil</h3>
+                <div class="space-y-4 max-w-md">
+                    <div>
+                        <label for="profile-name" class="block text-sm font-medium text-gray-700">Nom</label>
+                        <input type="text" id="profile-name" class="input-field mt-1">
+                    </div>
+                    <div>
+                         <label for="profile-email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="profile-email" class="input-field mt-1 bg-gray-100 cursor-not-allowed" readonly>
+                    </div>
+                     <button id="save-profile-button" class="btn btn-primary mt-4">Enregistrer</button>
                 </div>
+            </div>
             <div id="security-content-section" class="tab-content-section">
+                 <h3 class="text-xl font-bold text-gray-800 mb-6">Sécurité du Compte</h3>
+                 <div class="space-y-4 max-w-md">
+                    <div>
+                        <label for="security-old-password" class="block text-sm font-medium text-gray-700">Ancien Mot de Passe</label>
+                        <input type="password" id="security-old-password" class="input-field mt-1">
+                    </div>
+                    <div>
+                         <label for="security-new-password" class="block text-sm font-medium text-gray-700">Nouveau Mot de Passe</label>
+                         <input type="password" id="security-new-password" class="input-field mt-1">
+                    </div>
+                    <div>
+                        <label for="security-confirm-password" class="block text-sm font-medium text-gray-700">Confirmer Nouveau Mot de Passe</label>
+                        <input type="password" id="security-confirm-password" class="input-field mt-1">
+                    </div>
+                    <button id="update-password-button" class="btn btn-primary mt-4">Mettre à jour</button>
                  </div>
+            </div>
             <div id="plans-content-section" class="tab-content-section">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">Gérer votre Abonnement</h3>
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-6 max-w-lg">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Plan Actuel</h4>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800" id="plan-status-display">Free</span>
                 </div>
+                <div id="plans-upgrade-section" class="mb-6 max-w-lg hidden">
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+                         <div class="flex items-center justify-between mb-4">
+                             <div>
+                                <h4 class="text-lg font-bold text-gray-800">Passer au Premium</h4>
+                                <p class="text-gray-600 mt-1">Débloquez des fonctionnalités avancées.</p>
+                             </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-900">$9<span class="text-base font-normal text-gray-500">/mois</span></div>
+                             </div>
+                        </div>
+                        <button id="plans-upgrade-button" class="w-full btn btn-primary">Passer Premium</button>
+                    </div>
+                </div>
+                <div id="plans-cancel-section" class="mb-6 max-w-lg hidden">
+                     <div class="bg-red-50 p-6 rounded-xl border border-red-200">
+                         <h4 class="text-lg font-bold text-gray-800">Annuler votre abonnement</h4>
+                         <p class="text-gray-600 mt-1 mb-4">Votre abonnement est actif. Vous pouvez l'annuler à tout moment.</p>
+                         <button id="plans-cancel-button" class="w-full btn btn-danger">Annuler l'abonnement</button>
+                    </div>
+                </div>
+            </div>
          </div>
     </div>
 </div>
@@ -428,6 +1039,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
          <div id="generic-modal-actions" class="flex gap-4 mt-8"></div>
     </div>
 </div>
+
 
 <script>
     // ===================================================================
@@ -597,8 +1209,13 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
      */
     async function getUserDataByEmail(email) {
         const rawResult = await callN8n('findUser', { email });
-        updateLocalUserRecord(rawResult);
-        if (!userRecord) throw new Error("Utilisateur non trouvé.");
+        // S'assurer que le résultat est bien l'enregistrement utilisateur
+        const user = (Array.isArray(rawResult) && rawResult.length > 0) ? rawResult[0] : null;
+        if (user) {
+            userRecord = { id: user.id, fields: user.fields }; // Stocker l'ID et les champs
+        } else {
+            throw new Error("Utilisateur non trouvé.");
+        }
     }
 
     /**
@@ -687,7 +1304,6 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
         }
         try {
             await auth.sendPasswordResetEmail(email);
-            // Assumer que l'ID du modal est 'forgot-password-modal'
             const modal = document.getElementById('reset-email').closest('.modal-overlay');
             if (modal) document.body.removeChild(modal);
             showNotification('Email envoyé', 'Vérifiez votre boîte de réception pour le lien de réinitialisation.', 'success');
@@ -729,7 +1345,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
             );
             
             if (settings) {
-                // Les noms de champs d'Airtable sont sensibles à la casse
+                // CORRECTION : Utilise les noms de champs exacts d'Airtable
                 document.getElementById('enable-daily-report').checked = settings.IsEnabled || false;
                 document.getElementById('trigger-time-select').value = settings.TriggerTime || '07:00';
                 document.getElementById('rss-links-input').value = settings.ArticleRSSLinks || '';
@@ -737,7 +1353,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
         } catch (error) {
             console.error("Erreur lors du chargement des réglages:", error);
             // Gérer le cas où l'enregistrement n'existe pas encore (pas une erreur)
-            if (error.message.includes("Unexpected end of JSON input")) {
+            if (error.message.includes("Unexpected end of JSON input") || error.message.includes("invalid")) {
                 console.log("Aucun réglage trouvé pour cet utilisateur. Utilisation des valeurs par défaut.");
                 document.getElementById('enable-daily-report').checked = false;
                 document.getElementById('trigger-time-select').value = '07:00';
@@ -765,7 +1381,8 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
                 recordId: userRecord.id,
                 isEnabled: document.getElementById('enable-daily-report').checked,
                 triggerTime: document.getElementById('trigger-time-select').value,
-                rssLinks: document.getElementById('rss-links-input').value.trim()
+                // CORRECTION : Envoie avec le bon nom de champ pour le workflow
+                rssLinks: document.getElementById('rss-links-input').value.trim() 
             };
             
             // Appelle la NOUVELLE action sur le webhook EXISTANT
@@ -804,14 +1421,13 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
                         console.warn(`Tentative ${attempts+1}: Utilisateur non trouvé. Réessai...`);
                     }
                     
-                    // Si userRecord n'est pas trouvé, on attend et on réessaie
                     attempts++;
                     if (attempts < maxAttempts) {
                         await new Promise(resolve => setTimeout(resolve, 2000));
                     } else {
-                        // Après 5 tentatives, on essaie de le créer (logique de secours)
+                        // Après 5 tentatives, on essaie de le créer
                         console.warn("Utilisateur non trouvé, tentative de création...");
-                        await createUserData(email, user.displayName || 'Nouvel utilisateur');
+                        await createUserData(user.email, user.displayName || 'Nouvel utilisateur');
                         await new Promise(resolve => setTimeout(resolve, 2000)); // Laisse le temps à Airtable
                         await getUserDataByEmail(user.email); // Dernière tentative
                     }
@@ -833,7 +1449,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
             } catch (e) {
                 console.error(e);
                 showNotification("Erreur Critique", "Impossible de charger vos données. " + e.message, "error");
-                await handleLogout(); // Rediriger si les données ne peuvent être chargées
+                await handleLogout(); 
             } finally {
                 loader.classList.add('hidden');
             }
@@ -852,7 +1468,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
     
     document.addEventListener('DOMContentLoaded', () => {
 
-        // --- Authentification (copié de) ---
+        // --- Authentification ---
         const loginButton = document.getElementById('login-button');
         const showSignupBtn = document.getElementById('show-signup-modal-button');
         const showForgotPasswordBtn = document.getElementById('show-forgot-password-modal');
@@ -864,7 +1480,6 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
              errorEl.classList.add('hidden');
              try {
                  await auth.signInWithEmailAndPassword(email, password);
-                 // onAuthStateChanged s'occupera du reste
              } catch (e) {
                  errorEl.textContent = "Email ou mot de passe incorrect.";
                  errorEl.classList.remove('hidden');
@@ -895,7 +1510,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
             document.getElementById('reset-password-button').addEventListener('click', handlePasswordReset);
         });
 
-        // --- Header (copié de) ---
+        // --- Header ---
         const settingsButton = document.getElementById('settings-button');
         const settingsDropdown = document.getElementById('settings-dropdown');
         const logoutButton = document.getElementById('logout-button');
@@ -918,7 +1533,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
             logoutButton.addEventListener('click', handleLogout);
         }
 
-        // --- Logique du Modal Profil (copié de) ---
+        // --- Logique du Modal Profil ---
         const profileModal = document.getElementById('profile-modal');
         if (profileButton && profileModal) {
             profileButton.addEventListener('click', () => {
@@ -959,7 +1574,10 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
                 await firebaseUser.reauthenticateWithCredential(cred);
                 await firebaseUser.updatePassword(newPass);
                 showNotification('Succès', 'Mot de passe mis à jour !', 'success');
-                ['security-old-password', 'security-new-password', 'security-confirm-password'].forEach(id => document.getElementById(id).value = '');
+                ['security-old-password', 'security-new-password', 'security-confirm-password'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.value = '';
+                });
             } catch (e) { showNotification('Erreur', "La mise à jour a échoué. Vérifiez votre ancien mot de passe.", 'error'); }
         });
         
@@ -988,8 +1606,6 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317
         }
     });
 </script>
+
 </body>
-
 </html>
-
-
