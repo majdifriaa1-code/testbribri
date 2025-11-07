@@ -884,8 +884,17 @@
                 </div>
             </div>
             <div class="p-4 border-t border-gray-200 flex-shrink-0">
-                 <button id="start-debrief-button" class="w-full btn btn-primary py-3"></button>
-                <p id="usage-limit" class="text-gray-500 text-xs text-center mt-2"></p>
+                
+                <div class="flex items-center gap-4 mb-2">
+                    <button id="start-debrief-button" class="w-full btn btn-primary py-3"></button>
+                    
+                    <label for="send-email-checkbox" class="flex items-center gap-2 text-sm text-gray-700 whitespace-nowrap cursor-pointer">
+                        <input type="checkbox" id="send-email-checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span>+ Envoyer par Email ?</span>
+                    </label>
+                </div>
+                
+                <p id="usage-limit" class="text-gray-500 text-xs text-center"></p>
             </div>
         </div>
 
@@ -1616,6 +1625,7 @@ let presentationIframe = null; // Référence vers l'élément iframe
             showNotification("Sources manquantes", "Vous devez ajouter au moins une source avant de lancer le débrief.", 'error');
             return;
         }
+        const sendEmail = document.getElementById('send-email-checkbox').checked;
         const debriefButton = document.getElementById('start-debrief-button');
         const loadingOverlay = document.getElementById('debrief-loading-overlay');
         const blurTarget = document.getElementById('blur-target');
@@ -1625,7 +1635,8 @@ let presentationIframe = null; // Référence vers l'élément iframe
         try {
             await callN8n('startDebrief', {
                 recordId: userRecord.id,
-                reportFormat: document.getElementById('debrief-format-selector').value
+                reportFormat: document.getElementById('debrief-format-selector').value,
+              sendEmail: sendEmail
             });
             pollDebriefStatus(userRecord.id);
         } catch (error) {
