@@ -1738,11 +1738,11 @@ let presentationIframe = null; // Référence vers l'élément iframe
         const remaining = parseInt(userRecord.fields['Debriefs Restants']) || 0;
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1.157a4.002 4.002 0 00-3.13 3.131V10a1 1 0 102 0v-2.712A2.002 2.002 0 0110 5.288 2.002 2.002 0 0112.712 7.5h2.89A6.979 6.979 0 0010.156 3H11zM4.132 9.01A7.002 7.002 0 0010 16.845a7.002 7.002 0 005.868-7.836l-2.89.717A2.002 2.002 0 0110 11.288 2.002 2.002 0 017.288 9.5H4.132z" /></svg>`;
         if (userRecord.fields.Status === 'Free' || !userRecord.fields.Status) {
-            usageEl.textContent = `Offre Gratuite : Il vous reste ${remaining} débrief(s).`;
+            usageEl.textContent = `Offre Gratuite : Il vous reste ${remaining} Credits.`;
             btn.disabled = remaining <= 0;
             btn.innerHTML = svg + (remaining <= 0 ? 'Limite atteinte' : 'Lancer le Débrief');
         } else {
-            usageEl.textContent = `Plan Premium : Débriefs illimités.`;
+            usageEl.textContent = `Plan Premium : Credits illimités.`;
             btn.disabled = false;
             btn.innerHTML = svg + 'Lancer le Débrief';
         }
@@ -1983,7 +1983,7 @@ let presentationIframe = null; // Référence vers l'élément iframe
             debriefsRemainingEl.classList.add('hidden');
         } else {
             debriefsRemainingEl.classList.remove('hidden');
-            debriefsRemainingEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Débriefs`;
+            debriefsRemainingEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Credits`;
         }
         document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
         const debriefStatus = userRecord.fields['Debrief Status'];
