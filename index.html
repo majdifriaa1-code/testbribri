@@ -1438,6 +1438,21 @@
             </div>
         </div>
     </div>
+
+      <div id="text-view-modal" class="modal-overlay hidden">
+        <div class="modal-content-lg"> <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Votre Texte</h2>
+                <button id="close-text-view-modal" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
+            </div>
+            
+            <div id="text-view-content" class="p-4 border border-gray-200 rounded-lg bg-gray-50 max-h-[60vh] overflow-y-auto" style="white-space: pre-wrap; word-break: break-word;">
+                </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <button id="close-text-view-modal-btn" class="btn btn-secondary">Fermer</button>
+            </div>
+        </div>
+    </div>
     
 
 <script>
@@ -1813,6 +1828,36 @@ let presentationIframe = null; // Référence vers l'élément iframe
             }
         }
 
+
+  /**
+         * Affiche la modale avec le contenu complet du texte copié.
+         */
+        function showTextViewModal(fullText) {
+            const modal = document.getElementById('text-view-modal');
+            const contentEl = document.getElementById('text-view-content');
+
+            if (!modal || !contentEl) {
+                console.error("Éléments de la modale de vue de texte introuvables.");
+                return;
+            }
+
+            // Utiliser .textContent est plus sécurisé pour afficher du texte brut
+            contentEl.textContent = fullText; 
+            modal.classList.remove('hidden');
+        }
+
+        /**
+         * Gère le clic sur l'aperçu du texte copié et ouvre la modale.
+         */
+        function handleTextViewClick() {
+            if (userRecord && userRecord.fields && userRecord.fields.UserText) {
+                // Appelle la fonction qui affiche la modale
+                showTextViewModal(userRecord.fields.UserText);
+            } else {
+                showNotification('Erreur', 'Impossible de récupérer le texte complet.', 'error');
+            }
+        }
+
     async function clearLinks(fieldName) {
         if (await showNotification('Confirmation', 'Vider tous les liens de cette catégorie ?', 'confirm')) {
             try {
@@ -1942,7 +1987,7 @@ let presentationIframe = null; // Référence vers l'élément iframe
                     // Crée un aperçu court du texte
                     const preview = fieldData.length > 80 ? fieldData.substring(0, 80) + '...' : fieldData;
                     // Remplace les sauts de ligne par des espaces pour l'aperçu
-                    cardContent = `<div class="text-xs text-gray-500" style="white-space: pre-wrap; word-break: break-word;" title="Cliquez pour voir (bientôt)">${preview.replace(/\n/g, ' ')}</div>`;
+                    cardContent = `<div class="text-xs text-gray-500 cursor-pointer hover:text-blue-600" title="Cliquez pour voir le texte complet" onclick="handleTextViewClick()"> ${preview.replace(/\n/g, ' ')} </div>`;
                     // On peut réutiliser clearLinks pour vider ce champ
                     clearAction = `clearLinks('UserText')`; 
                 }
@@ -2646,6 +2691,9 @@ function copyDebriefContent(contentElement, buttonElement) {
         const premiumInfoModal = document.getElementById('premium-info-modal');
         const closePremiumInfoModalBtn = document.getElementById('close-premium-info-modal');
         const modalUpgradeBtn = document.getElementById('modal-upgrade-btn');
+        const textViewModal = document.getElementById('text-view-modal');
+        const closeTextViewModalBtn = document.getElementById('close-text-view-modal'); // Le 'X'
+        const closeTextViewModalBtn2 = document.getElementById('close-text-view-modal-btn'); // Le bouton "Fermer"
        
 
         // --- FONCTIONS UTILES LOCALES AU DOM ---
@@ -2938,7 +2986,18 @@ if (closeDebriefModalBtn && debriefModal) {
                 addPastedText(); // Appelle notre nouvelle fonction
             });
         }
-        
+
+
+if (textViewModal) {
+        if (closeTextViewModalBtn) {
+            closeTextViewModalBtn.addEventListener('click', () => textViewModal.classList.add('hidden'));
+        }
+        if (closeTextViewModalBtn2) {
+            closeTextViewModalBtn2.addEventListener('click', () => textViewModal.classList.add('hidden'));
+        }
+    }
+
+      
         if (pdfUploadArea && pdfFileInput) {
             pdfUploadArea.addEventListener('click', () => { if (!pdfFileInput.disabled) { pdfFileInput.click(); } });
             pdfFileInput.addEventListener('change', () => { if (typeof handlePdfUpload === 'function') handlePdfUpload(); if (mainModal) mainModal.classList.add('hidden'); });
