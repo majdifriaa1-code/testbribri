@@ -1377,7 +1377,7 @@
                         </svg>
                     </button>
                
-                    <button id="download-presentation-btn" class="btn btn-primary text-sm mr-2">
+                    <button id="download-presentation-btn" class="btn btn-primary text-sm mr-2" disabled title="Générez ou ouvrez une présentation pour télécharger">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                         Download Presentation
                     </button>
@@ -1521,28 +1521,40 @@ let presentationIframe = null; // Référence vers l'élément iframe
      * Affiche la modale de présentation avec le contenu HTML donné.
      * (Refactorisation du code existant dans generateAiPresentation)
      */
-    function showPresentationModal(htmlContent) {
-        const modal = document.getElementById('presentation-modal');
-        const contentDiv = document.getElementById('presentation-content');
-        
-        if (!modal || !contentDiv) {
-            console.error('Modal de présentation introuvable.');
-            return;
+    function showPresentationModal(htmlContent, downloadUrl) {
+            const modal = document.getElementById('presentation-modal');
+            const contentDiv = document.getElementById('presentation-content');
+            const downloadBtn = document.getElementById('download-presentation-btn');
+            
+            if (!modal || !contentDiv || !downloadBtn) {
+                console.error('Éléments de la modale de présentation introuvables.');
+                return;
+            }
+            
+            // 1. Charger le contenu HTML dans l'iframe
+            contentDiv.innerHTML = `<iframe srcdoc="${htmlContent.replace(/"/g, "'")}" style="width:100%; height:100%; border:none;"></iframe>`;
+            presentationIframe = contentDiv.querySelector('iframe');
+            currentScale = 1.0;
+            updateZoom(); // S'assure que le zoom est réinitialisé
+            
+            // 2. Gérer le bouton de téléchargement
+            if (downloadUrl) {
+                // Si une URL est fournie (nouvelle présentation ou sauvegardée)
+                downloadBtn.disabled = false;
+                downloadBtn.title = "Télécharger la présentation (PDF)";
+                downloadBtn.onclick = () => { 
+                    window.open(downloadUrl, '_blank'); 
+                };
+            } else {
+                // Si pas d'URL (anciennes présentations sans lien)
+                downloadBtn.disabled = true;
+                downloadBtn.title = "Téléchargement non disponible pour cette présentation.";
+                downloadBtn.onclick = null;
+            }
+            
+            // 3. Afficher la modale
+            modal.classList.remove('hidden');
         }
-
-        // Injecte le HTML dans un iframe pour isoler les styles [cite: 293-294]
-        contentDiv.innerHTML = `<iframe srcdoc="${htmlContent.replace(/"/g, "'")}" style="width:100%; height:100%; border:none;"></iframe>`;
-        // --- AJOUT IMPORTANT ---
-    // Récupère la référence de l'iframe qui vient d'être créé
-    presentationIframe = contentDiv.querySelector('iframe');
-    // Réinitialise le zoom à 1.0 (100%) à chaque fois qu'on ouvre la modale
-    currentScale = 1.0;
-    // Applique le zoom initial (pour s'assurer qu'il est bien à 1.0)
-    updateZoom();
-    // --- FIN AJOUT ---
-        
-        modal.classList.remove('hidden'); // Affiche la modale
-    }
 
     /**
      * Gère la suppression d'une présentation via l'action n8n.
@@ -1603,6 +1615,7 @@ let presentationIframe = null; // Référence vers l'élément iframe
                 const presId = pres.id; // ID de l'enregistrement Airtable
                 const title = pres.Title || 'Présentation sans titre';
                 const htmlContent = pres.ContentHTML; // Le HTML de la présentation
+                const downloadUrl = pres.DownloadURL;
 
                 const itemEl = document.createElement('div');
                 itemEl.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-center';
@@ -1615,7 +1628,7 @@ let presentationIframe = null; // Référence vers l'élément iframe
                 // ACTION DE CLIC : Ouvre la modale avec le contenu sauvegardé
                 titleEl.onclick = () => {
                     if (htmlContent) {
-                        showPresentationModal(htmlContent);
+                       showPresentationModal(htmlContent, downloadUrl);
                     } else {
                         showNotification('Erreur', 'Contenu de la présentation introuvable.', 'error');
                     }
@@ -2340,13 +2353,11 @@ async function generateAiPresentation() {
             // Appelle le backend (qui attend maintenant la fin grâce à la correction n8n)
             const result = await callN8n('generatePresentation', { recordId: userRecord.id });
         
-            if (result && result.html_output) {
+            if (result && result.html_output && result.download_url) {
                 
                 // MODIFIÉ : Utilise la nouvelle fonction helper pour afficher
-                showPresentationModal(result.html_output);
-                
-                // AJOUT : Rafraîchit la liste des présentations sauvegardées
-                await loadSavedPresentations(); 
+               showPresentationModal(result.html_output, result.download_url);
+               await loadSavedPresentations();
                 
             } else {
                 showNotification('Erreur', "La génération de la présentation a échoué ou n'a pas retourné de contenu.", 'error');
@@ -2908,17 +2919,20 @@ if(showForgotPasswordBtn) showForgotPasswordBtn.addEventListener('click', () => 
 if (closePresentationModalBtn && presentationModal) {
     closePresentationModalBtn.addEventListener('click', () => {
         presentationModal.classList.add('hidden');
-        // Vider le contenu pour libérer la mémoire
-        document.getElementById('presentation-content').innerHTML = '';
+        document.getElementById('presentation-content').innerHTML = ''; // Libère la mémoire
+        presentationIframe = null; // Réinitialise l'iframe
+        
+        // Réinitialise le bouton de téléchargement
+        const downloadBtn = document.getElementById('download-presentation-btn');
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.onclick = null;
+            downloadBtn.title = "Générez ou ouvrez une présentation pour télécharger";
+        }
     });
 }
 
-if (downloadPresentationBtn) {
-    downloadPresentationBtn.addEventListener('click', () => {
-        alert('Le téléchargement sera bientôt disponible !');
-        // La logique de téléchargement PDF sera ajoutée ici plus tard
-    });
-}
+
 
 if (zoomInButton) {
         zoomInButton.addEventListener('click', zoomIn);
