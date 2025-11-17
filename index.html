@@ -2389,6 +2389,18 @@ async function generateAiPresentation() {
                 
                 // MODIFIÉ : Utilise la nouvelle fonction helper pour afficher
                showPresentationModal(result.html_output, result.download_url);
+              // --- DÉBUT DE LA CORRECTION ---
+
+                // 2. Met à jour manuellement le compteur local SI l'utilisateur n'est pas Premium
+                if (userRecord.fields.Status !== 'Premium') {
+                    const currentCount = parseInt(userRecord.fields['PresentationsRestantes']) || 0;
+                    userRecord.fields['PresentationsRestantes'] = Math.max(0, currentCount - 1); 
+                }
+
+                // 3. Redessine le dashboard (cela mettra à jour le compteur visuel)
+                showDashboard(); 
+
+                // --- FIN DE LA CORRECTION ---
                await loadSavedPresentations();
                 
             } else {
