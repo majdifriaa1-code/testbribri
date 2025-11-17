@@ -1838,7 +1838,8 @@ let presentationIframe = null; // Référence vers l'élément iframe
             showNotification("Profil manquant", "Veuillez décrire votre profil avant de lancer un débrief.", 'error');
             return;
         }
-        const hasLinks = userRecord.fields['Article RSS Links'] || userRecord.fields['YouTube Links'] || (userRecord.fields['Podcast RSS Links'] && userRecord.fields['Podcast RSS Links'] !== '[]') || userRecord.fields['PdfFiles'];
+        const hasLinks = userRecord.fields['Article RSS Links'] || userRecord.fields['YouTube Links'] || (userRecord.fields['Podcast RSS Links'] && userRecord.fields['Podcast RSS Links'] !== '[]') || userRecord.fields['PdfFiles']||
+                         userRecord.fields['UserText'];
         if (!hasLinks) {
             showNotification("Sources manquantes", "Vous devez ajouter au moins une source avant de lancer le débrief.", 'error');
             return;
