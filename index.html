@@ -2369,10 +2369,7 @@ function hideTempLoading() {
 
 async function generateAiPresentation() {
         if (!userRecord) return;
-        if (userRecord.fields.Status !== 'Premium') {
-            showNotification('Fonctionnalité Premium', 'Passez à Premium pour générer des présentations AI.', 'error');
-            return;
-        }
+       
     
         showTempLoading("Génération de la présentation AI en cours...");
         try {
