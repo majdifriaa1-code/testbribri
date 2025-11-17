@@ -1100,6 +1100,9 @@
                         <p class="studio-card-description">Générez une présentation automatiquement</p>
                     </div>
                     <div class="studio-card-badge studio-badge-premium">Premium</div>
+                  <span id="presentation-count" class="text-xs font-medium text-gray-500 ml-auto px-2 py-0.5 rounded-full bg-gray-200">
+        Chargement...
+    </span>
                 </button>
                 <div id="presentation-premium-overlay" class="premium-overlay hidden">
                     <svg class="w-8 h-8 text-yellow-500 mb-2" fill="currentColor" viewBox="0 0 20 20">
@@ -2317,15 +2320,38 @@ let presentationIframe = null; // Référence vers l'élément iframe
         }
         updateSourcesTable();
         updateUsageLimit();
-        // Gère l'overlay premium pour le bouton de présentation
+// Gère l'overlay premium ET LE COMPTEUR pour le bouton de présentation
 const isPremiumUser = userStatus === 'Premium';
+const presentationsRemaining = parseInt(userRecord.fields['PresentationsRestantes']) || 0;
 const presentationBtn = document.getElementById('make-presentation-btn');
 const presentationOverlay = document.getElementById('presentation-premium-overlay');
+const presentationCountEl = document.getElementById('presentation-count');
 
-if (presentationBtn && presentationOverlay) {
-    presentationOverlay.classList.toggle('hidden', isPremiumUser);
-    presentationBtn.disabled = !isPremiumUser;
-    presentationBtn.style.cursor = isPremiumUser ? 'pointer' : 'not-allowed';
+if (presentationBtn && presentationOverlay && presentationCountEl) {
+    // L'utilisateur peut-il générer ?
+    const canGenerate = isPremiumUser || presentationsRemaining > 0;
+
+    // Affiche l'overlay premium SEULEMENT si l'utilisateur n'est PAS premium ET n'a plus d'essais
+    presentationOverlay.classList.toggle('hidden', canGenerate);
+    presentationBtn.disabled = !canGenerate;
+    presentationBtn.style.cursor = canGenerate ? 'pointer' : 'not-allowed';
+
+    // Mettre à jour le texte du compteur
+    if (isPremiumUser) {
+        presentationCountEl.textContent = 'Illimité';
+        presentationCountEl.classList.remove('bg-gray-200', 'text-gray-500');
+        presentationCountEl.classList.add('bg-blue-100', 'text-blue-700');
+    } else {
+        presentationCountEl.textContent = `${presentationsRemaining} restantes`;
+        if (presentationsRemaining > 0) {
+            presentationCountEl.classList.add('bg-gray-200', 'text-gray-500');
+            presentationCountEl.classList.remove('bg-blue-100', 'text-blue-700');
+        } else {
+            // Style "0" (rouge)
+            presentationCountEl.classList.add('bg-red-100', 'text-red-700');
+            presentationCountEl.classList.remove('bg-gray-200', 'text-gray-500');
+        }
+    }
 }
 loadSavedPresentations();
 loadSavedDebriefs();
@@ -2352,6 +2378,15 @@ async function generateAiPresentation() {
         try {
             // Appelle le backend (qui attend maintenant la fin grâce à la correction n8n)
             const result = await callN8n('generatePresentation', { recordId: userRecord.id });
+
+
+          // AJOUT : Vérifier si n8n a renvoyé une erreur de limite
+            if (result.error === 'limit_reached') {
+                showNotification('Limite atteinte', result.message, 'error');
+                // Optionnel : rafraîchir le dashboard pour mettre le compteur à jour
+                location.reload(); 
+                return; // Arrête l'exécution
+            }
         
             if (result && result.html_output && result.download_url) {
                 
