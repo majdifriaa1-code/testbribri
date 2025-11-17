@@ -1252,7 +1252,7 @@
         <textarea id="paste-text-input" rows="5" class="input-field mb-4" placeholder="Paste your text here..."></textarea>
         <div class="flex justify-end gap-2">
             <button class="btn-close-sub-modal btn btn-secondary">Cancel</button>
-            <button id="add-text-btn" class="btn btn-primary" disabled>Add (soon)</button>
+            <button id="add-text-btn" class="btn btn-primary" >Add</button>
         </div>
     </div>
 </div>
@@ -1784,6 +1784,35 @@ let presentationIframe = null; // Référence vers l'élément iframe
         }
     }
 
+  async function addPastedText() {
+            if (!userRecord) return;
+            const textInput = document.getElementById('paste-text-input');
+            const textValue = textInput.value.trim();
+
+            if (!textValue) {
+                showNotification("Texte manquant", "Veuillez coller du texte avant d'ajouter.", 'error');
+                return;
+            }
+
+            try {
+                // Utilise une action 'updateUserText' pour mettre à jour le champ 'UserText'
+                const updatedRecord = await callN8n('updateUserText', {
+                    recordId: userRecord.id,
+                    textData: textValue // Envoie le texte brut
+                });
+                
+                updateLocalUserRecord(updatedRecord); // Met à jour l'enregistrement local
+                
+                textInput.value = ''; // Vide le champ de saisie
+                document.getElementById('text-modal').classList.add('hidden'); // Ferme la modale
+                showDashboard(); // Rafraîchit le tableau de bord (et la liste des sources)
+                showNotification('Succès', 'Votre texte a été ajouté comme source.', 'success');
+
+            } catch (e) {
+                showNotification('Erreur', e.message, 'error');
+            }
+        }
+
     async function clearLinks(fieldName) {
         if (await showNotification('Confirmation', 'Vider tous les liens de cette catégorie ?', 'confirm')) {
             try {
@@ -1883,13 +1912,18 @@ let presentationIframe = null; // Référence vers l'élément iframe
             { n: 'YouTube Links', t: 'Vidéos YouTube' },
             { n: 'Podcast RSS Links', t: 'Podcasts' },
             { n: 'PdfFiles', t: 'Fichiers PDF' }
+            { n: 'UserText', t: 'Texte Copié' }
         ];
-        fields.forEach(f => {
+       fields.forEach(f => {
             let contentExists = false, cardContent = '', clearAction = '';
             const fieldData = userRecord.fields[f.n];
+
             if (f.n === 'Podcast RSS Links') {
                 let p = [];
-                try { p = JSON.parse(fieldData || '[]'); } catch (e) {}
+                try {
+                    p = JSON.parse(fieldData || '[]');
+                } catch (e) {}
+
                 if (p.length > 0) {
                     contentExists = true;
                     cardContent = p.map(i => `<div class="text-xs truncate text-gray-500" title="${i.link}">${i.title || i.link}</div>`).join('');
@@ -1901,19 +1935,37 @@ let presentationIframe = null; // Référence vers l'élément iframe
                     cardContent = fieldData.map(file => `<div class="text-xs truncate text-gray-500" title="${file.url}">${file.filename}</div>`).join('');
                     clearAction = `clearLinks('PdfFiles')`;
                 }
-            } else {
-                const links = fieldData ? String(fieldData).split(',').filter(Boolean) : [];
+            } else if (f.n === 'UserText') { // <-- BLOC AJOUTÉ POUR 'UserText'
+                if (fieldData && typeof fieldData === 'string' && fieldData.trim() !== '') {
+                    contentExists = true;
+                    // Crée un aperçu court du texte
+                    const preview = fieldData.length > 80 ? fieldData.substring(0, 80) + '...' : fieldData;
+                    // Remplace les sauts de ligne par des espaces pour l'aperçu
+                    cardContent = `<div class="text-xs text-gray-500" style="white-space: pre-wrap; word-break: break-word;" title="Cliquez pour voir (bientôt)">${preview.replace(/\n/g, ' ')}</div>`;
+                    // On peut réutiliser clearLinks pour vider ce champ
+                    clearAction = `clearLinks('UserText')`; 
+                }
+            } else { // <-- 'else' gère maintenant les autres (Articles et YouTube)
+                const links = fieldData ?
+                    String(fieldData).split(',').filter(Boolean) : [];
                 if (links.length > 0) {
                     contentExists = true;
                     cardContent = links.map(l => `<div class="text-xs truncate text-gray-500" title="${l}">${l}</div>`).join('');
                     clearAction = `clearLinks('${f.n}')`;
                 }
             }
+
             if (contentExists) {
                 hasContent = true;
                 const card = document.createElement('div');
                 card.className = 'p-3 bg-gray-50 rounded-lg border border-gray-200';
-                card.innerHTML = `<div class="flex justify-between items-center mb-2"><h4 class="font-medium text-sm text-gray-800">${f.t}</h4><button onclick="${clearAction}" class="text-xs text-gray-500 hover:text-red-600">Vider</button></div><div class="space-y-1">${cardContent}</div>`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-medium text-sm text-gray-800">${f.t}</h4>
+                        <button onclick="${clearAction}" class="text-xs text-gray-500 hover:text-red-600">Vider</button>
+                    </div>
+                    <div class="space-y-1">${cardContent}</div>
+                `;
                 tableBody.appendChild(card);
             }
         });
@@ -2576,6 +2628,7 @@ function copyDebriefContent(contentElement, buttonElement) {
         const addArticleLinkBtn = document.getElementById('add-article-link-btn');
         const addYoutubeLinkBtn = document.getElementById('add-youtube-link-btn');
         const addPodcastBtn = document.getElementById('add-podcast-btn');
+        const addTextBtn = document.getElementById('add-text-btn');
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
@@ -2879,6 +2932,11 @@ if (closeDebriefModalBtn && debriefModal) {
         if (addArticleLinkBtn) addArticleLinkBtn.addEventListener('click', () => { addLink('Article RSS Links', 'article-link-input'); if (websiteModal) websiteModal.classList.add('hidden'); });
         if (addYoutubeLinkBtn) addYoutubeLinkBtn.addEventListener('click', () => { addLink('YouTube Links', 'youtube-link-input'); if (youtubeModal) youtubeModal.classList.add('hidden'); });
         if (addPodcastBtn) addPodcastBtn.addEventListener('click', () => { addPodcast(); if (podcastModal) podcastModal.classList.add('hidden'); });
+        if (addTextBtn) {
+            addTextBtn.addEventListener('click', () => {
+                addPastedText(); // Appelle notre nouvelle fonction
+            });
+        }
         
         if (pdfUploadArea && pdfFileInput) {
             pdfUploadArea.addEventListener('click', () => { if (!pdfFileInput.disabled) { pdfFileInput.click(); } });
