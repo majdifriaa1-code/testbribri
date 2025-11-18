@@ -179,48 +179,50 @@
         }
 
 
-      /* =========================================
-           CORRECTIF SPÉCIFIQUE STUDIO (DARK MODE)
-           ========================================= */
-
-        /* 1. Force le fond de la carte à devenir gris foncé */
+      /* ==================================================
+           CORRECTIF "FORCE BRUTE" POUR LES CARTES STUDIO
+           ================================================== */
+        
+        /* 1. On force le fond de la carte en GRIS FONCÉ (Slate-800) */
         [data-theme="dark"] .studio-card {
-            background-color: var(--bg-tertiary) !important;
-            border-color: var(--border-color) !important;
-            box-shadow: none !important; /* Enlève l'ombre blanche s'il y en a */
+            background-color: #1e293b !important; /* Fond foncé direct */
+            border: 1px solid #334155 !important; /* Bordure grise */
+            color: #f8fafc !important; /* Texte blanc par défaut */
+            box-shadow: none !important;
         }
 
-        /* 2. Force le "Titre" (Audio Overview, AI Presentation) à devenir blanc */
-        [data-theme="dark"] .studio-card span.font-medium, 
-        [data-theme="dark"] .studio-card .text-gray-900 {
-            color: var(--text-primary) !important;
+        /* 2. On force TOUS les textes à l'intérieur à être clairs */
+        /* L'étoile * cible tous les éléments enfants */
+        [data-theme="dark"] .studio-card * {
+            color: #f1f5f9 !important; /* Blanc cassé */
+            border-color: #334155 !important;
         }
 
-        /* 3. Force le "Sous-texte" (Description) à devenir gris clair */
-        /* On cible le texte direct qui n'est pas le titre */
-        [data-theme="dark"] .studio-card {
-            color: var(--text-secondary) !important;
+        /* 3. On rétablit les couleurs spécifiques pour les sous-textes (descriptions) */
+        [data-theme="dark"] .studio-card p,
+        [data-theme="dark"] .studio-card span.text-sm,
+        [data-theme="dark"] .studio-card .text-gray-500 {
+            color: #94a3b8 !important; /* Gris clair pour le contraste */
         }
 
-        /* 4. Effet de survol élégant en mode sombre */
+        /* 4. On gère le badge "5 restantes" spécifiquement */
+        [data-theme="dark"] #presentation-count {
+            background-color: #334155 !important; /* Fond du badge */
+            color: #60a5fa !important; /* Texte bleu clair */
+        }
+
+        /* 5. Effet de survol (Hover) */
         [data-theme="dark"] .studio-card:not(:disabled):hover {
-            background-color: var(--bg-hover) !important;
-            border-color: var(--accent-primary) !important;
+            background-color: #334155 !important; /* Un peu plus clair au survol */
+            border-color: #667eea !important; /* Bordure violette */
             transform: translateY(-2px);
         }
-        
-        /* 5. Corrige le petit badge "5 restantes" en mode sombre */
-        [data-theme="dark"] #presentation-count {
-            background-color: rgba(255, 255, 255, 0.1) !important; /* Fond translucide */
-            color: var(--text-primary) !important; /* Texte blanc */
-        }
-        
-        /* 6. Ajuste les icônes SVG à l'intérieur */
-        [data-theme="dark"] .studio-card svg {
-            color: var(--text-placeholder) !important;
-        }
-        [data-theme="dark"] .studio-card:hover svg {
-            color: var(--accent-primary) !important;
+
+        /* 6. Cas spécifique : Les badges "Bientôt" et "Premium" */
+        /* On veut garder leur couleur de texte d'origine (souvent blanc) */
+        [data-theme="dark"] .studio-card .bg-purple-100,
+        [data-theme="dark"] .studio-card .bg-yellow-100 {
+             color: inherit !important; /* On laisse le CSS d'origine gérer ça */
         }
       
         body { 
