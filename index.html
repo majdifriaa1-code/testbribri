@@ -40,7 +40,57 @@
             --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
             --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
         }
+
+/* CONFIGURATION DU MODE DARK */
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;  /* Fond très sombre (bleu nuit) */
+            --bg-secondary: #1e293b; /* Fond des cartes/panels */
+            --bg-tertiary: #334155;  /* Fond des éléments secondaires */
+            --bg-hover: #374151;
+            
+            --text-primary: #f1f5f9; /* Texte quasi blanc */
+            --text-secondary: #94a3b8; /* Texte gris clair */
+            --text-placeholder: #64748b;
+            
+            --border-color: #334155; /* Bordures sombres */
+            
+            /* On garde les accents mais on adapte les ombres */
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+            
+            /* Ajustement spécifique pour les gradients en mode sombre */
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* Ajustement spécifique pour les Panels en mode dark */
+        [data-theme="dark"] .panel {
+            background: var(--bg-secondary);
+            border-color: var(--border-color);
+        }
         
+        [data-theme="dark"] .panel-header {
+            background: linear-gradient(to right, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            border-bottom-color: var(--border-color);
+        }
+
+        /* Ajustement des inputs en mode dark */
+        [data-theme="dark"] .input-field, 
+        [data-theme="dark"] .pill-select,
+        [data-theme="dark"] .chat-input-wrapper {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        
+        /* Ajustement des bulles de chat IA */
+        [data-theme="dark"] .chat-bubble.ai {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+      
         body { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-primary);
@@ -641,7 +691,7 @@
         }
         
         .modal-content-lg {
-            background-color: white;
+            background-color: var(--bg-secondary);
             padding: 2rem;
             border-radius: 24px;
             width: 100%;
@@ -707,7 +757,7 @@
         }
         
         .modal-content-sm {
-            background-color: white;
+            background-color: var(--bg-secondary);
             padding: 2rem;
             border-radius: 20px;
             width: 100%;
@@ -895,7 +945,7 @@
 </head>
 <body>
 
- <header id="main-header" class="px-4 py-2 flex items-center justify-between bg-white border-b border-gray-200 hidden">
+ <header id="main-header" class="px-4 py-2 flex items-center justify-between border-b border-gray-200 hidden"style="background-color: var(--bg-secondary);">
      <div class="flex items-center gap-3">
         <img src="https://cdn.prod.website-files.com/68b9f8920957ffd144ee6dd0/68f2cd833c67a2590b977707_Logo%20only.png" alt="Brieova Logo" class="h-8 w-auto">
         <span class="font-bold text-lg text-gray-800">BRIEOVA</span>
@@ -915,6 +965,18 @@
             <a href="#" class="dropdown-item">Discord</a>
             <a href="#" class="dropdown-item">Output Language</a>
             <a href="#" class="dropdown-item">Device</a>
+          <div class="dropdown-item flex justify-between items-center cursor-pointer" onclick="toggleDarkMode(event)">
+                    <span class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        Dark Mode
+                    </span>
+                    <div class="relative inline-flex items-center cursor-pointer pointer-events-none">
+                        <input type="checkbox" id="dark-mode-checkbox" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    </div>
+                </div>
             <div class="border-t border-gray-100 my-1"></div>
             <a href="#" class="dropdown-item">Upgrade to Plus</a>
         </div>
@@ -1151,7 +1213,7 @@
 
         </div>
 
-    <div class="p-4 bg-white">
+    <div class="p-4" style="background-color: var(--bg-secondary);">
         <form id="chat-form" class="chat-input-wrapper">
             <button type="button" class="p-2 text-gray-500 hover:text-gray-700">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -1481,6 +1543,52 @@ let presentationIframe = null; // Référence vers l'élément iframe
     //  2. DÉFINITION DE TOUTES LES FONCTIONS
     // ===================================================================
 
+// 1. Fonction pour appliquer le thème (visuel + mémoire)
+    function applyTheme(theme) {
+        const htmlEl = document.documentElement;
+        const checkbox = document.getElementById('dark-mode-checkbox');
+        
+        if (theme === 'dark') {
+            htmlEl.setAttribute('data-theme', 'dark'); // Active le CSS dark
+            if(checkbox) checkbox.checked = true;      // Active le bouton switch
+        } else {
+            htmlEl.removeAttribute('data-theme');      // Revient au CSS par défaut
+            if(checkbox) checkbox.checked = false;     // Désactive le bouton switch
+        }
+        
+        // Sauvegarde le choix dans la mémoire du navigateur
+        localStorage.setItem('theme', theme);
+    }
+
+    // 2. Fonction d'initialisation (se lance au chargement de la page)
+    function initTheme() {
+        // Vérifie si l'utilisateur a déjà choisi un thème
+        const savedTheme = localStorage.getItem('theme');
+        // Vérifie si l'ordinateur de l'utilisateur est en mode sombre
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Si 'dark' est sauvegardé OU (pas de sauvegarde ET système sombre)
+        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+            applyTheme('dark');
+        } else {
+            applyTheme('light');
+        }
+    }
+
+    // 3. Fonction déclenchée quand on clique sur le bouton
+    function toggleDarkMode(e) {
+        // Empêche le menu de se fermer quand on clique sur le switch
+        if (e) e.stopPropagation();
+        
+        // Regarde le thème actuel
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        // Bascule vers l'opposé
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        applyTheme(newTheme);
+    }
+
+  
     function showNotification(title, message, type = 'success') {
         return new Promise(resolve => {
             const modal = document.getElementById('generic-modal');
@@ -2692,7 +2800,7 @@ function copyDebriefContent(contentElement, buttonElement) {
     //  4. TOUS LES ÉCOUTEURS D'ÉVÉNEMENTS
     // ===================================================================
     document.addEventListener('DOMContentLoaded', () => {
-
+    initTheme(); // <--- AJOUTEZ CETTE LIGNE ICI
         // --- SÉLECTION DES ÉLÉMENTS ---
         const loginButton = document.getElementById('login-button');
         const showSignupBtn = document.getElementById('show-signup-modal-button');
