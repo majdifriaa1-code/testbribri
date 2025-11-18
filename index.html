@@ -177,6 +177,51 @@
         [data-theme="dark"] .btn-secondary:hover {
             background-color: var(--bg-hover) !important;
         }
+
+
+      /* =========================================
+           CORRECTIF SPÉCIFIQUE STUDIO (DARK MODE)
+           ========================================= */
+
+        /* 1. Force le fond de la carte à devenir gris foncé */
+        [data-theme="dark"] .studio-card {
+            background-color: var(--bg-tertiary) !important;
+            border-color: var(--border-color) !important;
+            box-shadow: none !important; /* Enlève l'ombre blanche s'il y en a */
+        }
+
+        /* 2. Force le "Titre" (Audio Overview, AI Presentation) à devenir blanc */
+        [data-theme="dark"] .studio-card span.font-medium, 
+        [data-theme="dark"] .studio-card .text-gray-900 {
+            color: var(--text-primary) !important;
+        }
+
+        /* 3. Force le "Sous-texte" (Description) à devenir gris clair */
+        /* On cible le texte direct qui n'est pas le titre */
+        [data-theme="dark"] .studio-card {
+            color: var(--text-secondary) !important;
+        }
+
+        /* 4. Effet de survol élégant en mode sombre */
+        [data-theme="dark"] .studio-card:not(:disabled):hover {
+            background-color: var(--bg-hover) !important;
+            border-color: var(--accent-primary) !important;
+            transform: translateY(-2px);
+        }
+        
+        /* 5. Corrige le petit badge "5 restantes" en mode sombre */
+        [data-theme="dark"] #presentation-count {
+            background-color: rgba(255, 255, 255, 0.1) !important; /* Fond translucide */
+            color: var(--text-primary) !important; /* Texte blanc */
+        }
+        
+        /* 6. Ajuste les icônes SVG à l'intérieur */
+        [data-theme="dark"] .studio-card svg {
+            color: var(--text-placeholder) !important;
+        }
+        [data-theme="dark"] .studio-card:hover svg {
+            color: var(--accent-primary) !important;
+        }
       
         body { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
