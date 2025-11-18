@@ -90,6 +90,90 @@
             border-color: var(--border-color);
         }
 
+/* =========================================
+           CORRECTIFS AVANCÉS POUR LE MODE DARK
+           ========================================= */
+
+        /* 1. Corriger le Menu Déroulant (Settings) */
+        [data-theme="dark"] .dropdown-menu {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        [data-theme="dark"] .dropdown-item {
+            color: var(--text-primary);
+        }
+        [data-theme="dark"] .dropdown-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        /* 2. Corriger le texte du Débrief (Classe .prose) */
+        [data-theme="dark"] .prose {
+            color: var(--text-secondary);
+        }
+        [data-theme="dark"] .prose strong,
+        [data-theme="dark"] .prose h1,
+        [data-theme="dark"] .prose h2,
+        [data-theme="dark"] .prose h3,
+        [data-theme="dark"] .prose h4 {
+            color: var(--text-primary) !important;
+        }
+        [data-theme="dark"] .prose a {
+            color: var(--accent-primary);
+        }
+        [data-theme="dark"] .prose li::marker {
+            color: var(--text-secondary);
+        }
+
+        /* 3. Corriger les Cartes Studio (Audio/Presentation) */
+        [data-theme="dark"] .studio-card {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        [data-theme="dark"] .studio-card:not(:disabled):hover {
+            background-color: var(--bg-hover);
+            border-color: var(--accent-primary);
+        }
+        /* Le texte à l'intérieur des cartes */
+        [data-theme="dark"] .studio-card span,
+        [data-theme="dark"] .studio-card svg {
+            color: var(--text-primary);
+        }
+
+        /* 4. Forcer les titres et textes gris de Tailwind à devenir clairs */
+        [data-theme="dark"] .text-gray-800,
+        [data-theme="dark"] .text-gray-900,
+        [data-theme="dark"] .text-gray-700 {
+            color: var(--text-primary) !important;
+        }
+        
+        [data-theme="dark"] .text-gray-600,
+        [data-theme="dark"] .text-gray-500 {
+            color: var(--text-secondary) !important;
+        }
+
+        /* 5. Corriger les Modales */
+        [data-theme="dark"] .modal-content,
+        [data-theme="dark"] .modal-content-lg,
+        [data-theme="dark"] .modal-content-sm {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        /* 6. Corriger les champs de formulaire (Inputs) */
+        [data-theme="dark"] input,
+        [data-theme="dark"] textarea,
+        [data-theme="dark"] select {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        [data-theme="dark"] input::placeholder,
+        [data-theme="dark"] textarea::placeholder {
+            color: var(--text-placeholder);
+        }
+
       
         body { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
