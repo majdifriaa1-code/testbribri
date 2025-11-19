@@ -162,7 +162,36 @@
             border-color: rgba(255, 255, 255, 0.1);
         }
 
+/* =========================================
+           CORRECTIF BADGES COUPÉS (HEADER)
+           ========================================= */
+        
+        /* 1. Empêcher le conteneur des badges de rétrécir */
+        .status-container {
+            flex-shrink: 0 !important; /* Interdit au navigateur de réduire cet élément */
+            min-width: fit-content !important; /* Force la largeur à s'adapter au contenu */
+        }
 
+        /* 2. Empêcher les badges eux-mêmes d'être écrasés */
+        .status-badge, 
+        .credits-badge {
+            flex-shrink: 0 !important;
+            white-space: nowrap !important; /* Empêche le texte de passer à la ligne */
+        }
+
+        /* 3. Si l'espace manque, c'est le sélecteur de format qui doit rétrécir, pas les badges */
+        #debrief-format-selector {
+            flex-shrink: 1; /* Autorise le rétrécissement */
+            max-width: 160px; /* Limite sa largeur maximale pour laisser de la place */
+            text-overflow: ellipsis;
+        }
+        
+        /* Optionnel : Cacher le label "Format report" si l'écran est trop petit */
+        @media (max-width: 1100px) {
+            label[for="debrief-format-selector"] {
+                display: none;
+            }
+        }
 
       
 /* =========================================
