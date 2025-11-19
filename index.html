@@ -218,6 +218,38 @@
         [data-theme="dark"] .studio-card-primary::after {
             background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%) !important;
         }
+
+/* =========================================
+           CORRECTIF ABONNEMENT / PLANS (PROFIL)
+           ========================================= */
+
+        /* 1. Carte "Passer au Premium" : Fond sombre bleuté */
+        [data-theme="dark"] #plans-upgrade-section > div {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+            border-color: var(--accent-primary) !important;
+        }
+
+        /* 2. Carte "Annuler l'abonnement" : Fond sombre rougeâtre */
+        [data-theme="dark"] #plans-cancel-section > div {
+            background: rgba(239, 68, 68, 0.1) !important; /* Rouge très sombre transparent */
+            border-color: var(--danger-color) !important;
+        }
+
+        /* 3. Forcer la lisibilité des textes spécifiques (Prix, description) */
+        [data-theme="dark"] #plans-upgrade-section h4,
+        [data-theme="dark"] #plans-upgrade-section p,
+        [data-theme="dark"] #plans-upgrade-section .text-gray-900,
+        [data-theme="dark"] #plans-upgrade-section .text-gray-600, 
+        [data-theme="dark"] #plans-upgrade-section .text-gray-500,
+        [data-theme="dark"] #plans-cancel-section h4,
+        [data-theme="dark"] #plans-cancel-section p {
+            color: var(--text-primary) !important; /* Blanc */
+        }
+
+
+
+
+      
         body { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-primary);
