@@ -91,6 +91,80 @@
             border-color: var(--border-color);
         }
 
+/* ===== NOUVEAUX BADGES STATUS & CREDITS ===== */
+        
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 0.25rem 0.375rem;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        /* Badge PREMIUM (Doré/Luxe) */
+        .status-badge.premium {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Badge FREE (Subtil/Clean) */
+        .status-badge.free {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Badge CREDITS (Moderne avec icône) */
+        .credits-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
+        }
+        
+        .credits-badge.low {
+             background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); /* Rouge si bas */
+             box-shadow: 0 2px 10px rgba(239, 68, 68, 0.25);
+        }
+
+        /* --- Adaptations Mode Dark --- */
+        [data-theme="dark"] .status-container {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="dark"] .status-badge.free {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+
+
+      
 /* =========================================
            CORRECTIFS ULTIMES POUR LE MODE DARK
            ========================================= */
@@ -1246,14 +1320,18 @@
     </select>
 
 </div>
-                <div class="flex items-center gap-2">
-                    <button id="copy-debrief-button" title="Copier le texte" class="p-2 rounded-full hover:bg-gray-200 transition-colors hidden">
-        <svg id="copy-icon" class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-        <svg id="copy-success-icon" class="w-5 h-5 text-green-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                <div class="flex items-center gap-3 status-container">
+    <button id="copy-debrief-button" title="Copier le texte" class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors hidden text-gray-500 dark:text-gray-400">
+        <svg id="copy-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+        <svg id="copy-success-icon" class="w-4 h-4 text-green-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
     </button>
-                     <div id="user-status" class="text-xs font-medium px-2 py-1 rounded-full bg-yellow-100 text-yellow-800"></div>
-                     <div id="debriefs-remaining" class="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-800"></div>
-                </div>
+
+    <div id="user-status-badge" class="status-badge free">Chargement...</div>
+    <div id="credits-badge" class="credits-badge hidden">
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        <span id="credits-count">0</span>
+    </div>
+</div>
             </div>
             <div class="panel-content" id="debrief-output-container">
                 <div id="blur-target">
@@ -2541,19 +2619,46 @@ let presentationIframe = null; // Référence vers l'élément iframe
         const savedFormat = userRecord.fields['reportFormat'] || 'default';
         document.getElementById('debrief-format-selector').value = savedFormat;
         const userStatus = userRecord.fields.Status || 'Free';
-      // --- AJOUT POUR LE BOUTON PREMIUM DU HEADER ---
-    const headerUpgradeBtn = document.getElementById('header-upgrade-btn');
-    if (headerUpgradeBtn) {
-        headerUpgradeBtn.classList.toggle('hidden', userStatus === 'Premium');
-    }
-    // --- FIN AJOUT ---
-        document.getElementById('user-status').textContent = userStatus;
-        const debriefsRemainingEl = document.getElementById('debriefs-remaining');
-        if (userStatus === 'Premium') {
-            debriefsRemainingEl.classList.add('hidden');
-        } else {
-            debriefsRemainingEl.classList.remove('hidden');
-            debriefsRemainingEl.textContent = `${parseInt(userRecord.fields['Debriefs Restants']) || 0} Credits`;
+
+        // 1. Gestion du bouton "Passer Premium" dans le header (On le garde !)
+        const headerUpgradeBtn = document.getElementById('header-upgrade-btn');
+        if (headerUpgradeBtn) {
+            headerUpgradeBtn.classList.toggle('hidden', userStatus === 'Premium');
+        }
+
+        // 2. Gestion des nouveaux badges modernes (On remplace l'ancien affichage)
+        const statusBadge = document.getElementById('user-status-badge');
+        const creditsBadge = document.getElementById('credits-badge');
+        const creditsCount = document.getElementById('credits-count');
+        const remainingCredits = parseInt(userRecord.fields['Debriefs Restants']) || 0;
+
+        // Configuration du Badge Status
+        if (statusBadge) {
+            if (userStatus === 'Premium') {
+                // Design Premium (Or/Dégradé)
+                statusBadge.className = 'status-badge premium';
+                statusBadge.innerHTML = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg> PREMIUM`;
+                
+                // On cache le compteur de crédits car c'est illimité
+                if(creditsBadge) creditsBadge.classList.add('hidden');
+            } else {
+                // Design Free (Gris)
+                statusBadge.className = 'status-badge free';
+                statusBadge.textContent = 'FREE';
+                
+                // On affiche et configure le compteur de crédits
+                if(creditsBadge && creditsCount) {
+                    creditsBadge.classList.remove('hidden');
+                    creditsCount.textContent = `${remainingCredits} Credits`;
+                    
+                    // Passe en rouge si crédits faibles (< 2)
+                    if (remainingCredits < 2) {
+                        creditsBadge.classList.add('low');
+                    } else {
+                        creditsBadge.classList.remove('low');
+                    }
+                }
+            }
         }
         document.getElementById('user-persona-input').value = userRecord.fields['User Persona (AI)'] || '';
         const debriefStatus = userRecord.fields['Debrief Status'];
