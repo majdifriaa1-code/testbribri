@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -179,6 +180,52 @@
         }
 
 
+      /* ==================================================
+           CORRECTIF "FORCE BRUTE" POUR LES CARTES STUDIO
+           ================================================== */
+        
+        /* 1. On force le fond de la carte en GRIS FONCÉ (Slate-800) */
+        [data-theme="dark"] .studio-card {
+            background-color: #1e293b !important; /* Fond foncé direct */
+            border: 1px solid #334155 !important; /* Bordure grise */
+            color: #f8fafc !important; /* Texte blanc par défaut */
+            box-shadow: none !important;
+        }
+
+        /* 2. On force TOUS les textes à l'intérieur à être clairs */
+        /* L'étoile * cible tous les éléments enfants */
+        [data-theme="dark"] .studio-card * {
+            color: #f1f5f9 !important; /* Blanc cassé */
+            border-color: #334155 !important;
+        }
+
+        /* 3. On rétablit les couleurs spécifiques pour les sous-textes (descriptions) */
+        [data-theme="dark"] .studio-card p,
+        [data-theme="dark"] .studio-card span.text-sm,
+        [data-theme="dark"] .studio-card .text-gray-500 {
+            color: #94a3b8 !important; /* Gris clair pour le contraste */
+        }
+
+        /* 4. On gère le badge "5 restantes" spécifiquement */
+        [data-theme="dark"] #presentation-count {
+            background-color: #334155 !important; /* Fond du badge */
+            color: #60a5fa !important; /* Texte bleu clair */
+        }
+
+        /* 5. Effet de survol (Hover) */
+        [data-theme="dark"] .studio-card:not(:disabled):hover {
+            background-color: #334155 !important; /* Un peu plus clair au survol */
+            border-color: #667eea !important; /* Bordure violette */
+            transform: translateY(-2px);
+        }
+
+        /* 6. Cas spécifique : Les badges "Bientôt" et "Premium" */
+        /* On veut garder leur couleur de texte d'origine (souvent blanc) */
+        [data-theme="dark"] .studio-card .bg-purple-100,
+        [data-theme="dark"] .studio-card .bg-yellow-100 {
+             color: inherit !important; /* On laisse le CSS d'origine gérer ça */
+        }
+      
         body { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-primary);
@@ -1632,25 +1679,19 @@ let presentationIframe = null; // Référence vers l'élément iframe
     // ===================================================================
 
 // 1. Fonction pour appliquer le thème (visuel + mémoire)
-function applyTheme(theme) {
+    function applyTheme(theme) {
         const htmlEl = document.documentElement;
         const checkbox = document.getElementById('dark-mode-checkbox');
         
         if (theme === 'dark') {
-            htmlEl.setAttribute('data-theme', 'dark');
-            if(checkbox) checkbox.checked = true;
-            
-            // APPEL DE LA NOUVELLE FONCTION (Mode Sombre)
-            forceStudioStyle(true); 
-            
+            htmlEl.setAttribute('data-theme', 'dark'); // Active le CSS dark
+            if(checkbox) checkbox.checked = true;      // Active le bouton switch
         } else {
-            htmlEl.removeAttribute('data-theme');
-            if(checkbox) checkbox.checked = false;
-            
-            // APPEL DE LA NOUVELLE FONCTION (Mode Clair)
-            forceStudioStyle(false);
+            htmlEl.removeAttribute('data-theme');      // Revient au CSS par défaut
+            if(checkbox) checkbox.checked = false;     // Désactive le bouton switch
         }
         
+        // Sauvegarde le choix dans la mémoire du navigateur
         localStorage.setItem('theme', theme);
     }
 
@@ -1681,51 +1722,7 @@ function applyTheme(theme) {
         
         applyTheme(newTheme);
     }
-// --- FONCTION DE SECOURS POUR LE STUDIO ---
-    function forceStudioStyle(isDark) {
-        // On cible toutes les cartes du studio
-        const cards = document.querySelectorAll('.studio-card');
-        
-        cards.forEach(card => {
-            if (isDark) {
-                // MODE SOMBRE : On injecte le style directement dans l'élément HTML
-                card.style.setProperty('background-color', '#1e293b', 'important'); // Gris foncé
-                card.style.setProperty('border-color', '#334155', 'important');     // Bordure grise
-                card.style.setProperty('box-shadow', 'none', 'important');
-                
-                // On force aussi la couleur du texte à l'intérieur
-                const textes = card.querySelectorAll('span, svg, p, h3, div');
-                textes.forEach(el => {
-                    // On ne touche pas aux badges colorés (Premium/Bientôt)
-                    if (!el.classList.contains('bg-yellow-100') && !el.classList.contains('bg-purple-100')) {
-                         el.style.setProperty('color', '#f1f5f9', 'important'); // Blanc
-                    }
-                });
-                
-                // Cas spécial pour le badge "5 restantes"
-                const countBadge = card.querySelector('#presentation-count');
-                if (countBadge) {
-                    countBadge.style.setProperty('background-color', '#334155', 'important');
-                    countBadge.style.setProperty('color', '#60a5fa', 'important'); // Bleu clair
-                }
 
-            } else {
-                // MODE CLAIR : On efface tout pour laisser le CSS normal revenir
-                card.style.removeProperty('background-color');
-                card.style.removeProperty('border-color');
-                card.style.removeProperty('box-shadow');
-                
-                const textes = card.querySelectorAll('*');
-                textes.forEach(el => el.style.removeProperty('color'));
-                
-                const countBadge = card.querySelector('#presentation-count');
-                if (countBadge) {
-                    countBadge.style.removeProperty('background-color');
-                    countBadge.style.removeProperty('color');
-                }
-            }
-        });
-    }
   
     function showNotification(title, message, type = 'success') {
         return new Promise(resolve => {
