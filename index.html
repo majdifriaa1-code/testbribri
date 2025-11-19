@@ -44,21 +44,21 @@
 
 /* CONFIGURATION DU MODE DARK */
         [data-theme="dark"] {
-            --bg-primary: #0f172a;  /* Fond très sombre (bleu nuit) */
-            --bg-secondary: #1e293b; /* Fond des cartes/panels */
-            --bg-tertiary: #334155;  /* Fond des éléments secondaires */
-            --bg-hover: #374151;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b; /* Fond des panels */
+            --bg-tertiary: #334155;  /* Fond des cartes Studio */
+            --bg-hover: #475569;
             
-            --text-primary: #f1f5f9; /* Texte quasi blanc */
-            --text-secondary: #94a3b8; /* Texte gris clair */
-            --text-placeholder: #64748b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1; /* Gris très clair pour être lisible sur fond sombre */
+            --text-placeholder: #94a3b8;
             
-            --border-color: #334155; /* Bordures sombres */
+            --border-color: #334155;
             
-            /* On garde les accents mais on adapte les ombres */
-            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+            /* IMPORTANT : On redéfinit les ombres pour qu'elles ne fassent pas de "halo" blanc */
+            --shadow-sm: none;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
             
             /* Ajustement spécifique pour les gradients en mode sombre */
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -181,51 +181,43 @@
 
 
       /* ==================================================
-           CORRECTIF "FORCE BRUTE" POUR LES CARTES STUDIO
+           CORRECTIF "FORCE BRUTE" POUR LE NOUVEAU STUDIO
            ================================================== */
         
-        /* 1. On force le fond de la carte en GRIS FONCÉ (Slate-800) */
-        [data-theme="dark"] .studio-card {
-            background-color: #1e293b !important; /* Fond foncé direct */
-            border: 1px solid #334155 !important; /* Bordure grise */
-            color: #f8fafc !important; /* Texte blanc par défaut */
+        /* 1. On force le fond de la carte moderne en GRIS FONCÉ */
+        [data-theme="dark"] .studio-modern-card {
+            background: #1e293b !important; /* Fond foncé direct (pas de gradient blanc) */
+            border-color: #334155 !important;
             box-shadow: none !important;
         }
 
-        /* 2. On force TOUS les textes à l'intérieur à être clairs */
-        /* L'étoile * cible tous les éléments enfants */
-        [data-theme="dark"] .studio-card * {
-            color: #f1f5f9 !important; /* Blanc cassé */
-            border-color: #334155 !important;
+        /* 2. Effet de survol */
+        [data-theme="dark"] .studio-modern-card:hover {
+            background: #334155 !important; /* Un peu plus clair au survol */
+            border-color: #667eea !important;
+            transform: translateY(-4px);
         }
 
-        /* 3. On rétablit les couleurs spécifiques pour les sous-textes (descriptions) */
-        [data-theme="dark"] .studio-card p,
-        [data-theme="dark"] .studio-card span.text-sm,
-        [data-theme="dark"] .studio-card .text-gray-500 {
-            color: #94a3b8 !important; /* Gris clair pour le contraste */
+        /* 3. Forcer le TITRE en blanc */
+        [data-theme="dark"] .studio-card-title {
+            color: #f1f5f9 !important; 
         }
 
-        /* 4. On gère le badge "5 restantes" spécifiquement */
+        /* 4. Forcer la DESCRIPTION en gris clair */
+        [data-theme="dark"] .studio-card-description {
+            color: #94a3b8 !important;
+        }
+
+        /* 5. Le compteur "5 restantes" */
         [data-theme="dark"] #presentation-count {
-            background-color: #334155 !important; /* Fond du badge */
-            color: #60a5fa !important; /* Texte bleu clair */
+            background-color: #334155 !important;
+            color: #60a5fa !important;
         }
-
-        /* 5. Effet de survol (Hover) */
-        [data-theme="dark"] .studio-card:not(:disabled):hover {
-            background-color: #334155 !important; /* Un peu plus clair au survol */
-            border-color: #667eea !important; /* Bordure violette */
-            transform: translateY(-2px);
+        
+        /* 6. L'effet brillant (shimmer) sur la carte AI - on l'atténue */
+        [data-theme="dark"] .studio-card-primary::after {
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%) !important;
         }
-
-        /* 6. Cas spécifique : Les badges "Bientôt" et "Premium" */
-        /* On veut garder leur couleur de texte d'origine (souvent blanc) */
-        [data-theme="dark"] .studio-card .bg-purple-100,
-        [data-theme="dark"] .studio-card .bg-yellow-100 {
-             color: inherit !important; /* On laisse le CSS d'origine gérer ça */
-        }
-      
         body { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-primary);
