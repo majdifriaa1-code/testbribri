@@ -2087,11 +2087,28 @@ let presentationIframe = null; // Référence vers l'élément iframe
         // --- FIN DE LA CORRECTION ---
     }
 
-    function updateLocalUserRecord(recordFromN8n) {
-        let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
-        if (!p || typeof p !== 'object' || !p.id) return;
-        userRecord = p.fields ? p : { id: p.id, fields: { ...p } };
+   function updateLocalUserRecord(recordFromN8n) {
+    // 1. Normalisation : On s'assure d'avoir un objet unique
+    let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
+
+    // 2. CORRECTION CRITIQUE : Déballage des données n8n
+    // Si les données sont encapsulées dans "originalData" (comportement fréquent de n8n)
+    if (p && p.originalData && Array.isArray(p.originalData) && p.originalData.length > 0) {
+        p = p.originalData[0];
     }
+
+    // 3. Vérification de sécurité
+    if (!p || typeof p !== 'object' || !p.id) {
+        console.error("Données utilisateur invalides reçues de n8n:", p);
+        return;
+    }
+
+    // 4. Mise à jour de la variable globale
+    // Si les champs sont à la racine (Baserow), on les range dans .fields pour garder la compatibilité
+    userRecord = p.fields ? p : { id: p.id, fields: { ...p } };
+    
+    console.log("Données utilisateur mises à jour avec succès:", userRecord);
+}
 
     async function getUserDataByEmail(email) {
         const rawResult = await callN8n('findUser', { email });
