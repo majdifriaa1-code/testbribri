@@ -2366,11 +2366,31 @@ let presentationIframe = null; // Référence vers l'élément iframe
                     clearAction = `clearPodcast()`;
                 }
             } else if (f.n === 'PdfFiles') {
-                if (Array.isArray(fieldData) && fieldData.length > 0) {
-                    contentExists = true;
-                    cardContent = fieldData.map(file => `<div class="text-xs truncate text-gray-500" title="${file.url}">${file.visible_name || file.name}</div>`).join('');
-                    clearAction = `clearLinks('PdfFiles')`;
-                }
+    // --- CORRECTION BASEROW ---
+    let files = [];
+    
+    // 1. Si c'est déjà un tableau (plusieurs fichiers)
+    if (Array.isArray(fieldData)) {
+        files = fieldData;
+    } 
+    // 2. Si c'est un objet unique (cas actuel de votre Baserow)
+    else if (fieldData && typeof fieldData === 'object' && fieldData.url) {
+        files = [fieldData]; // On le met dans un tableau pour le traiter pareil
+    }
+
+    if (files.length > 0) {
+        contentExists = true;
+        cardContent = files.map(file => {
+            // Baserow utilise 'visible_name', Airtable 'filename'
+            const name = file.visible_name || file.name || file.filename || 'Document';
+            // On ajoute un lien cliquable pour ouvrir le PDF
+            return `<div class="text-xs truncate text-gray-500 flex items-center gap-1" title="${name}">
+                        <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                        <a href="${file.url}" target="_blank" class="hover:text-blue-600 hover:underline">${name}</a>
+                    </div>`;
+        }).join('');
+        clearAction = `clearLinks('PdfFiles')`;
+    }
             } else if (f.n === 'UserText') { // <-- BLOC AJOUTÉ POUR 'UserText'
                 if (fieldData && typeof fieldData === 'string' && fieldData.trim() !== '') {
                     contentExists = true;
