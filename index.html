@@ -2368,7 +2368,7 @@ let presentationIframe = null; // Référence vers l'élément iframe
             } else if (f.n === 'PdfFiles') {
                 if (Array.isArray(fieldData) && fieldData.length > 0) {
                     contentExists = true;
-                    cardContent = fieldData.map(file => `<div class="text-xs truncate text-gray-500" title="${file.url}">${file.filename}</div>`).join('');
+                    cardContent = fieldData.map(file => `<div class="text-xs truncate text-gray-500" title="${file.url}">${file.visible_name || file.name}</div>`).join('');
                     clearAction = `clearLinks('PdfFiles')`;
                 }
             } else if (f.n === 'UserText') { // <-- BLOC AJOUTÉ POUR 'UserText'
