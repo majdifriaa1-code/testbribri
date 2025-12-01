@@ -2487,96 +2487,75 @@ let presentationIframe = null; // Référence vers l'élément iframe
         try { await auth.signOut(); location.reload(); } catch (e) { console.error(e); }
     }
 
-  async function handlePdfUpload() {
+async function handlePdfUpload() {
     const fileInput = document.getElementById('pdf-file-input');
     const file = fileInput.files[0];
+    
     if (!file) {
         showNotification('Aucun fichier', 'Veuillez sélectionner un fichier.', 'error');
         return;
     }
     if (file.type !== 'application/pdf') {
         showNotification('Type de fichier incorrect', 'Seuls les fichiers PDF sont autorisés.', 'error');
-        fileInput.value = ''; // Réinitialise si le type est mauvais
+        fileInput.value = ''; 
         return;
     }
-    const maxSize = 50 * 1024 * 1024; // 50MB
-    if (file.size > maxSize) {
+    // Limite de 50MB
+    if (file.size > 50 * 1024 * 1024) {
         showNotification('Fichier trop volumineux', 'Le fichier ne doit pas dépasser 50 Mo.', 'error');
-        fileInput.value = ''; // Réinitialise si la taille est trop grande
+        fileInput.value = ''; 
         return;
     }
 
     const reader = new FileReader();
 
-    // --- Gestionnaire de progression (pendant la lecture locale) ---
     reader.onprogress = (event) => {
         if (event.lengthComputable) {
             const percentage = Math.round((event.loaded / event.total) * 100);
             showTempLoading(`Préparation: ${percentage}%`);
-            // console.log(`Lecture fichier: ${percentage}%`); // Décommentez pour débogage détaillé
         }
     };
 
-    // --- Gestionnaire d'erreur de lecture ---
     reader.onerror = (error) => {
-        hideTempLoading(); // Cache l'indicateur s'il y a une erreur de lecture
-        showNotification('Erreur de lecture', `Impossible de lire le fichier : ${error}`, 'error');
-        console.error("FileReader Error:", error);
-        fileInput.value = ''; // Réinitialise aussi ici
+        hideTempLoading();
+        showNotification('Erreur de lecture', `Impossible de lire le fichier`, 'error');
+        fileInput.value = ''; 
     };
 
-    // --- Gestionnaire de fin de lecture ET envoi ---
     reader.onload = async () => {
         try {
-            // Indique le début de l'envoi réseau
             showTempLoading("Ajout du PDF en cours...");
-            console.log("LOG 1: Début de l'envoi vers N8N..."); // <-- LOG 1
-
-            // Appelle N8N et attend la réponse (l'enregistrement mis à jour)
-            const updatedAirtableRecord = await callN8n('addPdfFile', {
+            
+            // Appel à n8n
+            const updatedRecord = await callN8n('addPdfFile', {
                 recordId: userRecord.id,
                 fileName: file.name,
-                fileData: reader.result // Le contenu en Base64
+                fileData: reader.result 
             });
-            console.log("LOG 2: Réponse N8N reçue:", updatedAirtableRecord); // <-- LOG 2 (affiche la réponse)
-            console.log("LOG 2.1: Avant updateLocalUserRecord."); // <-- LOG 2.1
 
-            // Met à jour l'enregistrement local avec la réponse de N8N
-            updateLocalUserRecord(updatedAirtableRecord);
-            console.log("LOG 3: Après updateLocalUserRecord. Avant updateSourcesTable."); // <-- LOG 3
+            // Mise à jour sécurisée des données locales
+            updateLocalUserRecord(updatedRecord);
 
-            // Rafraîchit UNIQUEMENT la table des sources dans l'UI
-            showDashboard();
-            
-            console.log("LOG 4: Après showDashboard. Avant hideTempLoading.");
+            // --- MODIFICATION IMPORTANTE ICI ---
+            // On rafraîchit TOUT le dashboard (Header + Badges + Table)
+            // au lieu de juste updateSourcesTable()
+            showDashboard(); 
+            // -----------------------------------
 
-            // Cache l'indicateur de chargement après succès
             hideTempLoading();
-            console.log("LOG 5: Après hideTempLoading."); // <-- LOG 5
-
-            // Affiche la notification de succès
-            showNotification('Succès', 'Votre fichier PDF a été ajouté comme source.', 'success');
-
-            // Réinitialise le champ input file APRÈS succès complet
+            showNotification('Succès', 'Votre fichier PDF a été ajouté.', 'success');
+            
             fileInput.value = '';
-
-            // Ferme la modale d'ajout après succès
             const addSourceModal = document.getElementById('add-source-modal');
             if (addSourceModal) addSourceModal.classList.add('hidden');
 
-
         } catch (e) {
-            console.error("LOG ERREUR: Erreur dans reader.onload (probablement pendant callN8N ou màj UI):", e); // <-- LOG ERREUR
-            // S'assure de cacher l'indicateur même en cas d'erreur
             hideTempLoading();
-            // Affiche une notification d'erreur à l'utilisateur
             showNotification('Erreur', `L'envoi du fichier a échoué : ${e.message}`, 'error');
-            // Réinitialise le champ input file en cas d'erreur aussi
-            fileInput.value = '';
+            fileInput.value = ''; 
         }
     };
 
-    // Démarre la lecture du fichier en Base64
     reader.readAsDataURL(file);
 }
 
