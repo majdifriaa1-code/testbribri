@@ -2345,21 +2345,28 @@ async function addPodcast() {
 async function clearPodcast() {
         if (await showNotification('Confirmation', 'Supprimer le podcast actuel ?', 'confirm')) {
             try {
-                // 1. On appelle n8n avec des chaînes vides pour effacer les deux colonnes
+                // 1. MISE À JOUR OPTIMISTE (Immédiate)
+                if (userRecord && userRecord.fields) {
+                    userRecord.fields['Podcast RSS Links'] = '';
+                    userRecord.fields['Podcast titler'] = '';
+                }
+                showDashboard(); // Le podcast disparaît immédiatement de l'écran
+
+                // 2. Travail serveur
                 await callN8n('updatePodcasts', { 
                     recordId: userRecord.id, 
-                    link: '',   // Efface la colonne 'Podcast RSS Links'
-                    title: ''   // Efface la colonne 'Podcast titler'
+                    link: '', 
+                    title: '' 
                 });
                 
-                // 2. RECHARGEMENT ROBUSTE (Toujours nécessaire pour Baserow)
+                // 3. Resynchronisation pour le Statut Premium
                 if (firebaseUser && firebaseUser.email) {
                     await getUserDataByEmail(firebaseUser.email);
                 }
 
-                // 3. Mise à jour de l'affichage
                 showDashboard();
                 showNotification('Succès', 'Podcast supprimé.', 'success');
+
             } catch (e) { 
                 showNotification('Erreur', e.message, 'error'); 
             }
