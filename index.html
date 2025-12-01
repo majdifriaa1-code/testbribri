@@ -2482,11 +2482,11 @@ async function clearPodcast() {
 
     function pollDebriefStatus(recordId) {
         let attempts = 0;
-        const maxAttempts = 24;
+        const maxAttempts = 120;
         const intervalId = setInterval(async () => {
             if (attempts >= maxAttempts) {
                 clearInterval(intervalId);
-                showNotification('Délai dépassé', 'La création du débrief prend plus de temps que prévu. Vous recevrez le résultat par email.', 'error');
+                showNotification('Délai dépassé', 'La création du débrief prend plus de temps que prévu. Merci de actualiser la page régulièrement.', 'error');
                 document.getElementById('blur-target').classList.remove('blur-sm');
                 document.getElementById('debrief-loading-overlay').classList.add('hidden');
                 updateUsageLimit();
