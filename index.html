@@ -2683,7 +2683,7 @@ async function handlePdfUpload() {
         return;
     }
 
-    // 2. MISE À JOUR OPTIMISTE (Pour que l'utilisateur voie quelque chose tout de suite)
+    // 2. MISE À JOUR OPTIMISTE (Affichage immédiat "en attendant")
     let currentFiles = [];
     const rawFiles = userRecord.fields['PdfFiles'];
     
@@ -2692,33 +2692,26 @@ async function handlePdfUpload() {
         currentFiles = rawFiles;
     } else if (rawFiles && typeof rawFiles === 'object') {
         currentFiles = [rawFiles];
-    } else if (typeof rawFiles === 'string' && rawFiles.trim() !== '') {
-        // Si c'est une string, on la garde telle quelle ou on la parse si nécessaire
-        // Pour l'optimiste, on ne se complique pas trop, on affichera le nouveau
     }
 
-    // On prépare les "faux" fichiers pour l'affichage immédiat
+    // On crée des "faux" fichiers pour que l'utilisateur voie l'ajout tout de suite
     const optimisticNewFiles = validFiles.map(f => ({
         visible_name: f.name, 
         name: f.name,
         url: '#' 
     }));
 
-    // On met à jour l'affichage localement
     if (userRecord && userRecord.fields) {
-        if (Array.isArray(currentFiles)) {
-             userRecord.fields['PdfFiles'] = [...currentFiles, ...optimisticNewFiles];
-        } else {
-             // Si le format était inconnu, on force un tableau avec les nouveaux
-             userRecord.fields['PdfFiles'] = optimisticNewFiles;
-        }
+         // On force un tableau avec les anciens + nouveaux
+         userRecord.fields['PdfFiles'] = [...currentFiles, ...optimisticNewFiles];
     }
     
+    // Fermeture modale + Rafraîchissement visuel immédiat
     const addSourceModal = document.getElementById('add-source-modal');
     if (addSourceModal) addSourceModal.classList.add('hidden');
     showDashboard(); 
 
-    // 3. ENVOI ET MISE À JOUR RÉELLE (La Correction est ICI)
+    // 3. ENVOI ET MISE À JOUR RÉELLE (LA CORRECTION EST ICI)
     showTempLoading(`Traitement de ${validFiles.length} fichier(s)...`);
 
     try {
@@ -2728,19 +2721,19 @@ async function handlePdfUpload() {
             showTempLoading(`Envoi de ${i + 1}/${validFiles.length}: ${file.name}...`);
             const base64Data = await readFileAsBase64(file);
 
-            // --- CORRECTION MAJEURE ---
-            // On récupère la réponse de n8n (updatedRecord) qui contient la vraie liste à jour
+            // --- ICI : ON RÉCUPÈRE LA RÉPONSE DE N8N ---
+            // Cette réponse contient la liste à jour (2 fichiers) comme vu dans votre JSON
             const updatedRecord = await callN8n('addPdfFile', {
                 recordId: userRecord.id,
                 fileName: file.name,
                 fileData: base64Data
             });
 
-            // On met à jour immédiatement les données locales avec la réponse du serveur
-            // Cela confirme à l'interface que le fichier est bien là, avec sa vraie URL
+            // --- ICI : ON MET À JOUR LE DASHBOARD AVEC LA VRAIE RÉPONSE ---
+            // On n'attend pas la fin, on le fait fichier par fichier
             if (updatedRecord) {
                 updateLocalUserRecord(updatedRecord);
-                showDashboard(); // On rafraîchit pour afficher la vraie URL/Nom
+                showDashboard(); // L'interface affiche maintenant les vrais liens confirmés
             }
         }
 
@@ -2748,16 +2741,14 @@ async function handlePdfUpload() {
         showNotification('Succès', `${validFiles.length} fichier(s) ajouté(s).`, 'success');
         fileInput.value = ''; 
 
-        // 4. SYNCHRO FINALE DE SÉCURITÉ
-        // On le fait seulement à la toute fin pour être sûr
-        if (firebaseUser && firebaseUser.email) {
-            await getUserDataByEmail(firebaseUser.email);
-        }
+        // 4. NOTE SUR LE RAFRAÎCHISSEMENT
+        // On ne fait PAS d'appel à getUserDataByEmail ici car addPdfFile nous a déjà donné les données à jour.
+        // Appeler getUserDataByEmail risquerait de récupérer une version "en cache" obsolète.
 
     } catch (e) {
         hideTempLoading();
         showNotification('Erreur', `Erreur durant l'envoi : ${e.message}`, 'error');
-        // En cas d'erreur, on recharge pour remettre l'état réel
+        // Seulement en cas d'erreur on recharge tout
         if (firebaseUser && firebaseUser.email) await getUserDataByEmail(firebaseUser.email);
         showDashboard();
     }
