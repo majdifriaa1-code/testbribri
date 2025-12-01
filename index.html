@@ -2304,34 +2304,53 @@ async function addPodcast() {
             showNotification('Erreur', e.message, 'error');
         }
     }
-  async function addPastedText() {
-            if (!userRecord) return;
-            const textInput = document.getElementById('paste-text-input');
-            const textValue = textInput.value.trim();
+ async function addPastedText() {
+        if (!userRecord) return;
+        const textInput = document.getElementById('paste-text-input');
+        const textValue = textInput.value.trim();
 
-            if (!textValue) {
-                showNotification("Texte manquant", "Veuillez coller du texte avant d'ajouter.", 'error');
-                return;
-            }
-
-            try {
-                // Utilise une action 'updateUserText' pour mettre à jour le champ 'UserText'
-                const updatedRecord = await callN8n('updateUserText', {
-                    recordId: userRecord.id,
-                    textData: textValue // Envoie le texte brut
-                });
-                
-                updateLocalUserRecord(updatedRecord); // Met à jour l'enregistrement local
-                
-                textInput.value = ''; // Vide le champ de saisie
-                document.getElementById('text-modal').classList.add('hidden'); // Ferme la modale
-                showDashboard(); // Rafraîchit le tableau de bord (et la liste des sources)
-                showNotification('Succès', 'Votre texte a été ajouté comme source.', 'success');
-
-            } catch (e) {
-                showNotification('Erreur', e.message, 'error');
-            }
+        if (!textValue) {
+            showNotification("Texte manquant", "Veuillez coller du texte avant d'ajouter.", 'error');
+            return;
         }
+
+        try {
+            // 1. MISE À JOUR OPTIMISTE (Pour la réactivité immédiate)
+            // On met à jour localement pour que l'utilisateur voie le changement tout de suite
+            if (userRecord && userRecord.fields) {
+                userRecord.fields['UserText'] = textValue;
+            }
+            
+            // On vide l'input et on ferme la modale tout de suite
+            textInput.value = '';
+            document.getElementById('text-modal').classList.add('hidden');
+            showDashboard(); // L'écran affiche la nouvelle source
+
+            // 2. ENVOI SERVEUR
+            // On envoie la donnée à n8n pour sauvegarde réelle
+            await callN8n('updateUserText', {
+                recordId: userRecord.id,
+                textData: textValue 
+            });
+            
+            // 3. SYNCHRONISATION ROBUSTE (C'est la correction)
+            // On ignore la réponse directe de updateUserText et on force le rechargement complet
+            // pour récupérer le Statut Premium et les Crédits correctement calculés par Baserow
+            if (firebaseUser && firebaseUser.email) {
+                await getUserDataByEmail(firebaseUser.email);
+            }
+            
+            // 4. Rafraîchissement final pour confirmer
+            showDashboard();
+            showNotification('Succès', 'Votre texte a été ajouté comme source.', 'success');
+
+        } catch (e) {
+            showNotification('Erreur', e.message, 'error');
+            // En cas d'erreur réseau, on recharge les vraies données pour annuler l'optimisme
+            if (firebaseUser && firebaseUser.email) await getUserDataByEmail(firebaseUser.email);
+            showDashboard();
+        }
+    }
 
 
   /**
