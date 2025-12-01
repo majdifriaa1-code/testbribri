@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2087,28 +2086,50 @@ let presentationIframe = null; // Référence vers l'élément iframe
         // --- FIN DE LA CORRECTION ---
     }
 
-   function updateLocalUserRecord(recordFromN8n) {
-    // 1. Normalisation : On s'assure d'avoir un objet unique
-    let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
+  function updateLocalUserRecord(recordFromN8n) {
+        // 1. Normalisation : On s'assure d'avoir un objet unique
+        // Parfois n8n renvoie un tableau [objet], parfois juste l'objet.
+        let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
 
-    // 2. CORRECTION CRITIQUE : Déballage des données n8n
-    // Si les données sont encapsulées dans "originalData" (comportement fréquent de n8n)
-    if (p && p.originalData && Array.isArray(p.originalData) && p.originalData.length > 0) {
-        p = p.originalData[0];
+        // 2. Déballage des données (Spécifique Baserow/n8n)
+        // Si les données sont cachées dans "originalData" (ce qui arrive souvent avec les nœuds n8n)
+        if (p && p.originalData && Array.isArray(p.originalData) && p.originalData.length > 0) {
+            p = p.originalData[0];
+        } else if (p && p.json) {
+             // Parfois c'est dans .json
+             p = p.json;
+        }
+
+        // 3. Vérification de sécurité basique
+        if (!p) {
+            console.warn("Données reçues de n8n vides ou invalides, mise à jour annulée.");
+            return;
+        }
+
+        // 4. Préparation des nouvelles données
+        // Baserow met souvent les données à la racine, Airtable dans .fields.
+        // On normalise tout pour avoir un objet de champs.
+        const newFields = p.fields ? p.fields : p;
+        
+        // On récupère l'ID s'il est présent, sinon on garde l'ancien
+        const newId = p.id || (userRecord ? userRecord.id : null);
+
+        // 5. MISE À JOUR INTELLIGENTE (MERGE)
+        if (!userRecord) {
+            // Si c'est la première fois (Login), on crée l'objet
+            userRecord = { id: newId, fields: { ...newFields } };
+        } else {
+            // Si l'utilisateur est déjà connecté, on FUSIONNE les données
+            // On garde tout ce qu'on avait avant (Status, Name...) et on met à jour ce qui a changé
+            userRecord.id = newId;
+            userRecord.fields = {
+                ...userRecord.fields, // 1. On garde les anciennes données (ex: Status: Premium)
+                ...newFields          // 2. On écrase avec les nouvelles (ex: PdfFiles: empty)
+            };
+        }
+
+        console.log("Données utilisateur mises à jour (Fusion) :", userRecord);
     }
-
-    // 3. Vérification de sécurité
-    if (!p || typeof p !== 'object' || !p.id) {
-        console.error("Données utilisateur invalides reçues de n8n:", p);
-        return;
-    }
-
-    // 4. Mise à jour de la variable globale
-    // Si les champs sont à la racine (Baserow), on les range dans .fields pour garder la compatibilité
-    userRecord = p.fields ? p : { id: p.id, fields: { ...p } };
-    
-    console.log("Données utilisateur mises à jour avec succès:", userRecord);
-}
 
     async function getUserDataByEmail(email) {
         const rawResult = await callN8n('findUser', { email });
