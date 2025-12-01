@@ -2546,49 +2546,66 @@ async function clearPodcast() {
       
             } else if (f.n === 'PdfFiles') {
                 let files = [];
-                const rawData = fieldData; // On travaille sur la donnée brute
+                // DEBUG : Affiche ce que le serveur renvoie vraiment dans la console (F12)
+                console.log("DEBUG PDF DATA REÇU:", fieldData); 
 
-                // CAS 1 : C'est déjà un vrai Tableau (Cas idéal)
-                if (Array.isArray(rawData)) {
-                    files = rawData;
-                } 
-                // CAS 2 : C'est du Texte (String)
-                else if (typeof rawData === 'string' && rawData.trim() !== '') {
-                    // SOUS-CAS A : C'est du JSON stringifié (ex: '[{"name":...}]')
-                    // C'est souvent ce que renvoie n8n/Baserow
-                    try {
-                        const parsed = JSON.parse(rawData);
-                        if (Array.isArray(parsed)) {
-                            files = parsed;
-                        } else if (typeof parsed === 'object') {
-                            files = [parsed];
+                try {
+                    // CAS 1 : C'est déjà un vrai Tableau (Cas idéal API)
+                    if (Array.isArray(fieldData)) {
+                        files = fieldData;
+                    } 
+                    // CAS 2 : C'est du Texte (String)
+                    else if (typeof fieldData === 'string' && fieldData.trim() !== '') {
+                        // On nettoie les guillemets parasites si n8n en a ajouté
+                        const cleanStr = fieldData.replace(/^"|"$/g, '');
+                        
+                        // SOUS-CAS A : C'est du JSON stringifié (ex: '[{"name":...}]')
+                        if (cleanStr.startsWith('[') || cleanStr.startsWith('{')) {
+                            try {
+                                const parsed = JSON.parse(cleanStr);
+                                files = Array.isArray(parsed) ? parsed : [parsed];
+                            } catch (e) {
+                                // Si le JSON échoue, on suppose que c'est une liste d'URLs
+                                console.warn("Echec parsing JSON PDF, tentative fallback URL");
+                            }
                         }
-                    } catch (e) {
-                        // SOUS-CAS B : Ce n'est pas du JSON, c'est juste des URLs séparées par des virgules
-                        // (Fallback pour l'ancien format)
-                        const urls = rawData.split(',').filter(u => u.trim() !== '');
-                        files = urls.map(url => {
-                            const cleanUrl = url.trim();
-                            let name = cleanUrl.split('/').pop() || "Document.pdf";
-                            try { name = decodeURIComponent(name); } catch(err){}
-                            return { name: name, url: cleanUrl };
-                        });
+                        
+                        // SOUS-CAS B : Si JSON a échoué ou si c'est juste des URLs séparées par virgules
+                        if (files.length === 0) {
+                            const urls = cleanStr.split(',').filter(u => u.trim() !== '');
+                            files = urls.map(url => {
+                                const cleanUrl = url.trim();
+                                // On invente un nom basé sur l'URL
+                                let name = cleanUrl.split('/').pop() || "Document.pdf";
+                                return { name: name, url: cleanUrl };
+                            });
+                        }
                     }
-                }
-                // CAS 3 : C'est un objet unique (Rare)
-                else if (rawData && typeof rawData === 'object') {
-                    files = [rawData];
+                    // CAS 3 : C'est un objet unique
+                    else if (fieldData && typeof fieldData === 'object') {
+                        files = [fieldData];
+                    }
+                } catch(err) {
+                    console.error("Erreur critique parsing PDF:", err);
                 }
 
                 // --- AFFICHAGE ---
                 if (files.length > 0) {
                     contentExists = true;
                     cardContent = files.map(file => {
-                        // Baserow peut utiliser 'visible_name', 'name' ou 'original_name'
-                        const name = file.visible_name || file.name || file.original_name || file.filename || 'Document PDF';
-                        // Parfois l'URL est dans file.url, parfois c'est file lui-même si string
+                        // Baserow utilise plein de noms différents, on les teste tous
+                        // Si le nom est manquant mais qu'on a une URL, on utilise l'URL comme nom
+                        let name = file.visible_name || file.original_name || file.name || file.filename;
+                        
                         const url = file.url || (typeof file === 'string' ? file : '#');
                         
+                        // Si on n'a toujours pas de nom, on prend la fin de l'URL
+                        if (!name && url !== '#') {
+                             name = url.split('/').pop();
+                        }
+                        // Dernier recours
+                        if (!name) name = "Document sans nom";
+
                         return `<div class="text-xs truncate text-gray-500 flex items-center gap-1 mb-1" title="${name}">
                                     <svg class="w-3 h-3 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                                     <a href="${url}" target="_blank" class="hover:text-blue-600 hover:underline truncate">${name}</a>
