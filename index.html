@@ -2602,7 +2602,7 @@ async function clearPodcast() {
                                 </div>`;
                     }).join('');
                     
-                    clearAction = `clearLinks('PdfFiles')`;
+                   clearAction = "clearPdfFiles()";
                 }
             } else { // <-- 'else' gère maintenant les autres (Articles et YouTube)
                 const links = fieldData ?
@@ -2753,6 +2753,43 @@ async function handlePdfUpload() {
         showDashboard();
     }
 }
+
+
+// Nouvelle fonction dédiée pour vider les PDF
+    async function clearPdfFiles() {
+        if (await showNotification('Confirmation', 'Voulez-vous vraiment supprimer tous les fichiers PDF ?', 'confirm')) {
+            try {
+                // 1. MISE À JOUR OPTIMISTE (Immédiate)
+                // On vide la liste localement pour que l'utilisateur le voie tout de suite
+                if (userRecord && userRecord.fields) {
+                    userRecord.fields['PdfFiles'] = []; 
+                }
+                showDashboard(); 
+
+                // 2. APPEL N8N (Nouvelle action 'clearPdfFiles')
+                const updatedRecord = await callN8n('clearPdfFiles', { 
+                    recordId: userRecord.id 
+                });
+                
+                // 3. MISE À JOUR AVEC LA RÉPONSE SERVEUR
+                if (updatedRecord) {
+                    updateLocalUserRecord(updatedRecord);
+                    showDashboard();
+                }
+                
+                showNotification('Succès', 'Fichiers PDF supprimés.', 'success');
+
+            } catch (e) { 
+                showNotification('Erreur', e.message, 'error');
+                // En cas d'erreur, on recharge pour remettre les fichiers
+                if (firebaseUser && firebaseUser.email) await getUserDataByEmail(firebaseUser.email);
+            }
+        }
+    }
+
+
+
+  
     function createSignupModalHTML() {
         return `<div class="modal-overlay"><div class="modal-content max-w-md"><button id="close-signup-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button><h2 class="font-display text-2xl mb-6 text-center">Créer votre compte</h2><div class="space-y-4 text-left"><div><label for="signup-name" class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label><input type="text" id="signup-name" placeholder="John Doe" class="input-field"></div><div><label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="signup-email" placeholder="nom@exemple.com" class="input-field"></div><div><label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label><input type="password" id="signup-password" placeholder="••••••••" class="input-field"></div><p id="signup-error" class="text-sm text-red-500 hidden"></p><button id="signup-button" class="w-full btn btn-primary py-3 mt-4">S'inscrire</button></div></div></div>`;
     }
