@@ -2439,17 +2439,25 @@ async function addPodcast() {
             let contentExists = false, cardContent = '', clearAction = '';
             const fieldData = userRecord.fields[f.n];
 
-            if (f.n === 'Podcast RSS Links') {
-                let p = [];
-                try {
-                    p = JSON.parse(fieldData || '[]');
-                } catch (e) {}
-
-                if (p.length > 0) {
+           if (f.n === 'Podcast RSS Links') {
+                // --- NOUVELLE LOGIQUE SIMPLIFIÉE ---
+                // On vérifie simplement si le champ contient du texte (plus de JSON.parse)
+                if (fieldData && typeof fieldData === 'string' && fieldData.trim() !== '') {
                     contentExists = true;
-                    cardContent = p.map(i => `<div class="text-xs truncate text-gray-500" title="${i.link}">${i.title || i.link}</div>`).join('');
+                    
+                    // On récupère le titre stocké dans l'autre colonne
+                    const title = userRecord.fields['Podcast titler'] || '';
+                    
+                    // On affiche le tout. Si il y a un titre, on le met en gras.
+                    cardContent = `
+                        <div class="text-xs truncate text-gray-500" title="${fieldData}">
+                            ${title ? '<span class="font-semibold text-gray-700">' + title + ' : </span>' : ''}
+                            <a href="${fieldData}" target="_blank" class="hover:text-blue-600 hover:underline">${fieldData}</a>
+                        </div>`;
+                    
                     clearAction = `clearPodcast()`;
                 }
+      
             } else if (f.n === 'PdfFiles') {
     // --- CORRECTION BASEROW ---
     let files = [];
