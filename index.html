@@ -2546,36 +2546,48 @@ async function clearPodcast() {
       
             } else if (f.n === 'PdfFiles') {
                 let files = [];
+                const rawData = fieldData; // On travaille sur la donnée brute
 
-                // CAS 1 : C'est déjà un tableau (Format API standard Baserow)
-                if (Array.isArray(fieldData)) {
-                    files = fieldData;
+                // CAS 1 : C'est déjà un vrai Tableau (Cas idéal)
+                if (Array.isArray(rawData)) {
+                    files = rawData;
                 } 
-                // CAS 2 : C'est du TEXTE (URLs séparées par des virgules)
-                // C'est souvent ce que renvoie n8n après une fusion
-                else if (typeof fieldData === 'string' && fieldData.trim() !== '') {
-                    const urls = fieldData.split(',').filter(u => u.trim() !== '');
-                    files = urls.map(url => {
-                        const cleanUrl = url.trim();
-                        // On crée un nom basé sur la fin de l'URL pour l'affichage
-                        // On décode les %20 etc pour que ce soit lisible
-                        let name = cleanUrl.split('/').pop() || "Document.pdf";
-                        try { name = decodeURIComponent(name); } catch(e){}
-                        
-                        return { name: name, url: cleanUrl };
-                    });
+                // CAS 2 : C'est du Texte (String)
+                else if (typeof rawData === 'string' && rawData.trim() !== '') {
+                    // SOUS-CAS A : C'est du JSON stringifié (ex: '[{"name":...}]')
+                    // C'est souvent ce que renvoie n8n/Baserow
+                    try {
+                        const parsed = JSON.parse(rawData);
+                        if (Array.isArray(parsed)) {
+                            files = parsed;
+                        } else if (typeof parsed === 'object') {
+                            files = [parsed];
+                        }
+                    } catch (e) {
+                        // SOUS-CAS B : Ce n'est pas du JSON, c'est juste des URLs séparées par des virgules
+                        // (Fallback pour l'ancien format)
+                        const urls = rawData.split(',').filter(u => u.trim() !== '');
+                        files = urls.map(url => {
+                            const cleanUrl = url.trim();
+                            let name = cleanUrl.split('/').pop() || "Document.pdf";
+                            try { name = decodeURIComponent(name); } catch(err){}
+                            return { name: name, url: cleanUrl };
+                        });
+                    }
                 }
-                // CAS 3 : C'est un objet unique (Rare mais possible)
-                else if (fieldData && typeof fieldData === 'object' && (fieldData.url || fieldData.name)) {
-                    files = [fieldData];
+                // CAS 3 : C'est un objet unique (Rare)
+                else if (rawData && typeof rawData === 'object') {
+                    files = [rawData];
                 }
 
+                // --- AFFICHAGE ---
                 if (files.length > 0) {
                     contentExists = true;
                     cardContent = files.map(file => {
-                        // On gère les différentes façons dont Baserow nomme les fichiers
-                        const name = file.visible_name || file.name || file.filename || 'Document';
-                        const url = file.url || '#';
+                        // Baserow peut utiliser 'visible_name', 'name' ou 'original_name'
+                        const name = file.visible_name || file.name || file.original_name || file.filename || 'Document PDF';
+                        // Parfois l'URL est dans file.url, parfois c'est file lui-même si string
+                        const url = file.url || (typeof file === 'string' ? file : '#');
                         
                         return `<div class="text-xs truncate text-gray-500 flex items-center gap-1 mb-1" title="${name}">
                                     <svg class="w-3 h-3 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
@@ -2584,16 +2596,6 @@ async function clearPodcast() {
                     }).join('');
                     
                     clearAction = `clearLinks('PdfFiles')`;
-                }
-            } else if (f.n === 'UserText') { // <-- BLOC AJOUTÉ POUR 'UserText'
-                if (fieldData && typeof fieldData === 'string' && fieldData.trim() !== '') {
-                    contentExists = true;
-                    // Crée un aperçu court du texte
-                    const preview = fieldData.length > 80 ? fieldData.substring(0, 80) + '...' : fieldData;
-                    // Remplace les sauts de ligne par des espaces pour l'aperçu
-                    cardContent = `<div class="text-xs text-gray-500 cursor-pointer hover:text-blue-600" title="Cliquez pour voir le texte complet" onclick="handleTextViewClick()"> ${preview.replace(/\n/g, ' ')} </div>`;
-                    // On peut réutiliser clearLinks pour vider ce champ
-                    clearAction = `clearLinks('UserText')`; 
                 }
             } else { // <-- 'else' gère maintenant les autres (Articles et YouTube)
                 const links = fieldData ?
