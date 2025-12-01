@@ -2202,44 +2202,54 @@ async function addLink(fieldName, inputId) {
 
     // Remplacez TOUTE la fonction addPodcast par celle-ci :
 async function addPodcast() {
-    const newLink = document.getElementById('podcast-link-input').value.trim();
-    const newTitle = document.getElementById('podcast-title-input').value.trim();
+        const newLink = document.getElementById('podcast-link-input').value.trim();
+        const rawTitle = document.getElementById('podcast-title-input').value.trim();
 
-    if (!newLink) {
-        showNotification("Attention", "Veuillez fournir le lien RSS du podcast.", 'error');
-        return;
-    }
-    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-    if (youtubeRegex.test(newLink)) {
-        showNotification('Lien incorrect', 'Veuillez ajouter les liens YouTube dans la section dédiée.', 'error');
-        return;
-    }
-
-    let podcasts = [];
-    try {
-        podcasts = JSON.parse(userRecord.fields['Podcast RSS Links'] || '[]');
-    } catch (e) { console.error(e); }
-
-    podcasts.push({ link: newLink, title: newTitle });
-
-    try {
-        // 1. On envoie à n8n
-        await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: JSON.stringify(podcasts) });
-        
-        // 2. MODIFICATION CRUCIALE : On recharge le profil complet
-        if (firebaseUser && firebaseUser.email) {
-            await getUserDataByEmail(firebaseUser.email);
+        if (!newLink) {
+            showNotification("Attention", "Veuillez fournir le lien du podcast.", 'error');
+            return;
         }
 
-        document.getElementById('podcast-link-input').value = '';
-        document.getElementById('podcast-title-input').value = '';
-        showDashboard();
-        showNotification('Succès', 'Podcast ajouté.', 'success');
+        // Vérification YouTube (inchangé)
+        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+        if (youtubeRegex.test(newLink)) {
+            showNotification('Lien incorrect', 'Veuillez ajouter les liens YouTube dans la section dédiée.', 'error');
+            return;
+        }
 
-    } catch (e) {
-        showNotification('Erreur', e.message, 'error');
+        // --- LOGIQUE SPÉCIFIQUE APPLE vs SPOTIFY ---
+        let titleToSend = rawTitle;
+
+        // Si c'est un lien Apple, on force le titre à être vide (comme demandé)
+        // Pour Spotify (ou autres), on garde le titre saisi pour la colonne 'Podcast titler'
+        if (newLink.includes('apple.com') || newLink.includes('podcasts.apple')) {
+            titleToSend = ""; 
+        }
+
+        try {
+            // 1. On appelle n8n avec des données BRUTES (plus de JSON.stringify sur un tableau)
+            await callN8n('updatePodcasts', { 
+                recordId: userRecord.id, 
+                link: newLink,        // À mapper vers la colonne 'Podcast RSS Links'
+                title: titleToSend    // À mapper vers la colonne 'Podcast titler'
+            });
+            
+            // 2. RECHARGEMENT ROBUSTE (Pour corriger le bug d'affichage Premium)
+            // On force la récupération des données fraîches après l'ajout
+            if (firebaseUser && firebaseUser.email) {
+                await getUserDataByEmail(firebaseUser.email);
+            }
+
+            // 3. Reset de l'interface
+            document.getElementById('podcast-link-input').value = '';
+            document.getElementById('podcast-title-input').value = '';
+            showDashboard();
+            showNotification('Succès', 'Podcast ajouté.', 'success');
+
+        } catch (e) {
+            showNotification('Erreur', e.message, 'error');
+        }
     }
-}
 
   async function addPastedText() {
             if (!userRecord) return;
