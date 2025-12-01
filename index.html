@@ -2225,55 +2225,85 @@ async function addLink(fieldName, inputId) {
 
     // Remplacez TOUTE la fonction addPodcast par celle-ci :
 async function addPodcast() {
-        const newLink = document.getElementById('podcast-link-input').value.trim();
-        const rawTitle = document.getElementById('podcast-title-input').value.trim();
+        const linkInput = document.getElementById('podcast-link-input');
+        const titleInput = document.getElementById('podcast-title-input');
+        const rawLinks = linkInput.value.trim();
+        const rawTitle = titleInput.value.trim();
 
-        if (!newLink) {
-            showNotification("Attention", "Veuillez fournir le lien du podcast.", 'error');
+        if (!rawLinks) {
+            showNotification("Attention", "Veuillez fournir le lien.", 'error');
             return;
         }
 
-        // Vérification YouTube (inchangé)
+        // 1. DÉCOUPAGE : On sépare les liens par les virgules
+        const newLinks = rawLinks.split(',').map(l => l.trim()).filter(l => l !== '');
+
+        // 2. VALIDATION
         const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-        if (youtubeRegex.test(newLink)) {
-            showNotification('Lien incorrect', 'Veuillez ajouter les liens YouTube dans la section dédiée.', 'error');
-            return;
+        for (const link of newLinks) {
+            if (youtubeRegex.test(link)) {
+                showNotification('Lien incorrect', 'Les liens YouTube doivent être ajoutés dans la section YouTube.', 'error');
+                return;
+            }
         }
 
-        // --- LOGIQUE SPÉCIFIQUE APPLE vs SPOTIFY ---
-        let titleToSend = rawTitle;
+        // 3. FUSION AVEC L'EXISTANT
+        // On récupère les chaines existantes (ex: "lien1,lien2")
+        const currentLinksStr = userRecord.fields['Podcast RSS Links'] || '';
+        const currentTitlesStr = userRecord.fields['Podcast titler'] || '';
+        
+        let linksArray = currentLinksStr ? currentLinksStr.split(',') : [];
+        let titlesArray = currentTitlesStr ? currentTitlesStr.split(',') : [];
 
-        // Si c'est un lien Apple, on force le titre à être vide (comme demandé)
-        // Pour Spotify (ou autres), on garde le titre saisi pour la colonne 'Podcast titler'
-        if (newLink.includes('apple.com') || newLink.includes('podcasts.apple')) {
-            titleToSend = ""; 
-        }
+        // On ajoute les nouveaux liens
+        newLinks.forEach(link => {
+            // On évite les doublons exacts
+            if (!linksArray.includes(link)) {
+                linksArray.push(link);
+                
+                // LOGIQUE TITRE : On aligne le titre avec le lien (index par index)
+                if (link.includes('apple.com') || link.includes('podcasts.apple')) {
+                    titlesArray.push(""); // Apple = Pas de titre forcé
+                } else {
+                    titlesArray.push(rawTitle); // Spotify/Autre = On met le titre saisi
+                }
+            }
+        });
+
+        const finalLinks = linksArray.join(',');
+        const finalTitles = titlesArray.join(',');
 
         try {
-            // 1. On appelle n8n avec des données BRUTES (plus de JSON.stringify sur un tableau)
+            // 4. MISE À JOUR OPTIMISTE (Affichage immédiat)
+            if (userRecord && userRecord.fields) {
+                userRecord.fields['Podcast RSS Links'] = finalLinks;
+                userRecord.fields['Podcast titler'] = finalTitles;
+            }
+            
+            // Reset des champs
+            linkInput.value = '';
+            titleInput.value = '';
+            showDashboard();
+
+            // 5. ENVOI SERVEUR
             await callN8n('updatePodcasts', { 
                 recordId: userRecord.id, 
-                link: newLink,        // À mapper vers la colonne 'Podcast RSS Links'
-                title: titleToSend    // À mapper vers la colonne 'Podcast titler'
+                link: finalLinks,   // On envoie la liste complète mise à jour
+                title: finalTitles  // On envoie la liste des titres mise à jour
             });
             
-            // 2. RECHARGEMENT ROBUSTE (Pour corriger le bug d'affichage Premium)
-            // On force la récupération des données fraîches après l'ajout
+            // 6. RESYNCHRONISATION (Sécurité Premium)
             if (firebaseUser && firebaseUser.email) {
                 await getUserDataByEmail(firebaseUser.email);
             }
 
-            // 3. Reset de l'interface
-            document.getElementById('podcast-link-input').value = '';
-            document.getElementById('podcast-title-input').value = '';
             showDashboard();
-            showNotification('Succès', 'Podcast ajouté.', 'success');
+            showNotification('Succès', `${newLinks.length} podcast(s) ajouté(s).`, 'success');
 
         } catch (e) {
             showNotification('Erreur', e.message, 'error');
         }
     }
-
   async function addPastedText() {
             if (!userRecord) return;
             const textInput = document.getElementById('paste-text-input');
@@ -2485,23 +2515,34 @@ async function clearPodcast() {
             const fieldData = userRecord.fields[f.n];
 
            if (f.n === 'Podcast RSS Links') {
-                // --- NOUVELLE LOGIQUE SIMPLIFIÉE ---
-                // On vérifie simplement si le champ contient du texte (plus de JSON.parse)
                 if (fieldData && typeof fieldData === 'string' && fieldData.trim() !== '') {
                     contentExists = true;
                     
-                    // On récupère le titre stocké dans l'autre colonne
-                    const title = userRecord.fields['Podcast titler'] || '';
-                    
-                    // On affiche le tout. Si il y a un titre, on le met en gras.
-                    cardContent = `
-                        <div class="text-xs truncate text-gray-500" title="${fieldData}">
+                    // 1. On découpe les liens et les titres en tableaux
+                    const links = fieldData.split(',');
+                    const titlesStr = userRecord.fields['Podcast titler'] || '';
+                    // On découpe les titres (avec une astuce pour garder les éléments vides)
+                    const titles = titlesStr.split(','); 
+
+                    // 2. On génère une ligne par podcast
+                    cardContent = links.map((link, index) => {
+                        const cleanLink = link.trim();
+                        if (!cleanLink) return '';
+                        
+                        // On essaie de trouver le titre qui correspond à ce lien (même position)
+                        const title = titles[index] ? titles[index].trim() : '';
+                        
+                        // On retourne le HTML pour ce lien spécifique
+                        return `
+                        <div class="text-xs truncate text-gray-500 mb-1 pt-1 border-t border-gray-100 first:border-0 first:pt-0" title="${cleanLink}">
                             ${title ? '<span class="font-semibold text-gray-700">' + title + ' : </span>' : ''}
-                            <a href="${fieldData}" target="_blank" class="hover:text-blue-600 hover:underline">${fieldData}</a>
+                            <a href="${cleanLink}" target="_blank" class="hover:text-blue-600 hover:underline">${cleanLink}</a>
                         </div>`;
+                    }).join('');
                     
                     clearAction = `clearPodcast()`;
                 }
+          
       
             } else if (f.n === 'PdfFiles') {
     // --- CORRECTION BASEROW ---
