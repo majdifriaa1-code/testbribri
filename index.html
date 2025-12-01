@@ -2311,22 +2311,32 @@ async function addPodcast() {
         }
 
    // Remplacez TOUTE la fonction clearLinks par celle-ci :
-    async function clearLinks(fieldName) {
+   async function clearLinks(fieldName) {
         if (await showNotification('Confirmation', 'Vider tous les liens de cette catégorie ?', 'confirm')) {
             try {
-                // 1. On appelle n8n pour supprimer
+                // 1. MISE À JOUR OPTIMISTE (Immédiate)
+                // On vide localement tout de suite pour que l'utilisateur le voie instantanément
+                if (userRecord && userRecord.fields) {
+                    userRecord.fields[fieldName] = ''; 
+                }
+                showDashboard(); // L'écran se vide immédiatement
+
+                // 2. On lance le travail serveur en arrière-plan
                 await callN8n('clearLinks', { recordId: userRecord.id, fieldName });
                 
-                // 2. LA CORRECTION : On force le rechargement complet du profil
-                // pour être sûr de récupérer le Statut et les Crédits corrects
+                // 3. On resynchronise proprement pour être sûr d'avoir le bon Statut/Crédits
                 if (firebaseUser && firebaseUser.email) {
                     await getUserDataByEmail(firebaseUser.email);
                 }
-
-                showDashboard();
+                
+                // (Optionnel) On rafraîchit encore une fois pour être sûr que tout est synchro
+                showDashboard(); 
                 showNotification('Succès', 'Suppression effectuée.', 'success');
+
             } catch (e) { 
-                showNotification('Erreur', e.message, 'error'); 
+                showNotification('Erreur', e.message, 'error');
+                // En cas d'erreur, on pourrait recharger pour remettre les liens qui n'ont pas été supprimés
+                // location.reload(); 
             }
         }
     }
