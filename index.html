@@ -2760,33 +2760,36 @@ async function handlePdfUpload() {
         if (await showNotification('Confirmation', 'Voulez-vous vraiment supprimer tous les fichiers PDF ?', 'confirm')) {
             try {
                 // 1. MISE À JOUR OPTIMISTE (Immédiate)
-                // On vide la liste localement pour que l'utilisateur le voie tout de suite
+                // On vide l'écran tout de suite pour la réactivité
                 if (userRecord && userRecord.fields) {
                     userRecord.fields['PdfFiles'] = []; 
                 }
                 showDashboard(); 
 
-                // 2. APPEL N8N (Nouvelle action 'clearPdfFiles')
-                const updatedRecord = await callN8n('clearPdfFiles', { 
+                // 2. APPEL SERVEUR
+                // On lance l'action n8n pour vider la base de données
+                await callN8n('clearPdfFiles', { 
                     recordId: userRecord.id 
                 });
                 
-                // 3. MISE À JOUR AVEC LA RÉPONSE SERVEUR
-                if (updatedRecord) {
-                    updateLocalUserRecord(updatedRecord);
-                    showDashboard();
+                // 3. SYNCHRONISATION ROBUSTE (C'est la correction)
+                // On force le rechargement complet du profil pour récupérer le Statut Premium et les Crédits corrects
+                if (firebaseUser && firebaseUser.email) {
+                    await getUserDataByEmail(firebaseUser.email);
                 }
                 
+                // 4. Rafraîchissement final
+                showDashboard();
                 showNotification('Succès', 'Fichiers PDF supprimés.', 'success');
 
             } catch (e) { 
                 showNotification('Erreur', e.message, 'error');
-                // En cas d'erreur, on recharge pour remettre les fichiers
+                // En cas d'erreur, on remet les données d'équerre
                 if (firebaseUser && firebaseUser.email) await getUserDataByEmail(firebaseUser.email);
+                showDashboard();
             }
         }
     }
-
 
 
   
