@@ -2086,49 +2086,60 @@ let presentationIframe = null; // Référence vers l'élément iframe
         // --- FIN DE LA CORRECTION ---
     }
 
- function updateLocalUserRecord(recordFromN8n) {
+function updateLocalUserRecord(recordFromN8n) {
         // 1. Normalisation : On s'assure d'avoir un objet unique
         let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
 
-        // 2. Déballage des données (Spécifique pour gérer les formats variables de n8n)
+        // 2. Déballage des données (gestion formats n8n/Baserow variables)
         if (p && p.originalData && Array.isArray(p.originalData) && p.originalData.length > 0) {
             p = p.originalData[0];
         } else if (p && p.json) {
             p = p.json;
         }
 
-        // 3. Vérification de sécurité
+        // 3. Sécurité
         if (!p) return;
 
         // 4. Préparation des nouvelles données
         const newFields = p.fields ? p.fields : p;
         const newId = p.id || (userRecord ? userRecord.id : null);
 
-        // 5. MISE À JOUR SÉCURISÉE
+        // 5. MISE À JOUR INTELLIGENTE ET PROTECTRICE
         if (!userRecord) {
             // Première connexion : on prend tout
             userRecord = { id: newId, fields: { ...newFields } };
         } else {
-            // Mise à jour : On garde l'ID et on fusionne prudemment
+            // Mise à jour : On garde l'ID
             userRecord.id = newId;
-            
+
+            // LISTE DES CHAMPS CRITIQUES À PROTÉGER
+            // Si n8n renvoie ces champs vides ou null, on GARDE l'ancienne valeur
+            const protectedFields = [
+                'Status', 
+                'Debriefs Restants', 
+                'PresentationsRestantes', 
+                'Plan', 
+                'User Persona (AI)'
+            ];
+
             // On parcourt chaque nouveau champ reçu
             Object.keys(newFields).forEach(key => {
                 const newValue = newFields[key];
+                const oldValue = userRecord.fields[key];
 
-                // CRUCIAL : Si la nouvelle valeur est null ou undefined, on ne touche PAS à l'existant.
-                // Cela empêche Airtable/Baserow d'effacer votre Statut/Crédits s'ils ne sont pas renvoyés.
-                if (newValue === null || newValue === undefined) return;
+                // Si c'est un champ critique et que la nouvelle valeur est "mauvaise" (null, undefined, vide), on ne touche à rien.
+                if (protectedFields.includes(key) && (newValue === null || newValue === undefined || newValue === "")) {
+                    // On ignore cette mise à jour corrompue pour ce champ
+                    return; 
+                }
 
-                // PROTECTION EXTRA : Si le Status arrive vide (string vide), on l'ignore aussi
-                if (key === 'Status' && !newValue) return;
-
-                // Si tout est bon, on met à jour seulement ce champ spécifique
-                userRecord.fields[key] = newValue;
+                // Sinon (pour les liens, pdfs, textes...), on met à jour
+                if (newValue !== undefined) {
+                    userRecord.fields[key] = newValue;
+                }
             });
         }
-
-        console.log("Données utilisateur mises à jour (Sécurisé) :", userRecord);
+        console.log("Données utilisateur mises à jour (Mode Protection Actif) :", userRecord);
     }
   
     async function getUserDataByEmail(email) {
