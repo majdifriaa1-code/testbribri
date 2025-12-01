@@ -2086,61 +2086,38 @@ let presentationIframe = null; // Référence vers l'élément iframe
         // --- FIN DE LA CORRECTION ---
     }
 
+// Cherchez la fonction updateLocalUserRecord et remplacez TOUT le bloc par :
 function updateLocalUserRecord(recordFromN8n) {
-        // 1. Normalisation : On s'assure d'avoir un objet unique
-        let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
+    let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
 
-        // 2. Déballage des données (gestion formats n8n/Baserow variables)
-        if (p && p.originalData && Array.isArray(p.originalData) && p.originalData.length > 0) {
-            p = p.originalData[0];
-        } else if (p && p.json) {
-            p = p.json;
-        }
-
-        // 3. Sécurité
-        if (!p) return;
-
-        // 4. Préparation des nouvelles données
-        const newFields = p.fields ? p.fields : p;
-        const newId = p.id || (userRecord ? userRecord.id : null);
-
-        // 5. MISE À JOUR INTELLIGENTE ET PROTECTRICE
-        if (!userRecord) {
-            // Première connexion : on prend tout
-            userRecord = { id: newId, fields: { ...newFields } };
-        } else {
-            // Mise à jour : On garde l'ID
-            userRecord.id = newId;
-
-            // LISTE DES CHAMPS CRITIQUES À PROTÉGER
-            // Si n8n renvoie ces champs vides ou null, on GARDE l'ancienne valeur
-            const protectedFields = [
-                'Status', 
-                'Debriefs Restants', 
-                'PresentationsRestantes', 
-                'Plan', 
-                'User Persona (AI)'
-            ];
-
-            // On parcourt chaque nouveau champ reçu
-            Object.keys(newFields).forEach(key => {
-                const newValue = newFields[key];
-                const oldValue = userRecord.fields[key];
-
-                // Si c'est un champ critique et que la nouvelle valeur est "mauvaise" (null, undefined, vide), on ne touche à rien.
-                if (protectedFields.includes(key) && (newValue === null || newValue === undefined || newValue === "")) {
-                    // On ignore cette mise à jour corrompue pour ce champ
-                    return; 
-                }
-
-                // Sinon (pour les liens, pdfs, textes...), on met à jour
-                if (newValue !== undefined) {
-                    userRecord.fields[key] = newValue;
-                }
-            });
-        }
-        console.log("Données utilisateur mises à jour (Mode Protection Actif) :", userRecord);
+    if (p && p.originalData && Array.isArray(p.originalData) && p.originalData.length > 0) {
+        p = p.originalData[0];
+    } else if (p && p.json) {
+        p = p.json;
     }
+
+    if (!p) return;
+
+    const newFields = p.fields ? p.fields : p;
+    const newId = p.id || (userRecord ? userRecord.id : null);
+
+    if (!userRecord) {
+        userRecord = { id: newId, fields: { ...newFields } };
+    } else {
+        userRecord.id = newId;
+        // PROTECTION : On ne met à jour que si la valeur n'est pas nulle/vide
+        Object.keys(newFields).forEach(key => {
+            const val = newFields[key];
+            // Si c'est un champ critique (Status, Credits...) et qu'il est vide/null, on l'ignore
+            if ((key === 'Status' || key.includes('Restants')) && (val === null || val === undefined)) {
+                return; 
+            }
+            if (val !== undefined) {
+                userRecord.fields[key] = val;
+            }
+        });
+    }
+}
   
     async function getUserDataByEmail(email) {
         const rawResult = await callN8n('findUser', { email });
@@ -2152,36 +2129,50 @@ function updateLocalUserRecord(recordFromN8n) {
         await callN8n('createUser', { email, name });
     }
 
-    async function addLink(fieldName, inputId) {
-        const inputElement = document.getElementById(inputId);
-        const newLinksRaw = inputElement.value.trim();
-        if (!newLinksRaw) return;
-        const newLinks = newLinksRaw.split(',').map(link => link.trim()).filter(Boolean);
-        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-        for (const link of newLinks) {
-            const isYoutubeLink = youtubeRegex.test(link);
-            if (fieldName === 'YouTube Links') {
-                if (!isYoutubeLink) {
-                    showNotification('Lien invalide', `"${link}" n'est pas un lien YouTube valide.`, 'error');
-                    return;
-                }
-            } else {
-                if (isYoutubeLink) {
-                    showNotification('Lien incorrect', 'Veuillez ajouter les liens YouTube dans la section dédiée.', 'error');
-                    return;
-                }
+async function addLink(fieldName, inputId) {
+    const inputElement = document.getElementById(inputId);
+    const newLinksRaw = inputElement.value.trim();
+    if (!newLinksRaw) return;
+
+    const newLinks = newLinksRaw.split(',').map(link => link.trim()).filter(Boolean);
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+
+    for (const link of newLinks) {
+        const isYoutubeLink = youtubeRegex.test(link);
+        if (fieldName === 'YouTube Links') {
+            if (!isYoutubeLink) {
+                showNotification('Lien invalide', `"${link}" n'est pas un lien YouTube valide.`, 'error');
+                return;
+            }
+        } else {
+            if (isYoutubeLink) {
+                showNotification('Lien incorrect', 'Veuillez ajouter les liens YouTube dans la section dédiée.', 'error');
+                return;
             }
         }
-        const existingLinks = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
-        const allLinks = [...new Set([...existingLinks, ...newLinks])].join(',');
-        try {
-            updateLocalUserRecord(await callN8n('addLink', { recordId: userRecord.id, fieldName, allLinks }));
-            inputElement.value = '';
-            showDashboard();
-        } catch (e) {
-            showNotification('Erreur', e.message, 'error');
-        }
     }
+
+    const existingLinks = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
+    const allLinks = [...new Set([...existingLinks, ...newLinks])].join(',');
+
+    try {
+        // 1. On envoie la mise à jour à n8n
+        await callN8n('addLink', { recordId: userRecord.id, fieldName, allLinks });
+        
+        // 2. MODIFICATION CRUCIALE : On force le rechargement du profil complet
+        // Cela garantit que Baserow a le temps de recalculer et qu'on récupère le vrai Status
+        if (firebaseUser && firebaseUser.email) {
+            await getUserDataByEmail(firebaseUser.email);
+        }
+
+        inputElement.value = '';
+        showDashboard();
+        showNotification('Succès', 'Lien ajouté avec succès.', 'success');
+
+    } catch (e) {
+        showNotification('Erreur', e.message, 'error');
+    }
+}
 
     async function saveUserPersona() {
         if (!userRecord) return;
