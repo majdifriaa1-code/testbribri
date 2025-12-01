@@ -2130,49 +2130,72 @@ function updateLocalUserRecord(recordFromN8n) {
     }
 
 async function addLink(fieldName, inputId) {
-    const inputElement = document.getElementById(inputId);
-    const newLinksRaw = inputElement.value.trim();
-    if (!newLinksRaw) return;
-
-    const newLinks = newLinksRaw.split(',').map(link => link.trim()).filter(Boolean);
-    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-
-    for (const link of newLinks) {
-        const isYoutubeLink = youtubeRegex.test(link);
-        if (fieldName === 'YouTube Links') {
-            if (!isYoutubeLink) {
-                showNotification('Lien invalide', `"${link}" n'est pas un lien YouTube valide.`, 'error');
-                return;
-            }
-        } else {
-            if (isYoutubeLink) {
-                showNotification('Lien incorrect', 'Veuillez ajouter les liens YouTube dans la section dédiée.', 'error');
-                return;
-            }
-        }
-    }
-
-    const existingLinks = userRecord.fields[fieldName] ? String(userRecord.fields[fieldName]).split(',').filter(Boolean) : [];
-    const allLinks = [...new Set([...existingLinks, ...newLinks])].join(',');
-
-    try {
-        // 1. On envoie la mise à jour à n8n
-        await callN8n('addLink', { recordId: userRecord.id, fieldName, allLinks });
+        const inputElement = document.getElementById(inputId);
+        const inputValue = inputElement.value.trim();
         
-        // 2. MODIFICATION CRUCIALE : On force le rechargement du profil complet
-        // Cela garantit que Baserow a le temps de recalculer et qu'on récupère le vrai Status
-        if (firebaseUser && firebaseUser.email) {
-            await getUserDataByEmail(firebaseUser.email);
+        if (!inputValue) return;
+
+        // 1. DÉCOUPAGE : On sépare les liens par les virgules et on nettoie les espaces
+        const newLinks = inputValue.split(',').map(link => link.trim()).filter(link => link !== '');
+
+        // 2. VALIDATION : On vérifie chaque lien un par un
+        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+        
+        for (const link of newLinks) {
+            const isYoutubeLink = youtubeRegex.test(link);
+            
+            if (fieldName === 'YouTube Links') {
+                if (!isYoutubeLink) {
+                    showNotification('Lien invalide', `"${link}" n'est pas un lien YouTube valide.`, 'error');
+                    return; // On arrête tout si un seul lien est mauvais
+                }
+            } else {
+                // Pour les articles, on refuse les liens YouTube
+                if (isYoutubeLink) {
+                    showNotification('Lien incorrect', `"${link}" est un lien YouTube. Mettez-le dans la section YouTube.`, 'error');
+                    return;
+                }
+            }
         }
 
-        inputElement.value = '';
-        showDashboard();
-        showNotification('Succès', 'Lien ajouté avec succès.', 'success');
+        // 3. FUSION : On récupère les liens existants et on ajoute les nouveaux
+        const currentData = userRecord.fields[fieldName];
+        const existingLinks = currentData ? String(currentData).split(',').filter(l => l.trim() !== '') : [];
+        
+        // On combine et on enlève les doublons (Set)
+        const allLinksArray = [...new Set([...existingLinks, ...newLinks])];
+        const allLinksString = allLinksArray.join(',');
 
-    } catch (e) {
-        showNotification('Erreur', e.message, 'error');
+        try {
+            // 4. MISE À JOUR OPTIMISTE (Affichage immédiat)
+            if (userRecord && userRecord.fields) {
+                userRecord.fields[fieldName] = allLinksString;
+            }
+            inputElement.value = ''; // On vide le champ input tout de suite
+            showDashboard();         // On met à jour l'écran
+
+            // 5. ENVOI AU SERVEUR (n8n)
+            await callN8n('addLink', { 
+                recordId: userRecord.id, 
+                fieldName: fieldName, 
+                allLinks: allLinksString // On envoie la nouvelle liste complète
+            });
+            
+            // 6. RESYNCHRONISATION (Pour le statut Premium)
+            if (firebaseUser && firebaseUser.email) {
+                await getUserDataByEmail(firebaseUser.email);
+            }
+            
+            // Rafraîchissement final par sécurité
+            showDashboard();
+            showNotification('Succès', `${newLinks.length} lien(s) ajouté(s).`, 'success');
+
+        } catch (e) {
+            showNotification('Erreur', e.message, 'error');
+            // En cas d'erreur, l'utilisateur verra peut-être les liens disparaître au prochain rechargement,
+            // mais l'interface reste réactive.
+        }
     }
-}
 
     async function saveUserPersona() {
         if (!userRecord) return;
