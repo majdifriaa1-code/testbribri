@@ -2332,19 +2332,24 @@ async function addPodcast() {
     }
 
  // Remplacez TOUTE la fonction clearPodcast par celle-ci :
-    async function clearPodcast() {
-        if (await showNotification('Confirmation', 'Vider tous les podcasts ?', 'confirm')) {
+async function clearPodcast() {
+        if (await showNotification('Confirmation', 'Supprimer le podcast actuel ?', 'confirm')) {
             try {
-                // 1. On appelle n8n pour vider la liste
-                await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: '[]' });
+                // 1. On appelle n8n avec des chaînes vides pour effacer les deux colonnes
+                await callN8n('updatePodcasts', { 
+                    recordId: userRecord.id, 
+                    link: '',   // Efface la colonne 'Podcast RSS Links'
+                    title: ''   // Efface la colonne 'Podcast titler'
+                });
                 
-                // 2. LA CORRECTION : On force le rechargement complet
+                // 2. RECHARGEMENT ROBUSTE (Toujours nécessaire pour Baserow)
                 if (firebaseUser && firebaseUser.email) {
                     await getUserDataByEmail(firebaseUser.email);
                 }
 
+                // 3. Mise à jour de l'affichage
                 showDashboard();
-                showNotification('Succès', 'Podcasts supprimés.', 'success');
+                showNotification('Succès', 'Podcast supprimé.', 'success');
             } catch (e) { 
                 showNotification('Erreur', e.message, 'error'); 
             }
