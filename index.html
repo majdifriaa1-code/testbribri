@@ -2086,49 +2086,45 @@ let presentationIframe = null; // Référence vers l'élément iframe
         // --- FIN DE LA CORRECTION ---
     }
 
-  function updateLocalUserRecord(recordFromN8n) {
+ function updateLocalUserRecord(recordFromN8n) {
         // 1. Normalisation : On s'assure d'avoir un objet unique
-        // Parfois n8n renvoie un tableau [objet], parfois juste l'objet.
         let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
 
-        // 2. Déballage des données (Spécifique Baserow/n8n)
-        // Si les données sont cachées dans "originalData" (ce qui arrive souvent avec les nœuds n8n)
+        // 2. Déballage des données (Spécifique pour gérer les formats variables de n8n)
         if (p && p.originalData && Array.isArray(p.originalData) && p.originalData.length > 0) {
             p = p.originalData[0];
         } else if (p && p.json) {
-             // Parfois c'est dans .json
              p = p.json;
         }
 
-        // 3. Vérification de sécurité basique
+        // 3. Vérification de sécurité
         if (!p) {
             console.warn("Données reçues de n8n vides ou invalides, mise à jour annulée.");
             return;
         }
 
         // 4. Préparation des nouvelles données
-        // Baserow met souvent les données à la racine, Airtable dans .fields.
-        // On normalise tout pour avoir un objet de champs.
+        // Baserow met souvent les données à la racine, Airtable dans .fields
         const newFields = p.fields ? p.fields : p;
         
-        // On récupère l'ID s'il est présent, sinon on garde l'ancien
+        // On récupère l'ID s'il est présent, sinon on garde l'ancien ID
         const newId = p.id || (userRecord ? userRecord.id : null);
 
         // 5. MISE À JOUR INTELLIGENTE (MERGE)
         if (!userRecord) {
-            // Si c'est la première fois (Login), on crée l'objet
+            // Si c'est la première connexion, on crée l'objet
             userRecord = { id: newId, fields: { ...newFields } };
         } else {
-            // Si l'utilisateur est déjà connecté, on FUSIONNE les données
-            // On garde tout ce qu'on avait avant (Status, Name...) et on met à jour ce qui a changé
+            // C'EST ICI QUE LA MAGIE OPÈRE :
+            // On garde les anciennes données (...userRecord.fields) et on écrase seulement ce qui change (...newFields)
             userRecord.id = newId;
             userRecord.fields = {
-                ...userRecord.fields, // 1. On garde les anciennes données (ex: Status: Premium)
-                ...newFields          // 2. On écrase avec les nouvelles (ex: PdfFiles: empty)
+                ...userRecord.fields, 
+                ...newFields
             };
         }
 
-        console.log("Données utilisateur mises à jour (Fusion) :", userRecord);
+        console.log("Données utilisateur mises à jour (Fusion effectuée) :", userRecord);
     }
 
     async function getUserDataByEmail(email) {
