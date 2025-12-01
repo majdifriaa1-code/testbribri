@@ -2629,76 +2629,106 @@ async function clearPodcast() {
     }
 
 async function handlePdfUpload() {
-    const fileInput = document.getElementById('pdf-file-input');
-    const file = fileInput.files[0];
-    
-    if (!file) {
-        showNotification('Aucun fichier', 'Veuillez sélectionner un fichier.', 'error');
-        return;
-    }
-    if (file.type !== 'application/pdf') {
-        showNotification('Type de fichier incorrect', 'Seuls les fichiers PDF sont autorisés.', 'error');
-        fileInput.value = ''; 
-        return;
-    }
-    // Limite de 50MB
-    if (file.size > 50 * 1024 * 1024) {
-        showNotification('Fichier trop volumineux', 'Le fichier ne doit pas dépasser 50 Mo.', 'error');
-        fileInput.value = ''; 
-        return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onprogress = (event) => {
-        if (event.lengthComputable) {
-            const percentage = Math.round((event.loaded / event.total) * 100);
-            showTempLoading(`Préparation: ${percentage}%`);
+        const fileInput = document.getElementById('pdf-file-input');
+        const files = fileInput.files; // On récupère la LISTE des fichiers
+        
+        if (!files || files.length === 0) {
+            showNotification('Aucun fichier', 'Veuillez sélectionner au moins un fichier.', 'error');
+            return;
         }
-    };
 
-    reader.onerror = (error) => {
-        hideTempLoading();
-        showNotification('Erreur de lecture', `Impossible de lire le fichier`, 'error');
-        fileInput.value = ''; 
-    };
+        // 1. VALIDATION DE TOUS LES FICHIERS AVANT ENVOI
+        const validFiles = [];
+        const maxSize = 50 * 1024 * 1024; // 50MB
 
-    reader.onload = async () => {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (file.type !== 'application/pdf') {
+                showNotification('Ignoré', `"${file.name}" n'est pas un PDF.`, 'error');
+                continue;
+            }
+            if (file.size > maxSize) {
+                showNotification('Ignoré', `"${file.name}" dépasse 50 Mo.`, 'error');
+                continue;
+            }
+            validFiles.push(file);
+        }
+
+        if (validFiles.length === 0) {
+            fileInput.value = '';
+            return;
+        }
+
+        // 2. MISE À JOUR OPTIMISTE (Affichage immédiat)
+        // On récupère les fichiers existants
+        let currentFiles = [];
+        const rawFiles = userRecord.fields['PdfFiles'];
+        
+        // Baserow renvoie un tableau d'objets, on gère les cas bizarres
+        if (Array.isArray(rawFiles)) {
+            currentFiles = rawFiles;
+        } else if (rawFiles && typeof rawFiles === 'object') {
+            currentFiles = [rawFiles];
+        }
+
+        // On crée des "faux" objets fichiers pour l'affichage immédiat
+        const optimisticNewFiles = validFiles.map(f => ({
+            visible_name: f.name, // Nom affiché
+            name: f.name,
+            url: '#' // Pas encore d'URL, mais ça permet d'afficher le nom dans la liste
+        }));
+
+        // On met à jour l'interface tout de suite
+        if (userRecord && userRecord.fields) {
+            // On concatène les anciens et les nouveaux
+            userRecord.fields['PdfFiles'] = [...currentFiles, ...optimisticNewFiles];
+        }
+        
+        // On ferme la modale et on actualise la vue
+        const addSourceModal = document.getElementById('add-source-modal');
+        if (addSourceModal) addSourceModal.classList.add('hidden');
+        showDashboard(); 
+
+        // 3. ENVOI DES FICHIERS (Un par un pour la sécurité)
+        showTempLoading(`Traitement de ${validFiles.length} fichier(s)...`);
+
         try {
-            showTempLoading("Ajout du PDF en cours...");
-            
-            // Appel à n8n
-            const updatedRecord = await callN8n('addPdfFile', {
-                recordId: userRecord.id,
-                fileName: file.name,
-                fileData: reader.result 
-            });
+            for (let i = 0; i < validFiles.length; i++) {
+                const file = validFiles[i];
+                
+                // Mise à jour du message de chargement
+                showTempLoading(`Envoi de ${i + 1}/${validFiles.length}: ${file.name}...`);
+                
+                // Lecture du fichier (grâce à notre nouvelle fonction utilitaire)
+                const base64Data = await readFileAsBase64(file);
 
-            // Mise à jour sécurisée des données locales
-            updateLocalUserRecord(updatedRecord);
+                // Appel N8N pour ce fichier spécifique
+                await callN8n('addPdfFile', {
+                    recordId: userRecord.id,
+                    fileName: file.name,
+                    fileData: base64Data
+                });
+            }
 
-            // --- MODIFICATION IMPORTANTE ICI ---
-            // On rafraîchit TOUT le dashboard (Header + Badges + Table)
-            // au lieu de juste updateSourcesTable()
-            showDashboard(); 
-            // -----------------------------------
+            // 4. RESYNCHRONISATION FINALE
+            showTempLoading("Finalisation...");
+            if (firebaseUser && firebaseUser.email) {
+                await getUserDataByEmail(firebaseUser.email);
+            }
 
             hideTempLoading();
-            showNotification('Succès', 'Votre fichier PDF a été ajouté.', 'success');
-            
-            fileInput.value = '';
-            const addSourceModal = document.getElementById('add-source-modal');
-            if (addSourceModal) addSourceModal.classList.add('hidden');
+            showDashboard();
+            showNotification('Succès', `${validFiles.length} fichier(s) ajouté(s).`, 'success');
+            fileInput.value = ''; // Reset du champ
 
         } catch (e) {
             hideTempLoading();
-            showNotification('Erreur', `L'envoi du fichier a échoué : ${e.message}`, 'error');
-            fileInput.value = ''; 
+            showNotification('Erreur', `Erreur durant l'envoi : ${e.message}`, 'error');
+            // En cas d'erreur critique, on force un rechargement pour remettre l'état réel
+            if (firebaseUser && firebaseUser.email) await getUserDataByEmail(firebaseUser.email);
+            showDashboard();
         }
-    };
-
-    reader.readAsDataURL(file);
-}
+    }
 
     function createSignupModalHTML() {
         return `<div class="modal-overlay"><div class="modal-content max-w-md"><button id="close-signup-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-light">&times;</button><h2 class="font-display text-2xl mb-6 text-center">Créer votre compte</h2><div class="space-y-4 text-left"><div><label for="signup-name" class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label><input type="text" id="signup-name" placeholder="John Doe" class="input-field"></div><div><label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label><input type="email" id="signup-email" placeholder="nom@exemple.com" class="input-field"></div><div><label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label><input type="password" id="signup-password" placeholder="••••••••" class="input-field"></div><p id="signup-error" class="text-sm text-red-500 hidden"></p><button id="signup-button" class="w-full btn btn-primary py-3 mt-4">S'inscrire</button></div></div></div>`;
@@ -3199,7 +3229,15 @@ function copyDebriefContent(contentElement, buttonElement) {
 }
 
 
-
+// Fonction utilitaire pour lire un fichier en Base64 proprement
+    function readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(file);
+        });
+    }
 
 
 
@@ -3580,7 +3618,10 @@ if (closeDebriefModalBtn && debriefModal) {
             // document.getElementById('debrief-view-content').innerHTML = '';
         });
     }
-        
+      // Ajoutez ceci juste après avoir défini pdfFileInput (vers ligne 663 ou 732)
+if (pdfFileInput) {
+    pdfFileInput.setAttribute('multiple', ''); // Active la sélection multiple
+}  
         
         if (showMainModalBtn && mainModal) {
             showMainModalBtn.addEventListener('click', () => {
