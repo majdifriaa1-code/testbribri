@@ -2200,34 +2200,46 @@ async function addLink(fieldName, inputId) {
         }
     }
 
-    async function addPodcast() {
-        const newLink = document.getElementById('podcast-link-input').value.trim();
-        const newTitle = document.getElementById('podcast-title-input').value.trim();
-        if (!newLink) {
-            showNotification("Attention", "Veuillez fournir le lien RSS du podcast.", 'error');
-            return;
-        }
-        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-        if (youtubeRegex.test(newLink)) {
-            showNotification('Lien incorrect', 'Veuillez ajouter les liens YouTube dans la section dédiée.', 'error');
-            return;
-        }
-        let podcasts = [];
-        try {
-            podcasts = JSON.parse(userRecord.fields['Podcast RSS Links'] || '[]');
-        } catch (e) {
-            console.error("Could not parse podcast JSON", e);
-        }
-        podcasts.push({ link: newLink, title: newTitle });
-        try {
-            updateLocalUserRecord(await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: JSON.stringify(podcasts) }));
-            document.getElementById('podcast-link-input').value = '';
-            document.getElementById('podcast-title-input').value = '';
-            showDashboard();
-        } catch (e) {
-            showNotification('Erreur', e.message, 'error');
-        }
+    // Remplacez TOUTE la fonction addPodcast par celle-ci :
+async function addPodcast() {
+    const newLink = document.getElementById('podcast-link-input').value.trim();
+    const newTitle = document.getElementById('podcast-title-input').value.trim();
+
+    if (!newLink) {
+        showNotification("Attention", "Veuillez fournir le lien RSS du podcast.", 'error');
+        return;
     }
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+    if (youtubeRegex.test(newLink)) {
+        showNotification('Lien incorrect', 'Veuillez ajouter les liens YouTube dans la section dédiée.', 'error');
+        return;
+    }
+
+    let podcasts = [];
+    try {
+        podcasts = JSON.parse(userRecord.fields['Podcast RSS Links'] || '[]');
+    } catch (e) { console.error(e); }
+
+    podcasts.push({ link: newLink, title: newTitle });
+
+    try {
+        // 1. On envoie à n8n
+        await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: JSON.stringify(podcasts) });
+        
+        // 2. MODIFICATION CRUCIALE : On recharge le profil complet
+        if (firebaseUser && firebaseUser.email) {
+            await getUserDataByEmail(firebaseUser.email);
+        }
+
+        document.getElementById('podcast-link-input').value = '';
+        document.getElementById('podcast-title-input').value = '';
+        showDashboard();
+        showNotification('Succès', 'Podcast ajouté.', 'success');
+
+    } catch (e) {
+        showNotification('Erreur', e.message, 'error');
+    }
+}
 
   async function addPastedText() {
             if (!userRecord) return;
@@ -2288,21 +2300,44 @@ async function addLink(fieldName, inputId) {
             }
         }
 
+   // Remplacez TOUTE la fonction clearLinks par celle-ci :
     async function clearLinks(fieldName) {
         if (await showNotification('Confirmation', 'Vider tous les liens de cette catégorie ?', 'confirm')) {
             try {
-                updateLocalUserRecord(await callN8n('clearLinks', { recordId: userRecord.id, fieldName }));
+                // 1. On appelle n8n pour supprimer
+                await callN8n('clearLinks', { recordId: userRecord.id, fieldName });
+                
+                // 2. LA CORRECTION : On force le rechargement complet du profil
+                // pour être sûr de récupérer le Statut et les Crédits corrects
+                if (firebaseUser && firebaseUser.email) {
+                    await getUserDataByEmail(firebaseUser.email);
+                }
+
                 showDashboard();
-            } catch (e) { showNotification('Erreur', e.message, 'error'); }
+                showNotification('Succès', 'Suppression effectuée.', 'success');
+            } catch (e) { 
+                showNotification('Erreur', e.message, 'error'); 
+            }
         }
     }
 
+ // Remplacez TOUTE la fonction clearPodcast par celle-ci :
     async function clearPodcast() {
         if (await showNotification('Confirmation', 'Vider tous les podcasts ?', 'confirm')) {
             try {
-                updateLocalUserRecord(await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: '[]' }));
+                // 1. On appelle n8n pour vider la liste
+                await callN8n('updatePodcasts', { recordId: userRecord.id, podcastData: '[]' });
+                
+                // 2. LA CORRECTION : On force le rechargement complet
+                if (firebaseUser && firebaseUser.email) {
+                    await getUserDataByEmail(firebaseUser.email);
+                }
+
                 showDashboard();
-            } catch (e) { showNotification('Erreur', e.message, 'error'); }
+                showNotification('Succès', 'Podcasts supprimés.', 'success');
+            } catch (e) { 
+                showNotification('Erreur', e.message, 'error'); 
+            }
         }
     }
 
