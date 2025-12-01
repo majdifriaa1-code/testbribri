@@ -2546,52 +2546,71 @@ async function clearPodcast() {
       
             } else if (f.n === 'PdfFiles') {
                 let files = [];
-                let rawData = fieldData;
+                let raw = fieldData;
 
-                // 1. DÉBALLAGE RÉCURSIF (La solution magique)
-                // Si n8n renvoie du JSON dans du texte (ex: string dans une string), on le parse jusqu'à trouver l'objet.
+                console.log("DEBUG PDF BRUT:", raw); // Regardez la console (F12) pour voir ce qu'on reçoit
+
                 try {
-                    while (typeof rawData === 'string' && (rawData.trim().startsWith('[') || rawData.trim().startsWith('{'))) {
-                        const parsed = JSON.parse(rawData);
-                        rawData = parsed;
+                    // ÉTAPE 1 : Nettoyage préliminaire
+                    if (typeof raw === 'string') {
+                        raw = raw.trim();
+                        // Enlève les guillemets au début/fin si n8n a transformé le JSON en string "[\"... \"]"
+                        if (raw.startsWith('"') && raw.endsWith('"')) {
+                            raw = raw.slice(1, -1).replace(/\\"/g, '"');
+                        }
                     }
+
+                    // ÉTAPE 2 : Décodage Intelligent
+                    if (Array.isArray(raw)) {
+                        // C'est déjà un tableau parfait
+                        files = raw;
+                    } 
+                    else if (typeof raw === 'string') {
+                        if (raw.startsWith('[') || raw.startsWith('{')) {
+                            // C'est du JSON (format standard Baserow/n8n)
+                            const parsed = JSON.parse(raw);
+                            files = Array.isArray(parsed) ? parsed : [parsed];
+                        } else if (raw.includes(',')) {
+                            // C'est une liste d'URLs séparées par des virgules
+                            files = raw.split(',').map(url => ({ url: url.trim() }));
+                        } else if (raw.length > 0) {
+                            // C'est une seule URL ou un seul nom
+                            files = [{ url: raw }];
+                        }
+                    }
+                    else if (raw && typeof raw === 'object') {
+                        // C'est un objet unique
+                        files = [raw];
+                    }
+
+                    // ÉTAPE 3 : Normalisation (On s'assure que chaque fichier a un nom et une URL)
+                    // On aplatit le tableau au cas où (ex: [[fichier1], fichier2])
+                    files = files.flat().filter(f => f); 
+
                 } catch (e) {
-                    // Si ça échoue, on arrête et on traite comme du texte simple
+                    console.error("Erreur parsing PDF:", e);
                 }
 
-                // 2. NORMALISATION EN TABLEAU
-                if (Array.isArray(rawData)) {
-                    files = rawData;
-                } else if (rawData && typeof rawData === 'object') {
-                    files = [rawData]; // Objet unique transformé en tableau
-                } else if (typeof rawData === 'string' && rawData.trim() !== '') {
-                    // Fallback : Liste d'URLs séparées par des virgules (Ancien format)
-                    files = rawData.split(',').map(u => ({ url: u.trim() }));
-                }
-
-                // 3. AFFICHAGE ROBUSTE
+                // --- AFFICHAGE ---
                 if (files.length > 0) {
                     contentExists = true;
                     cardContent = files.map(file => {
-                        // On cherche le nom partout où Baserow pourrait le cacher
+                        // On cherche le nom partout
                         let name = file.visible_name || file.original_name || file.name || file.filename;
+                        // On cherche l'URL partout (parfois l'objet lui-même est l'URL si c'est une string)
                         let url = file.url || (typeof file === 'string' ? file : '#');
 
-                        // Si le nom est un hash (fréquent chez Baserow) et qu'on a une URL, on essaie de récupérer un nom plus joli depuis l'URL
-                        if (url !== '#' && url.includes('/')) {
-                             // Si le nom actuel ressemble à un hash (pas d'extension .pdf visible ou très long sans espace)
-                             if (!name || (!name.toLowerCase().endsWith('.pdf') && name.length > 20)) {
-                                 try {
-                                     name = decodeURIComponent(url.split('/').pop());
-                                 } catch(e) {}
-                             }
+                        // Si on n'a pas de nom mais une URL, on extrait la fin de l'URL
+                        if (!name && url !== '#' && url.includes('/')) {
+                             try { name = decodeURIComponent(url.split('/').pop()); } catch(e) { name = "Fichier PDF"; }
                         }
                         
+                        // Nettoyage final du nom (pour éviter les noms trop longs ou bizarres)
                         if (!name) name = "Document PDF";
-
-                        return `<div class="text-xs truncate text-gray-500 flex items-center gap-1 mb-1" title="${name}">
-                                    <svg class="w-3 h-3 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                                    <a href="${url}" target="_blank" class="hover:text-blue-600 hover:underline truncate">${name}</a>
+                        
+                        return `<div class="text-xs text-gray-500 flex items-center gap-2 mb-2 p-2 bg-white rounded border border-gray-100" title="${name}">
+                                    <svg class="w-4 h-4 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                    <a href="${url}" target="_blank" class="hover:text-blue-600 hover:underline truncate flex-grow font-medium">${name}</a>
                                 </div>`;
                     }).join('');
                     
