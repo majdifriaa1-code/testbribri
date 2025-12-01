@@ -2087,51 +2087,50 @@ let presentationIframe = null; // Référence vers l'élément iframe
     }
 
  function updateLocalUserRecord(recordFromN8n) {
-        // 1. Normalisation
+        // 1. Normalisation : On s'assure d'avoir un objet unique
         let p = Array.isArray(recordFromN8n) && recordFromN8n.length > 0 ? recordFromN8n[0] : recordFromN8n;
 
-        // 2. Déballage
+        // 2. Déballage des données (Spécifique pour gérer les formats variables de n8n)
         if (p && p.originalData && Array.isArray(p.originalData) && p.originalData.length > 0) {
             p = p.originalData[0];
         } else if (p && p.json) {
             p = p.json;
         }
 
-        // 3. Sécurité : Si aucune donnée valide, on arrête.
-        if (!p) {
-            console.warn("Données reçues de n8n vides ou invalides, mise à jour annulée.");
-            return;
-        }
+        // 3. Vérification de sécurité
+        if (!p) return;
 
         // 4. Préparation des nouvelles données
         const newFields = p.fields ? p.fields : p;
         const newId = p.id || (userRecord ? userRecord.id : null);
 
-        // 5. MISE À JOUR INTELLIGENTE (MERGE SÉCURISÉ)
+        // 5. MISE À JOUR SÉCURISÉE
         if (!userRecord) {
+            // Première connexion : on prend tout
             userRecord = { id: newId, fields: { ...newFields } };
         } else {
+            // Mise à jour : On garde l'ID et on fusionne prudemment
             userRecord.id = newId;
             
-            // --- PROTECTION CONTRE LES VALEURS NULL ---
-            // On prépare un objet qui ne contient QUE les champs valides reçus
-            const safeFieldsToMerge = {};
-            
-            for (const key in newFields) {
-                // On ignore les valeurs null ou undefined qui pourraient effacer nos données existantes
-                if (newFields[key] !== null && newFields[key] !== undefined) {
-                    safeFieldsToMerge[key] = newFields[key];
-                }
-            }
+            // On parcourt chaque nouveau champ reçu
+            Object.keys(newFields).forEach(key => {
+                const newValue = newFields[key];
 
-            // On fusionne : Les anciennes données restent SI les nouvelles sont nulles
-            userRecord.fields = {
-                ...userRecord.fields, 
-                ...safeFieldsToMerge
-            };
+                // CRUCIAL : Si la nouvelle valeur est null ou undefined, on ne touche PAS à l'existant.
+                // Cela empêche Airtable/Baserow d'effacer votre Statut/Crédits s'ils ne sont pas renvoyés.
+                if (newValue === null || newValue === undefined) return;
+
+                // PROTECTION EXTRA : Si le Status arrive vide (string vide), on l'ignore aussi
+                if (key === 'Status' && !newValue) return;
+
+                // Si tout est bon, on met à jour seulement ce champ spécifique
+                userRecord.fields[key] = newValue;
+            });
         }
-        console.log("Données utilisateur mises à jour (Fusion sécurisée) :", userRecord);
+
+        console.log("Données utilisateur mises à jour (Sécurisé) :", userRecord);
     }
+  
     async function getUserDataByEmail(email) {
         const rawResult = await callN8n('findUser', { email });
         updateLocalUserRecord(rawResult);
